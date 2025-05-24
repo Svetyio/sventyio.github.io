@@ -98,3 +98,89 @@
     }
 
     // продължава в част 2...
+
+    <script>
+function drawGrid() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let row = 0; row < GRID_SIZE; row++) {
+    for (let col = 0; col < GRID_SIZE; col++) {
+      drawCell(row, col, grid[row][col]);
+    }
+  }
+  drawButton();
+  drawInfo();
+  drawBets();
+}
+
+function drawButton() {
+  ctx.fillStyle = '#c00';
+  ctx.fillRect(canvas.width / 2 - 100, 800, 200, 60);
+  ctx.fillStyle = 'white';
+  ctx.font = '28px Arial';
+  ctx.fillText('SPIN', canvas.width / 2 - 35, 840);
+}
+
+function drawInfo() {
+  ctx.fillStyle = 'white';
+  ctx.font = '20px Arial';
+  ctx.fillText(`Coins: ${coins}`, 50, 950);
+  ctx.fillText(`Last Win: ${lastWin}`, 250, 950);
+  ctx.fillText(`Total Win: ${totalWin}`, 450, 950);
+}
+
+function drawBets() {
+  BET_OPTIONS.forEach((bet, index) => {
+    const x = 150 + index * 120;
+    const y = 1000;
+    ctx.beginPath();
+    ctx.arc(x, y, 40, 0, 2 * Math.PI);
+    ctx.fillStyle = bet === selectedBet ? 'green' : 'gray';
+    ctx.fill();
+    ctx.fillStyle = 'white';
+    ctx.font = '20px Arial';
+    ctx.fillText(bet, x - 15, y + 7);
+  });
+}
+
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  if (x >= canvas.width / 2 - 100 && x <= canvas.width / 2 + 100 && y >= 800 && y <= 860) {
+    spin();
+  }
+
+  BET_OPTIONS.forEach((bet, index) => {
+    const cx = 150 + index * 120;
+    const cy = 1000;
+    const dx = x - cx;
+    const dy = y - cy;
+    if (Math.sqrt(dx * dx + dy * dy) <= 40) {
+      selectedBet = bet;
+    }
+  });
+});
+
+function spin() {
+  if (coins < selectedBet) return;
+  coins -= selectedBet;
+  generateGrid();
+  lastWin = calculateWin();
+  coins += lastWin;
+  totalWin += lastWin;
+  drawGrid();
+}
+
+function calculateWin() {
+  let win = 0;
+  for (let row = 0; row < GRID_SIZE; row++) {
+    if (grid[row].every(fruit => fruit === grid[row][0])) {
+      win += FRUIT_VALUES[grid[row][0]] * 5;
+    }
+  }
+  return win * (selectedBet / 20);
+}
+
+drawGrid();
+</script>
