@@ -16,33 +16,12 @@
       margin: 0 auto;
       background-color: #222;
     }
-    .info {
-      margin-top: 10px;
-      font-size: 20px;
-    }
-    .btn {
-      background-color: #c00;
-      border: none;
-      padding: 10px 20px;
-      font-size: 20px;
-      color: white;
-      cursor: pointer;
-      border-radius: 8px;
-    }
-    .btn:hover {
-      background-color: #e00;
-    }
   </style>
 </head>
 <body>
   <h1>Добре дошли в Svetlyo Games</h1>
   <canvas id="gameCanvas" width="800" height="600"></canvas>
-  <div class="info">
-    <div id="coins">Монети: 500</div>
-    <div id="lastWin">Последна печалба: 0</div>
-    <div id="totalWin">Обща печалба: 0</div>
-    <button class="btn" onclick="spin()">SPIN</button>
-  </div>
+
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -57,30 +36,14 @@
     };
 
     const GRID_SIZE = 5;
+    const BET_OPTIONS = [20, 40, 60, 100, 200];
+    let selectedBet = BET_OPTIONS[0];
+    let betButtons = [];
+    let buttonRect = {};
     let grid = [];
     let coins = 500;
     let lastWin = 0;
     let totalWin = 0;
-
-    function drawGrid() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const cellSize = 100;
-      const margin = 10;
-      const offsetX = (canvas.width - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
-      const offsetY = 100;
-      for (let row = 0; row < GRID_SIZE; row++) {
-        for (let col = 0; col < GRID_SIZE; col++) {
-          const fruit = grid[row][col];
-          const x = offsetX + col * (cellSize + margin);
-          const y = offsetY + row * (cellSize + margin);
-          ctx.fillStyle = FRUIT_COLORS[fruit];
-          ctx.fillRect(x, y, cellSize, cellSize);
-          ctx.fillStyle = 'white';
-          ctx.font = '20px Arial';
-          ctx.fillText(fruit, x + 10, y + 30);
-        }
-      }
-    }
 
     function randomFruit() {
       return FRUITS[Math.floor(Math.random() * FRUITS.length)];
@@ -97,90 +60,111 @@
       }
     }
 
-    // продължава в част 2...
-
-    <script>
-function drawGrid() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  for (let row = 0; row < GRID_SIZE; row++) {
-    for (let col = 0; col < GRID_SIZE; col++) {
-      drawCell(row, col, grid[row][col]);
+    function drawCell(row, col, fruit) {
+      const cellSize = 100;
+      const margin = 10;
+      const offsetX = (canvas.width - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
+      const offsetY = 60;
+      const x = offsetX + col * (cellSize + margin);
+      const y = offsetY + row * (cellSize + margin);
+      ctx.fillStyle = FRUIT_COLORS[fruit];
+      ctx.fillRect(x, y, cellSize, cellSize);
+      ctx.fillStyle = 'white';
+      ctx.font = '16px Arial';
+      ctx.fillText(fruit, x + 10, y + 25);
     }
-  }
-  drawButton();
-  drawInfo();
-  drawBets();
-}
 
-function drawButton() {
-  ctx.fillStyle = '#c00';
-  ctx.fillRect(canvas.width / 2 - 100, 800, 200, 60);
-  ctx.fillStyle = 'white';
-  ctx.font = '28px Arial';
-  ctx.fillText('SPIN', canvas.width / 2 - 35, 840);
-}
-
-function drawInfo() {
-  ctx.fillStyle = 'white';
-  ctx.font = '20px Arial';
-  ctx.fillText(`Coins: ${coins}`, 50, 950);
-  ctx.fillText(`Last Win: ${lastWin}`, 250, 950);
-  ctx.fillText(`Total Win: ${totalWin}`, 450, 950);
-}
-
-function drawBets() {
-  BET_OPTIONS.forEach((bet, index) => {
-    const x = 150 + index * 120;
-    const y = 1000;
-    ctx.beginPath();
-    ctx.arc(x, y, 40, 0, 2 * Math.PI);
-    ctx.fillStyle = bet === selectedBet ? 'green' : 'gray';
-    ctx.fill();
-    ctx.fillStyle = 'white';
-    ctx.font = '20px Arial';
-    ctx.fillText(bet, x - 15, y + 7);
-  });
-}
-
-canvas.addEventListener('click', (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-
-  if (x >= canvas.width / 2 - 100 && x <= canvas.width / 2 + 100 && y >= 800 && y <= 860) {
-    spin();
-  }
-
-  BET_OPTIONS.forEach((bet, index) => {
-    const cx = 150 + index * 120;
-    const cy = 1000;
-    const dx = x - cx;
-    const dy = y - cy;
-    if (Math.sqrt(dx * dx + dy * dy) <= 40) {
-      selectedBet = bet;
+    function drawGrid() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let row = 0; row < GRID_SIZE; row++) {
+        for (let col = 0; col < GRID_SIZE; col++) {
+          drawCell(row, col, grid[row][col]);
+        }
+      }
+      drawButton();
+      drawInfo();
+      drawBets();
     }
-  });
-});
 
-function spin() {
-  if (coins < selectedBet) return;
-  coins -= selectedBet;
-  generateGrid();
-  lastWin = calculateWin();
-  coins += lastWin;
-  totalWin += lastWin;
-  drawGrid();
-}
-
-function calculateWin() {
-  let win = 0;
-  for (let row = 0; row < GRID_SIZE; row++) {
-    if (grid[row].every(fruit => fruit === grid[row][0])) {
-      win += FRUIT_VALUES[grid[row][0]] * 5;
+    function drawButton() {
+      ctx.fillStyle = '#c00';
+      ctx.fillRect(canvas.width / 2 - 100, canvas.height - 140, 200, 60);
+      ctx.fillStyle = 'white';
+      ctx.font = '24px Arial';
+      ctx.fillText('SPIN', canvas.width / 2 - 30, canvas.height - 100);
+      buttonRect = {
+        x: canvas.width / 2 - 100,
+        y: canvas.height - 140,
+        width: 200,
+        height: 60
+      };
     }
-  }
-  return win * (selectedBet / 20);
-}
 
-drawGrid();
-</script>
+    function drawInfo() {
+      ctx.fillStyle = '#ccc';
+      ctx.font = '18px Arial';
+      ctx.fillText(`Монети: ${coins}`, 20, 30);
+      ctx.fillText(`Последна печалба: ${lastWin}`, 20, 50);
+      ctx.fillText(`Обща печалба: ${totalWin}`, 20, 70);
+    }
+
+    function drawBets() {
+      betButtons = [];
+      BET_OPTIONS.forEach((bet, index) => {
+        let x = 20 + index * 80;
+        let y = canvas.height - 70;
+        ctx.beginPath();
+        ctx.arc(x, y, 30, 0, 2 * Math.PI);
+        ctx.fillStyle = (bet === selectedBet) ? 'green' : 'gray';
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.fillText(bet, x - 10, y + 5);
+        betButtons.push({x, y, bet});
+      });
+    }
+
+    function checkWin() {
+      let points = 0;
+      for (let row = 0; row < GRID_SIZE; row++) {
+        if (grid[row].every(fruit => fruit === grid[row][0])) {
+          points += 100;
+        }
+      }
+      return points;
+    }
+
+    function spin() {
+      if (coins < selectedBet) return;
+      coins -= selectedBet;
+      generateGrid();
+      let win = checkWin();
+      coins += win;
+      lastWin = win;
+      totalWin += win;
+      drawGrid();
+    }
+
+    canvas.addEventListener('click', function(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      if (x > buttonRect.x && x < buttonRect.x + buttonRect.width &&
+          y > buttonRect.y && y < buttonRect.y + buttonRect.height) {
+        spin();
+      } else {
+        betButtons.forEach(btn => {
+          let dx = x - btn.x;
+          let dy = y - btn.y;
+          if (Math.sqrt(dx * dx + dy * dy) < 30) {
+            selectedBet = btn.bet;
+            drawGrid();
+          }
+        });
+      }
+    });
+
+    generateGrid();
+    drawGrid();
+  </script>
+</body>
+</html>
