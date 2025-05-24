@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="bg">
+<!DOCTYPE html>
+<html lang="bg">
 <head>
   <meta charset="UTF-8">
   <title>Svetlyo Slot Game</title>
@@ -29,6 +30,7 @@
       margin: 10px;
       border-radius: 12px;
       box-shadow: 0 0 10px #444;
+      font-size: 20px;
     }
     #coins { background-color: #2e8b57; color: #fff; }
     #lastWin { background-color: #8b0000; color: #fff; }
@@ -65,149 +67,5 @@
       <button class="btn" onclick="setBet(200)">200</button>
     </div>
     <button class="btn" onclick="spin()">SPIN</button>
-  </div>  <script>
-    // Първа част от JavaScript логиката ще продължи тук...
-  </script></body>
-</html>
-
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-
-const FRUITS = ['apple', 'cherry', 'grape', 'star', 'watermelon'];
-const FRUIT_COLORS = {
-  apple: 'red',
-  cherry: 'darkred',
-  grape: 'purple',
-  star: 'yellow',
-  watermelon: 'pink'
-};
-
-const GRID_SIZE = 5;
-const BET_OPTIONS = [20, 40, 60, 100, 200];
-let selectedBet = 20;
-let coins = 500;
-let lastWin = 0;
-let totalWin = 0;
-let grid = [];
-let betHistory = [];
-let winFlash = false;
-let flashTimer = 0;
-
-// Тайна комбинация: 20 → 60 → 100 → 60 → 200
-const SECRET_PATTERN = [20, 60, 100, 60, 200];
-
-function setBet(bet) {
-  selectedBet = bet;
-  betHistory.push(bet);
-  if (betHistory.length > 5) betHistory.shift();
-}
-
-function randomFruit() {
-  return FRUITS[Math.floor(Math.random() * FRUITS.length)];
-}
-
-function generateGrid(fullMatch = false) {
-  grid = [];
-  for (let row = 0; row < GRID_SIZE; row++) {
-    const rowData = [];
-    for (let col = 0; col < GRID_SIZE; col++) {
-      rowData.push(fullMatch ? FRUITS[Math.floor(Math.random() * FRUITS.length)] : randomFruit());
-    }
-    grid.push(rowData);
-  }
-}
-
-function drawCell(row, col, fruit) {
-  const cellSize = 100;
-  const margin = 10;
-  const offsetX = (canvas.width - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
-  const offsetY = 80;
-  const x = offsetX + col * (cellSize + margin);
-  const y = offsetY + row * (cellSize + margin);
-  ctx.fillStyle = FRUIT_COLORS[fruit];
-  ctx.fillRect(x, y, cellSize, cellSize);
-  ctx.strokeStyle = '#fff';
-  ctx.strokeRect(x, y, cellSize, cellSize);
-  ctx.fillStyle = 'white';
-  ctx.font = '18px Arial';
-  ctx.fillText(fruit, x + 10, y + 25);
-}
-
-function drawGrid() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  for (let row = 0; row < GRID_SIZE; row++) {
-    for (let col = 0; col < GRID_SIZE; col++) {
-      drawCell(row, col, grid[row][col]);
-    }
-  }
-
-  if (winFlash) {
-    ctx.fillStyle = 'rgba(255, 255, 0, 0.2)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-
-  drawInfo();
-}
-
-function drawInfo() {
-  document.getElementById('coins').innerText = `Монети: ${coins}`;
-  document.getElementById('lastWin').innerText = `Последна печалба: ${lastWin}`;
-  document.getElementById('totalWin').innerText = `Обща печалба: ${totalWin}`;
-}
-
-function checkWin() {
-  let points = 0;
-  for (let row = 0; row < GRID_SIZE; row++) {
-    if (grid[row].every(f => f === grid[row][0])) {
-      points += 100;
-    }
-  }
-  return points;
-}
-
-function triggerWinFlash() {
-  winFlash = true;
-  flashTimer = 10;
-}
-
-function updateFlash() {
-  if (flashTimer > 0) {
-    flashTimer--;
-    if (flashTimer === 0) {
-      winFlash = false;
-    }
-  }
-}
-
-function spin() {
-  if (coins < selectedBet) return;
-
-  const matchSecret = SECRET_PATTERN.every((val, i) => val === betHistory[i]);
-
-  coins -= selectedBet;
-  generateGrid(matchSecret);
-  let win = checkWin();
-
-  if (matchSecret) {
-    win += 500;
-  }
-
-  coins += win;
-  lastWin = win;
-  totalWin += win;
-
-  if (win > 0) {
-    triggerWinFlash();
-  }
-
-  drawGrid();
-}
-
-function gameLoop() {
-  updateFlash();
-  drawGrid();
-  requestAnimationFrame(gameLoop);
-}
-
-generateGrid();
-gameLoop();
+  </div>
+  <script>
