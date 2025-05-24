@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="bg">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Svetlyo Slot Game</title>
   <style>
     body {
@@ -14,157 +14,104 @@
     canvas {
       display: block;
       margin: 0 auto;
-      background-color: #222;
+      background-color: #111;
+    }
+    #ui {
+      margin-top: 10px;
+    }
+    .btn {
+      padding: 10px 30px;
+      margin: 10px;
+      font-size: 18px;
+      color: white;
+      background-color: #c00;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #e00;
     }
   </style>
 </head>
 <body>
   <h1>Добре дошли в Svetlyo Games</h1>
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <canvas id="gameCanvas" width="1000" height="800"></canvas>
+  <div id="ui">
+    <div id="stats">
+      <span id="coins">Монети: 500</span> |
+      <span id="lastWin">Последна печалба: 0</span> |
+      <span id="totalWin">Обща печалба: 0</span>
+    </div>
+    <div id="bets">
+      <button class="btn" onclick="setBet(20)">20</button>
+      <button class="btn" onclick="setBet(40)">40</button>
+      <button class="btn" onclick="setBet(60)">60</button>
+      <button class="btn" onclick="setBet(100)">100</button>
+      <button class="btn" onclick="setBet(200)">200</button>
+    </div>
+    <button class="btn" onclick="spin()">SPIN</button>
+  </div>
 
   <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-
-    const FRUITS = ['apple', 'cherry', 'grape', 'star', 'watermelon'];
-    const FRUIT_COLORS = {
-      apple: 'red',
-      cherry: 'darkred',
-      grape: 'purple',
-      star: 'yellow',
-      watermelon: 'pink'
+function drawButton() {
+  if (coins <= 0) {
+    ctx.fillStyle = 'green';
+    ctx.fillRect(canvas.width / 2 - 120, canvas.height - 140, 240, 70);
+    ctx.fillStyle = 'white';
+    ctx.font = '26px Arial';
+    ctx.fillText('НОВА ИГРА', canvas.width / 2 - 70, canvas.height - 95);
+    buttonRect = {
+      x: canvas.width / 2 - 120,
+      y: canvas.height - 140,
+      width: 240,
+      height: 70,
+      restart: true
     };
+  } else {
+    ctx.fillStyle = '#c00';
+    ctx.fillRect(canvas.width / 2 - 100, canvas.height - 140, 200, 60);
+    ctx.fillStyle = 'white';
+    ctx.font = '24px Arial';
+    ctx.fillText('SPIN', canvas.width / 2 - 30, canvas.height - 100);
+    buttonRect = {
+      x: canvas.width / 2 - 100,
+      y: canvas.height - 140,
+      width: 200,
+      height: 60,
+      restart: false
+    };
+  }
+}
 
-    const GRID_SIZE = 5;
-    const BET_OPTIONS = [20, 40, 60, 100, 200];
-    let selectedBet = BET_OPTIONS[0];
-    let betButtons = [];
-    let buttonRect = {};
-    let grid = [];
-    let coins = 500;
-    let lastWin = 0;
-    let totalWin = 0;
-
-    function randomFruit() {
-      return FRUITS[Math.floor(Math.random() * FRUITS.length)];
+canvas.addEventListener('click', function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  if (x > buttonRect.x && x < buttonRect.x + buttonRect.width &&
+      y > buttonRect.y && y < buttonRect.y + buttonRect.height) {
+    if (buttonRect.restart) {
+      restartGame();
+    } else {
+      spin();
     }
-
-    function generateGrid() {
-      grid = [];
-      for (let row = 0; row < GRID_SIZE; row++) {
-        const rowData = [];
-        for (let col = 0; col < GRID_SIZE; col++) {
-          rowData.push(randomFruit());
-        }
-        grid.push(rowData);
-      }
-    }
-
-    function drawCell(row, col, fruit) {
-      const cellSize = 100;
-      const margin = 10;
-      const offsetX = (canvas.width - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
-      const offsetY = 60;
-      const x = offsetX + col * (cellSize + margin);
-      const y = offsetY + row * (cellSize + margin);
-      ctx.fillStyle = FRUIT_COLORS[fruit];
-      ctx.fillRect(x, y, cellSize, cellSize);
-      ctx.fillStyle = 'white';
-      ctx.font = '16px Arial';
-      ctx.fillText(fruit, x + 10, y + 25);
-    }
-
-    function drawGrid() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (let row = 0; row < GRID_SIZE; row++) {
-        for (let col = 0; col < GRID_SIZE; col++) {
-          drawCell(row, col, grid[row][col]);
-        }
-      }
-      drawButton();
-      drawInfo();
-      drawBets();
-    }
-
-    function drawButton() {
-      ctx.fillStyle = '#c00';
-      ctx.fillRect(canvas.width / 2 - 100, canvas.height - 140, 200, 60);
-      ctx.fillStyle = 'white';
-      ctx.font = '24px Arial';
-      ctx.fillText('SPIN', canvas.width / 2 - 30, canvas.height - 100);
-      buttonRect = {
-        x: canvas.width / 2 - 100,
-        y: canvas.height - 140,
-        width: 200,
-        height: 60
-      };
-    }
-
-    function drawInfo() {
-      ctx.fillStyle = '#ccc';
-      ctx.font = '18px Arial';
-      ctx.fillText(`Монети: ${coins}`, 20, 30);
-      ctx.fillText(`Последна печалба: ${lastWin}`, 20, 50);
-      ctx.fillText(`Обща печалба: ${totalWin}`, 20, 70);
-    }
-
-    function drawBets() {
-      betButtons = [];
-      BET_OPTIONS.forEach((bet, index) => {
-        let x = 20 + index * 80;
-        let y = canvas.height - 70;
-        ctx.beginPath();
-        ctx.arc(x, y, 30, 0, 2 * Math.PI);
-        ctx.fillStyle = (bet === selectedBet) ? 'green' : 'gray';
-        ctx.fill();
-        ctx.fillStyle = 'white';
-        ctx.fillText(bet, x - 10, y + 5);
-        betButtons.push({x, y, bet});
-      });
-    }
-
-    function checkWin() {
-      let points = 0;
-      for (let row = 0; row < GRID_SIZE; row++) {
-        if (grid[row].every(fruit => fruit === grid[row][0])) {
-          points += 100;
-        }
-      }
-      return points;
-    }
-
-    function spin() {
-      if (coins < selectedBet) return;
-      coins -= selectedBet;
-      generateGrid();
-      let win = checkWin();
-      coins += win;
-      lastWin = win;
-      totalWin += win;
-      drawGrid();
-    }
-
-    canvas.addEventListener('click', function(e) {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      if (x > buttonRect.x && x < buttonRect.x + buttonRect.width &&
-          y > buttonRect.y && y < buttonRect.y + buttonRect.height) {
-        spin();
-      } else {
-        betButtons.forEach(btn => {
-          let dx = x - btn.x;
-          let dy = y - btn.y;
-          if (Math.sqrt(dx * dx + dy * dy) < 30) {
-            selectedBet = btn.bet;
-            drawGrid();
-          }
-        });
+  } else {
+    betButtons.forEach(btn => {
+      let dx = x - btn.x;
+      let dy = y - btn.y;
+      if (Math.sqrt(dx * dx + dy * dy) < 30) {
+        selectedBet = btn.bet;
+        drawGrid();
       }
     });
+  }
+});
 
-    generateGrid();
-    drawGrid();
+function restartGame() {
+  coins = 500;
+  lastWin = 0;
+  totalWin = 0;
+  generateGrid();
+  drawGrid();
+}
   </script>
-</body>
-</html>
