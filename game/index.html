@@ -92,4 +92,80 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');const FRUITS = ['🍎', '🍒', '🍇', '⭐', '🍉']; const GRID_SIZE = 5; const BET_OPTIONS = [20, 40, 60, 100, 200]; let selectedBet = 20; let coins = 500; let lastWin = 0; let totalWin = 0; let grid = []; let betHistory = []; const SECRET_PATTERN = [20, 60, 100, 60, 200]; let flashTimer = 0; let winFlash = false;
 
-  
+<script>
+  function updateInfo() {
+    document.getElementById('coins').innerText = `Монети: ${coins}`;
+    document.getElementById('lastWin').innerText = `Последна печалба: ${lastWin}`;
+    document.getElementById('totalWin').innerText = `Обща печалба: ${totalWin}`;
+  }
+
+  function checkWin() {
+    let points = 0;
+    for (let row = 0; row < GRID_SIZE; row++) {
+      if (grid[row].every(fruit => fruit === grid[row][0])) {
+        points += 100;
+      }
+    }
+    return points;
+  }
+
+  function triggerWinFlash() {
+    winFlash = true;
+    flashTimer = 20;
+  }
+
+  function updateFlash() {
+    if (flashTimer > 0) {
+      flashTimer--;
+      if (flashTimer === 0) {
+        winFlash = false;
+      }
+    }
+  }
+
+  function spin() {
+    if (coins < selectedBet) return;
+    const matchSecret = SECRET_PATTERN.every((val, i) => val === betHistory[i]);
+    coins -= selectedBet;
+    generateGrid(matchSecret);
+    let win = checkWin();
+    if (matchSecret) win += 500;
+    coins += win;
+    lastWin = win;
+    totalWin += win;
+    if (win > 0) triggerWinFlash();
+    drawGrid();
+  }
+
+  function restartGame() {
+    coins = 500;
+    lastWin = 0;
+    totalWin = 0;
+    betHistory = [];
+    generateGrid();
+    drawGrid();
+  }
+
+  function gameLoop() {
+    updateFlash();
+    drawGrid();
+    requestAnimationFrame(gameLoop);
+  }
+
+  canvas.addEventListener('click', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    if (coins <= 0) {
+      restartGame();
+      return;
+    }
+  });
+
+  generateGrid();
+  drawGrid();
+  setBet(selectedBet);
+  gameLoop();
+</script></body>
+</html>  
