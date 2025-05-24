@@ -1,1 +1,62 @@
 
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <title>Svetlyo Slot Game</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .game-title {
+      font-size: 2em;
+      padding: 20px;
+      color: yellow;
+    }
+    canvas {
+      background-color: #222;
+      display: block;
+      margin: 0 auto;
+      border: 4px solid yellow;
+    }
+    .controls {
+      margin: 20px;
+    }
+    .btn {
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 1em;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background-color: #c00;
+      color: white;
+    }
+    .btn:hover {
+      background-color: #e00;
+    }
+    .info {
+      margin-top: 10px;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-title">Добре дошли в Svetlyo Slot Game</div>
+  <canvas id="slotCanvas" width="900" height="700"></canvas>
+  <div class="controls">
+    <button class="btn" onclick="spin()">SPIN</button>
+    <div class="info" id="score">Coins: 500</div>
+    <div class="info" id="lastWin">Last Win: 0</div>
+    <div class="info" id="totalWin">Total Win: 0</div>
+  </div>
+  <script>
+    // JavaScript кодът на играта ще бъде добавен тук
+  </script>
+</body>
+</html>
