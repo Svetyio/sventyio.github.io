@@ -1,36 +1,52 @@
-<!DOCTYPE html>
-<html lang="bg">
+<!DOCTYPE html><html lang="bg">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Svetlyo Slot Game</title>
   <style>
     body {
       margin: 0;
-      background-color: black;
+      background: linear-gradient(to bottom, #000000, #1a1a1a);
       color: white;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       text-align: center;
     }
     canvas {
       display: block;
-      margin: 0 auto;
-      background-color: #111;
+      margin: 30px auto;
+      background: #111;
+      border: 10px solid #ffcc00;
+      border-radius: 25px;
+      box-shadow: 0 0 25px #ffcc00;
     }
     #ui {
-      margin-top: 10px;
+      margin-top: 20px;
     }
-    .btn {
-      padding: 10px 30px;
+    .info-box {
+      display: inline-block;
+      background: #222;
+      border: 2px solid #888;
+      padding: 10px 20px;
       margin: 10px;
-      font-size: 18px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #444;
+    }
+    #coins { background-color: #2e8b57; color: #fff; }
+    #lastWin { background-color: #8b0000; color: #fff; }
+    #totalWin { background-color: #1e90ff; color: #fff; }
+    .btn {
+      padding: 20px 40px;
+      margin: 15px;
+      font-size: 24px;
       color: white;
       background-color: #c00;
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
     }
     .btn:hover {
       background-color: #e00;
+      transform: scale(1.05);
     }
   </style>
 </head>
@@ -38,11 +54,9 @@
   <h1>Добре дошли в Svetlyo Games</h1>
   <canvas id="gameCanvas" width="1000" height="800"></canvas>
   <div id="ui">
-    <div id="stats">
-      <span id="coins">Монети: 500</span> |
-      <span id="lastWin">Последна печалба: 0</span> |
-      <span id="totalWin">Обща печалба: 0</span>
-    </div>
+    <div class="info-box" id="coins">Монети: 500</div>
+    <div class="info-box" id="lastWin">Последна печалба: 0</div>
+    <div class="info-box" id="totalWin">Обща печалба: 0</div>
     <div id="bets">
       <button class="btn" onclick="setBet(20)">20</button>
       <button class="btn" onclick="setBet(40)">40</button>
@@ -51,67 +65,149 @@
       <button class="btn" onclick="setBet(200)">200</button>
     </div>
     <button class="btn" onclick="spin()">SPIN</button>
-  </div>
+  </div>  <script>
+    // Първа част от JavaScript логиката ще продължи тук...
+  </script></body>
+</html>
 
-  <script>
-function drawButton() {
-  if (coins <= 0) {
-    ctx.fillStyle = 'green';
-    ctx.fillRect(canvas.width / 2 - 120, canvas.height - 140, 240, 70);
-    ctx.fillStyle = 'white';
-    ctx.font = '26px Arial';
-    ctx.fillText('НОВА ИГРА', canvas.width / 2 - 70, canvas.height - 95);
-    buttonRect = {
-      x: canvas.width / 2 - 120,
-      y: canvas.height - 140,
-      width: 240,
-      height: 70,
-      restart: true
-    };
-  } else {
-    ctx.fillStyle = '#c00';
-    ctx.fillRect(canvas.width / 2 - 100, canvas.height - 140, 200, 60);
-    ctx.fillStyle = 'white';
-    ctx.font = '24px Arial';
-    ctx.fillText('SPIN', canvas.width / 2 - 30, canvas.height - 100);
-    buttonRect = {
-      x: canvas.width / 2 - 100,
-      y: canvas.height - 140,
-      width: 200,
-      height: 60,
-      restart: false
-    };
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const FRUITS = ['apple', 'cherry', 'grape', 'star', 'watermelon'];
+const FRUIT_COLORS = {
+  apple: 'red',
+  cherry: 'darkred',
+  grape: 'purple',
+  star: 'yellow',
+  watermelon: 'pink'
+};
+
+const GRID_SIZE = 5;
+const BET_OPTIONS = [20, 40, 60, 100, 200];
+let selectedBet = 20;
+let coins = 500;
+let lastWin = 0;
+let totalWin = 0;
+let grid = [];
+let betHistory = [];
+let winFlash = false;
+let flashTimer = 0;
+
+// Тайна комбинация: 20 → 60 → 100 → 60 → 200
+const SECRET_PATTERN = [20, 60, 100, 60, 200];
+
+function setBet(bet) {
+  selectedBet = bet;
+  betHistory.push(bet);
+  if (betHistory.length > 5) betHistory.shift();
+}
+
+function randomFruit() {
+  return FRUITS[Math.floor(Math.random() * FRUITS.length)];
+}
+
+function generateGrid(fullMatch = false) {
+  grid = [];
+  for (let row = 0; row < GRID_SIZE; row++) {
+    const rowData = [];
+    for (let col = 0; col < GRID_SIZE; col++) {
+      rowData.push(fullMatch ? FRUITS[Math.floor(Math.random() * FRUITS.length)] : randomFruit());
+    }
+    grid.push(rowData);
   }
 }
 
-canvas.addEventListener('click', function(e) {
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  if (x > buttonRect.x && x < buttonRect.x + buttonRect.width &&
-      y > buttonRect.y && y < buttonRect.y + buttonRect.height) {
-    if (buttonRect.restart) {
-      restartGame();
-    } else {
-      spin();
-    }
-  } else {
-    betButtons.forEach(btn => {
-      let dx = x - btn.x;
-      let dy = y - btn.y;
-      if (Math.sqrt(dx * dx + dy * dy) < 30) {
-        selectedBet = btn.bet;
-        drawGrid();
-      }
-    });
-  }
-});
+function drawCell(row, col, fruit) {
+  const cellSize = 100;
+  const margin = 10;
+  const offsetX = (canvas.width - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
+  const offsetY = 80;
+  const x = offsetX + col * (cellSize + margin);
+  const y = offsetY + row * (cellSize + margin);
+  ctx.fillStyle = FRUIT_COLORS[fruit];
+  ctx.fillRect(x, y, cellSize, cellSize);
+  ctx.strokeStyle = '#fff';
+  ctx.strokeRect(x, y, cellSize, cellSize);
+  ctx.fillStyle = 'white';
+  ctx.font = '18px Arial';
+  ctx.fillText(fruit, x + 10, y + 25);
+}
 
-function restartGame() {
-  coins = 500;
-  lastWin = 0;
-  totalWin = 0;
-  generateGrid();
+function drawGrid() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let row = 0; row < GRID_SIZE; row++) {
+    for (let col = 0; col < GRID_SIZE; col++) {
+      drawCell(row, col, grid[row][col]);
+    }
+  }
+
+  if (winFlash) {
+    ctx.fillStyle = 'rgba(255, 255, 0, 0.2)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  drawInfo();
+}
+
+function drawInfo() {
+  document.getElementById('coins').innerText = `Монети: ${coins}`;
+  document.getElementById('lastWin').innerText = `Последна печалба: ${lastWin}`;
+  document.getElementById('totalWin').innerText = `Обща печалба: ${totalWin}`;
+}
+
+function checkWin() {
+  let points = 0;
+  for (let row = 0; row < GRID_SIZE; row++) {
+    if (grid[row].every(f => f === grid[row][0])) {
+      points += 100;
+    }
+  }
+  return points;
+}
+
+function triggerWinFlash() {
+  winFlash = true;
+  flashTimer = 10;
+}
+
+function updateFlash() {
+  if (flashTimer > 0) {
+    flashTimer--;
+    if (flashTimer === 0) {
+      winFlash = false;
+    }
+  }
+}
+
+function spin() {
+  if (coins < selectedBet) return;
+
+  const matchSecret = SECRET_PATTERN.every((val, i) => val === betHistory[i]);
+
+  coins -= selectedBet;
+  generateGrid(matchSecret);
+  let win = checkWin();
+
+  if (matchSecret) {
+    win += 500;
+  }
+
+  coins += win;
+  lastWin = win;
+  totalWin += win;
+
+  if (win > 0) {
+    triggerWinFlash();
+  }
+
   drawGrid();
 }
-  </script>
+
+function gameLoop() {
+  updateFlash();
+  drawGrid();
+  requestAnimationFrame(gameLoop);
+}
+
+generateGrid();
+gameLoop();
