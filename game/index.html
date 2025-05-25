@@ -173,6 +173,22 @@
       z-index: 10;
       transition: opacity 0.4s;
     }
+    #winLabel.active {
+      opacity: 1 !important;
+      pointer-events: auto;
+      transition: none;
+    }
+    .small-title {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 16px auto 0 auto;
+      letter-spacing: 1px;
+      line-height: 1;
+      max-width: 99vw;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
     @media (max-width: 500px) {
       #winLabel {
         font-size: 16px;
@@ -182,11 +198,12 @@
       #bets { gap: 3px; }
       .btn { font-size: 11px; min-height: 18px; padding: 4px 7px; }
       .info-box { font-size: 11px; min-width: 39px; min-height: 10px; padding: 2px 4px; }
+      .small-title { font-size: 13px; }
     }
   </style>
 </head>
 <body>
-  <h1>Добре дошли в Svetlyo Games</h1>
+  <div class="small-title">Добре дошли в Svetlyo Games</div>
   <div id="container">
     <span id="winLabel"></span>
     <canvas id="gameCanvas"></canvas>
@@ -214,7 +231,6 @@
 
     // Responsive canvas
     function resizeCanvas() {
-      // Ограничава полето до максимум 380px, по-малко на телефон
       let size = Math.min(window.innerWidth * 0.95, 380, window.innerHeight * 0.65);
       size = Math.max(size, 220);
       canvas.width = size;
@@ -233,7 +249,6 @@
     let totalWin = 0;
     let grid = [];
     let betHistory = [];
-    let flashTimer = 0;
     let winFlash = false;
     let spinning = false;
     let spinAnimFrame = 0;
@@ -266,7 +281,6 @@
       });
     }
 
-    // Fruits
     function randomFruit() {
       return FRUITS[Math.floor(Math.random() * FRUITS.length)];
     }
@@ -363,25 +377,17 @@
 
     function triggerWinFlash() {
       winFlash = true;
-      flashTimer = 30;
+      winLabel.classList.add("active");
+    }
+
+    function clearWinFlash() {
+      winFlash = false;
+      winLabel.classList.remove("active");
     }
 
     function showWinLabel(win) {
-      clearTimeout(winLabelTimeout);
       winLabel.textContent = `ПЕЧАЛБА +${win}`;
-      winLabel.style.opacity = 1;
-      winLabelTimeout = setTimeout(() => {
-        winLabel.style.opacity = 0;
-      }, 1800);
-    }
-
-    function updateFlash() {
-      if (flashTimer > 0) {
-        flashTimer--;
-        if (flashTimer === 0) {
-          winFlash = false;
-        }
-      }
+      winLabel.classList.add("active");
     }
 
     // Spin animation
@@ -393,7 +399,6 @@
 
       function spinFrame() {
         spinAnimFrame++;
-        // Ранното въртене - изцяло случайни символи
         if (spinAnimFrame < animSteps - GRID_SIZE) {
           for (let row = 0; row < GRID_SIZE; row++) {
             for (let col = 0; col < GRID_SIZE; col++) {
@@ -405,7 +410,6 @@
             }
           }
         } else {
-          // Бавно "наместване" на редовете към финалното
           let rowsFixed = spinAnimFrame - (animSteps - GRID_SIZE);
           for (let row = 0; row < GRID_SIZE; row++) {
             if (row < rowsFixed) {
@@ -442,19 +446,19 @@
     // Game actions
     function spin() {
       if (spinning || coins < selectedBet) return;
+      // Край на анимацията за печалба, ако има
+      clearWinFlash();
+
       const matchSecret = SECRET_PATTERN.every((val, i) => val === betHistory[i]);
       coins -= selectedBet;
       saveStats();
 
       let finalGrid, secretFruit = null;
       if (matchSecret) {
-        // Тайната печалба: целият екран е един и същи плод, избран на случаен принцип
         secretFruit = randomFruit();
         finalGrid = generateGrid(true, secretFruit);
-        forceFullMatch = true;
       } else {
         finalGrid = generateGrid(false);
-        forceFullMatch = false;
       }
       spinTargetGrid = finalGrid.map(r=>r.slice());
 
@@ -486,12 +490,12 @@
       saveStats();
       grid = generateGrid();
       drawGrid();
-      winLabel.style.opacity = 0;
+      clearWinFlash();
     }
 
     // Game loop
     function gameLoop() {
-      updateFlash();
+      // Анимацията за печалба повече не се маха автоматично!
       if (!spinning) drawGrid();
       requestAnimationFrame(gameLoop);
     }
