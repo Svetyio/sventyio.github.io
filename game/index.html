@@ -14,17 +14,17 @@
     }
     #gameCanvas {
       display: block;
-      margin: 30px auto;
+      margin: 30px auto 10px auto;
       background: #111;
       border: 10px solid #ffcc00;
       border-radius: 25px;
       box-shadow: 0 0 25px #ffcc00;
       max-width: 98vw;
-      max-height: 65vw;
       width: 90vw;
       height: 90vw;
       min-width: 320px;
       min-height: 320px;
+      max-height: 70vw;
       touch-action: none;
     }
     @media (min-width: 700px) {
@@ -36,14 +36,15 @@
       }
     }
     #ui {
-      margin-top: 20px;
+      margin-top: 10px;
+      margin-bottom: 0;
     }
     .info-box {
       display: inline-block;
       background: #222;
       border: 2px solid #888;
       padding: 10px 20px;
-      margin: 10px;
+      margin: 10px 10px 5px 10px;
       border-radius: 12px;
       box-shadow: 0 0 10px #444;
       font-size: 20px;
@@ -51,46 +52,71 @@
     #coins { background-color: #2e8b57; color: #fff; }
     #lastWin { background-color: #8b0000; color: #fff; }
     #totalWin { background-color: #1e90ff; color: #fff; }
+
+    #bets {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 15px auto 0 auto;
+      width: 100%;
+      max-width: 600px;
+      flex-wrap: wrap;
+    }
     .btn {
-      padding: 18px 38px;
-      margin: 15px;
-      font-size: 22px;
+      padding: 10px 24px;
+      font-size: 18px;
       color: white;
-      background-color: black;
+      background-color: #222;
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
       cursor: pointer;
-      transition: background-color 0.3s, transform 0.2s;
+      transition: background-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+      margin: 5px 0;
+      min-width: 50px;
+      min-height: 38px;
+      outline: none;
+      box-shadow: 0 1px 2px #0008;
+      font-weight: 500;
+      letter-spacing: 1px;
     }
-    .btn:hover, .btn:focus-visible {
-      background-color: #444;
-      transform: scale(1.05);
-    }
-    .selected-bet {
-      background-color: #00cc00;
-      color: white;
+    .btn.selected-bet,
+    .btn:active.selected-bet {
+      background-color: #00cc00 !important;
+      color: #fff !important;
       box-shadow: 0 0 12px 2px #00cc00;
       font-weight: bold;
+    }
+    .btn:focus-visible:not(.selected-bet) {
+      background-color: #444;
+      color: #fff;
     }
     #spinBtn {
       background-color: #c00;
       border-radius: 50%;
-      width: 180px;
-      height: 180px;
+      width: 170px;
+      height: 170px;
       font-size: 36px;
       font-weight: bold;
       color: white;
-      margin-top: 30px;
+      margin: 30px auto 10px auto;
+      display: block;
       transition: background-color 0.3s, transform 0.2s;
+      box-shadow: 0 0 20px #800;
+      border: none;
+      outline: none;
+      z-index: 1;
+      position: relative;
     }
     #spinBtn:hover, #spinBtn:focus-visible {
       background-color: #e00;
-      transform: scale(1.1);
+      transform: scale(1.06);
     }
     #restartBtn {
-      padding: 12px 22px;
-      margin: 10px;
-      font-size: 18px;
+      padding: 10px 22px;
+      margin: 15px 10px;
+      font-size: 17px;
       background: #1e90ff;
       border-radius: 8px;
       border: none;
@@ -98,16 +124,52 @@
       color: white;
       font-weight: bold;
       transition: background 0.3s, transform 0.2s;
+      box-shadow: 0 0 6px #1e90ff99;
     }
     #restartBtn:hover, #restartBtn:focus-visible {
       background: #00ccff;
       transform: scale(1.05);
     }
+    #winLabel {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 18px;
+      font-size: 42px;
+      font-weight: 900;
+      color: #fff400;
+      text-shadow: 0 0 16px #ff0, 0 2px 24px #fff;
+      background: rgba(40,40,0,0.4);
+      padding: 8px 32px;
+      border-radius: 18px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10;
+      transition: opacity 0.4s;
+    }
+    @media (max-width: 500px) {
+      #winLabel {
+        font-size: 25px;
+        padding: 6px 13px;
+      }
+      #spinBtn { width: 120px; height: 120px; font-size: 28px; }
+      #bets { gap: 6px; }
+      .btn { font-size: 15px; min-height: 30px; padding: 8px 12px; }
+    }
+    #container {
+      position: relative;
+      width: 100vw;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
   </style>
 </head>
 <body>
   <h1>Добре дошли в Svetlyo Games</h1>
-  <canvas id="gameCanvas"></canvas>
+  <div id="container">
+    <span id="winLabel"></span>
+    <canvas id="gameCanvas"></canvas>
+  </div>
   <div id="ui">
     <div class="info-box" id="coins">Монети: 500</div>
     <div class="info-box" id="lastWin">Последна печалба: 0</div>
@@ -125,10 +187,11 @@
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+    const winLabel = document.getElementById('winLabel');
 
     // Responsive canvas
     function resizeCanvas() {
-      let size = Math.min(window.innerWidth * 0.9, 1000, window.innerHeight * 0.65);
+      let size = Math.min(window.innerWidth * 0.9, 1000, window.innerHeight * 0.68);
       size = Math.max(size, 320);
       canvas.width = size;
       canvas.height = size;
@@ -149,6 +212,10 @@
     let betHistory = [];
     let flashTimer = 0;
     let winFlash = false;
+    let spinning = false;
+    let spinAnimFrame = 0;
+    let spinTargetGrid = [];
+    let winLabelTimeout = null;
 
     // LocalStorage save/load
     function saveStats() {
@@ -167,7 +234,6 @@
       selectedBet = bet;
       betHistory.push(bet);
       if (betHistory.length > 5) betHistory.shift();
-
       document.querySelectorAll('#bets .btn').forEach(btn => {
         btn.classList.remove('selected-bet');
         if (parseInt(btn.innerText) === bet) {
@@ -182,33 +248,43 @@
     }
 
     function generateGrid(fullMatch = false) {
-      grid = [];
+      let arr = [];
       let fruitForFull = FRUITS[Math.floor(Math.random() * FRUITS.length)];
       for (let row = 0; row < GRID_SIZE; row++) {
         const rowData = [];
         for (let col = 0; col < GRID_SIZE; col++) {
           rowData.push(fullMatch ? fruitForFull : randomFruit());
         }
-        grid.push(rowData);
+        arr.push(rowData);
       }
+      return arr;
     }
 
     // Drawing
     function drawCell(row, col, fruit) {
-      const cellSize = canvas.width / (GRID_SIZE + 0.18); // Responsive cell size
+      const cellSize = canvas.width / (GRID_SIZE + 0.18);
       const margin = cellSize * 0.05;
       const offsetX = (canvas.width - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
       const offsetY = (canvas.height - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
       const x = offsetX + col * (cellSize + margin);
       const y = offsetY + row * (cellSize + margin);
 
+      // Shadow for win
+      ctx.save();
       ctx.fillStyle = '#222';
+      ctx.globalAlpha = 0.95;
       ctx.fillRect(x, y, cellSize, cellSize);
+      ctx.restore();
+
+      // Fruit
       ctx.font = `${Math.floor(cellSize * 0.6)}px serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = 'white';
+      ctx.shadowColor = '#444';
+      ctx.shadowBlur = 8;
       ctx.fillText(fruit, x + cellSize / 2, y + cellSize / 2 + 5);
+      ctx.shadowBlur = 0;
     }
 
     function drawGrid() {
@@ -220,7 +296,7 @@
       }
       if (winFlash) {
         ctx.save();
-        ctx.globalAlpha = 0.25 + 0.25 * Math.sin(Date.now() / 80); // Flash effect
+        ctx.globalAlpha = 0.25 + 0.25 * Math.sin(Date.now() / 80);
         ctx.fillStyle = '#ff0';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.restore();
@@ -237,11 +313,11 @@
     // Win logic
     function checkWin() {
       let points = 0;
-      // За редове
+      // Редове
       for (let row = 0; row < GRID_SIZE; row++) {
         if (grid[row].every(fruit => fruit === grid[row][0])) points += 100;
       }
-      // За колони
+      // Колони
       for (let col = 0; col < GRID_SIZE; col++) {
         let colFruits = [];
         for (let row = 0; row < GRID_SIZE; row++) colFruits.push(grid[row][col]);
@@ -255,6 +331,15 @@
       flashTimer = 30;
     }
 
+    function showWinLabel(win) {
+      clearTimeout(winLabelTimeout);
+      winLabel.textContent = `ПЕЧАЛБА +${win}`;
+      winLabel.style.opacity = 1;
+      winLabelTimeout = setTimeout(() => {
+        winLabel.style.opacity = 0;
+      }, 1800);
+    }
+
     function updateFlash() {
       if (flashTimer > 0) {
         flashTimer--;
@@ -264,20 +349,76 @@
       }
     }
 
+    // Spin animation
+    function animateSpin(targetGrid, onEnd) {
+      spinning = true;
+      spinAnimFrame = 0;
+      let animSteps = 24;
+      let tempGrid = grid.map(row => row.slice());
+
+      function spinFrame() {
+        spinAnimFrame++;
+        // Ранното въртене - изцяло случайни символи
+        if (spinAnimFrame < animSteps - GRID_SIZE) {
+          for (let row = 0; row < GRID_SIZE; row++) {
+            for (let col = 0; col < GRID_SIZE; col++) {
+              tempGrid[row][col] = randomFruit();
+            }
+          }
+        } else {
+          // Бавно "наместване" на редовете към финалното
+          let rowsFixed = spinAnimFrame - (animSteps - GRID_SIZE);
+          for (let row = 0; row < GRID_SIZE; row++) {
+            if (row < rowsFixed) {
+              for (let col = 0; col < GRID_SIZE; col++) {
+                tempGrid[row][col] = targetGrid[row][col];
+              }
+            } else {
+              for (let col = 0; col < GRID_SIZE; col++) {
+                tempGrid[row][col] = randomFruit();
+              }
+            }
+          }
+        }
+
+        grid = tempGrid.map(r=>r.slice());
+        drawGrid();
+
+        if (spinAnimFrame < animSteps) {
+          requestAnimationFrame(spinFrame);
+        } else {
+          grid = targetGrid.map(r=>r.slice());
+          drawGrid();
+          spinning = false;
+          if (onEnd) onEnd();
+        }
+      }
+      spinFrame();
+    }
+
     // Game actions
     function spin() {
-      if (coins < selectedBet) return;
+      if (spinning || coins < selectedBet) return;
       const matchSecret = SECRET_PATTERN.every((val, i) => val === betHistory[i]);
       coins -= selectedBet;
-      generateGrid(matchSecret);
-      let win = checkWin();
-      if (matchSecret) win += 500;
-      coins += win;
-      lastWin = win;
-      totalWin += win;
       saveStats();
-      if (win > 0) triggerWinFlash();
-      drawGrid();
+
+      let finalGrid = generateGrid(matchSecret);
+      spinTargetGrid = finalGrid.map(r=>r.slice());
+
+      animateSpin(spinTargetGrid, () => {
+        let win = checkWin();
+        if (matchSecret) win += 500;
+        coins += win;
+        lastWin = win;
+        totalWin += win;
+        saveStats();
+        if (win > 0) {
+          triggerWinFlash();
+          showWinLabel(win);
+        }
+        drawGrid();
+      });
     }
 
     function restartGame() {
@@ -286,20 +427,21 @@
       totalWin = 0;
       betHistory = [];
       saveStats();
-      generateGrid();
+      grid = generateGrid();
       drawGrid();
+      winLabel.style.opacity = 0;
     }
 
     // Game loop
     function gameLoop() {
       updateFlash();
-      drawGrid();
+      if (!spinning) drawGrid();
       requestAnimationFrame(gameLoop);
     }
 
     // Init
     loadStats();
-    generateGrid();
+    grid = generateGrid();
     setBet(selectedBet);
     resizeCanvas();
     drawGrid();
