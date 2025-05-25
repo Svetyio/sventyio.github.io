@@ -130,10 +130,20 @@
       outline: none;
       z-index: 1;
       position: relative;
+      user-select: none;
     }
     #spinBtn:hover, #spinBtn:focus-visible {
       background-color: #e00;
       transform: scale(1.06);
+    }
+    #spinBtn.auto {
+      background: linear-gradient(90deg, #0f0 0%, #c00 100%);
+      color: #fff;
+      animation: auto-spin-blink 1s infinite alternate;
+    }
+    @keyframes auto-spin-blink {
+      0% { box-shadow: 0 0 16px #0f03; }
+      100% { box-shadow: 0 0 28px #0f0; }
     }
     #restartBtn {
       background: #1e90ff;
@@ -221,7 +231,7 @@
     <button class="btn" onclick="setBet(100)">100</button>
     <button class="btn" onclick="setBet(200)">200</button>
   </div>
-  <button id="spinBtn" onclick="spin()">СПИН</button>
+  <button id="spinBtn" onclick="userSpinClick()">СПИН</button>
   <button id="restartBtn" onclick="restartGame()" style="display:none">Нова игра</button>
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -233,7 +243,6 @@
     // Игрови настройки
     const FRUITS = ['🍎', '🍒', '🍇', '⭐', '🍉'];
     const GRID_SIZE = 5;
-    const SECRET_PATTERN = [20, 60, 100, 60, 200];
 
     // Променливи на играта
     let selectedBet = 20;
@@ -241,15 +250,19 @@
     let lastWin = 0;
     let totalWin = 0;
     let grid = [];
-    let betHistory = [];
     let spinning = false;
     let spinAnimFrame = 0;
     let spinTargetGrid = [];
     let winLabelTimeout = null;
-    let secretReady = false; // дали е активирана тайната комбинация този път
     let winFlash = false;
-    let winFlashType = null; // "row", "col", "diag", "full"
-    let winFlashLines = []; // за ефекти на печелившите линии
+    let winFlashType = null;
+    let winFlashLines = [];
+
+    // Автоматично завъртане
+    let autoSpin = false;
+    let autoSpinInterval = null;
+    let holdTimeout = null;
+    let holdingSpin = false;
 
     // Responsive canvas
     function resizeCanvas() {
@@ -276,13 +289,6 @@
     // Bets UI
     function setBet(bet) {
       selectedBet = bet;
-      betHistory.push(bet);
-      if (betHistory.length > 5) betHistory.shift();
-
-      // Проверка за тайната комбинация!
-      if (betHistory.length === 5 && SECRET_PATTERN.every((val, i) => val === betHistory[i])) {
-        secretReady = true;
-      }
       document.querySelectorAll('#bets .btn').forEach(btn => {
         btn.classList.remove('selected-bet');
         if (parseInt(btn.innerText) === bet) {
@@ -295,13 +301,12 @@
       return FRUITS[Math.floor(Math.random() * FRUITS.length)];
     }
 
-    function generateGrid(fullMatch = false, fixedFruit = null) {
+    function generateGrid() {
       let arr = [];
-      let fruitForFull = fixedFruit || FRUITS[Math.floor(Math.random() * FRUITS.length)];
       for (let row = 0; row < GRID_SIZE; row++) {
         const rowData = [];
         for (let col = 0; col < GRID_SIZE; col++) {
-          rowData.push(fullMatch ? fruitForFull : randomFruit());
+          rowData.push(randomFruit());
         }
         arr.push(rowData);
       }
@@ -337,20 +342,20 @@
       if (diag2.every(fruit => fruit === diag2[0])) {
         lines.push({type:'diag', index:1, fruit:diag2[0]});
       }
-      // Пълно попадение (цял екран с 1 плод)
-      if (grid.flat().every(fruit => fruit === grid[0][0])) {
-        lines.push({type:'full', fruit:grid[0][0]});
-      }
+      // Пълно попадение (цял екран с 1 плод) - ВЕЧЕ НЕ ДАВА ДОПЪЛНИТЕЛНА ПЕЧАЛБА!
+      // if (grid.flat().every(fruit => fruit === grid[0][0])) {
+      //   lines.push({type:'full', fruit:grid[0][0]});
+      // }
       return lines;
     }
 
-    function getWinScore(lines,isSecret) {
+    function getWinScore(lines) {
       let score = 0;
       for(const line of lines) {
         if(line.type==="row") score+=100;
         else if(line.type==="col") score+=150;
         else if(line.type==="diag") score+=200;
-        else if(line.type==="full" && isSecret) score+=500; // full match бонус само ако е тайната комбинация
+        // else if(line.type==="full") score+=0; // няма бонус за full match вече
       }
       return score;
     }
@@ -359,9 +364,7 @@
     function triggerWinFlash(lines) {
       winFlash = true;
       winFlashLines = lines;
-      // Избира се най-силната линия за winFlashType (визуализация)
-      if(lines.some(l=>l.type==="full")) winFlashType="full";
-      else if(lines.some(l=>l.type==="diag")) winFlashType="diag";
+      if(lines.some(l=>l.type==="diag")) winFlashType="diag";
       else if(lines.some(l=>l.type==="col")) winFlashType="col";
       else if(lines.some(l=>l.type==="row")) winFlashType="row";
       winLabel.classList.add("active");
@@ -425,7 +428,6 @@
           if(line.type==="row") ctx.fillStyle = "rgba(255,255,0,0.23)";
           else if(line.type==="col") ctx.fillStyle = "rgba(0,180,255,0.22)";
           else if(line.type==="diag") ctx.fillStyle = "rgba(255,0,150,0.16)";
-          else if(line.type==="full") ctx.fillStyle = "rgba(255,255,0,0.18)";
           if(line.type==="row") {
             const y = offsetY + line.index * (cellSize + margin);
             ctx.fillRect(offsetX, y, GRID_SIZE * cellSize + (GRID_SIZE-1)*margin, cellSize);
@@ -444,8 +446,6 @@
             ctx.rotate(-Math.atan2(canvas.height, canvas.width));
             ctx.fillRect(0, cellSize/3, Math.sqrt(canvas.width**2+canvas.height**2), cellSize/1.7);
             ctx.restore();
-          } else if(line.type==="full") {
-            ctx.fillRect(0,0,canvas.width,canvas.height);
           }
           ctx.restore();
         }
@@ -460,10 +460,12 @@
       if (coins <= 0) {
         spinBtn.style.display = 'none';
         restartBtn.style.display = 'block';
+        stopAutoSpin();
       } else {
         spinBtn.style.display = 'block';
         restartBtn.style.display = 'none';
       }
+      spinBtn.classList.toggle('auto', autoSpin);
     }
 
     // Spin animation
@@ -516,19 +518,7 @@
       if (spinning || coins < selectedBet) return;
       clearWinFlash();
 
-      // Проверка за тайната комбинация
-      let isSecret = false;
-      let finalGrid, secretFruit = null;
-      if(secretReady) {
-        isSecret = true;
-        secretFruit = randomFruit();
-        finalGrid = generateGrid(true, secretFruit);
-        secretReady = false; // изключва се, трябва да въведеш пак тайната комбинация!
-        betHistory = []; // reset history, така не може да се активира автоматично пак
-      } else {
-        finalGrid = generateGrid(false);
-      }
-
+      let finalGrid = generateGrid();
       coins -= selectedBet;
       saveStats();
 
@@ -538,7 +528,7 @@
         spinTargetGrid,
         () => {
           let lines = getWinningLines(grid);
-          let win = getWinScore(lines, isSecret);
+          let win = getWinScore(lines);
           coins += win;
           lastWin = win;
           totalWin += win;
@@ -552,16 +542,68 @@
       );
     }
 
+    function userSpinClick() {
+      if (autoSpin) {
+        stopAutoSpin();
+        spinBtn.classList.remove('auto');
+        return;
+      }
+      spin();
+    }
+
+    // Автоматично завъртане – задържане на бутона
+    spinBtn.addEventListener('mousedown', function (e) {
+      if (autoSpin || spinning || coins < selectedBet) return;
+      holdingSpin = true;
+      holdTimeout = setTimeout(() => {
+        if (holdingSpin) startAutoSpin();
+      }, 1000); // 1 секунда задържане
+    });
+    spinBtn.addEventListener('touchstart', function (e) {
+      if (autoSpin || spinning || coins < selectedBet) return;
+      holdingSpin = true;
+      holdTimeout = setTimeout(() => {
+        if (holdingSpin) startAutoSpin();
+      }, 1000);
+    });
+    spinBtn.addEventListener('mouseup', function (e) {
+      holdingSpin = false;
+      clearTimeout(holdTimeout);
+    });
+    spinBtn.addEventListener('mouseleave', function (e) {
+      holdingSpin = false;
+      clearTimeout(holdTimeout);
+    });
+    spinBtn.addEventListener('touchend', function (e) {
+      holdingSpin = false;
+      clearTimeout(holdTimeout);
+    });
+
+    function startAutoSpin() {
+      if (autoSpin || coins < selectedBet) return;
+      autoSpin = true;
+      spinBtn.classList.add('auto');
+      spin();
+      autoSpinInterval = setInterval(() => {
+        if (!autoSpin || spinning || coins < selectedBet) return;
+        spin();
+      }, 30000); // 30 секунди
+    }
+    function stopAutoSpin() {
+      autoSpin = false;
+      clearInterval(autoSpinInterval);
+      spinBtn.classList.remove('auto');
+    }
+
     function restartGame() {
       coins = 500;
       lastWin = 0;
       totalWin = 0;
-      betHistory = [];
-      secretReady = false;
       saveStats();
       grid = generateGrid();
       drawGrid();
       clearWinFlash();
+      stopAutoSpin();
     }
 
     // Game loop
