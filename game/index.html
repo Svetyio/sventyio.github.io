@@ -4,291 +4,7 @@
   <meta charset="UTF-8" />
   <title>Svetlyo Slot Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      margin: 0;
-      background: linear-gradient(to bottom, #000000, #1a1a1a);
-      color: white;
-      font-family: 'Segoe UI', sans-serif;
-      text-align: center;
-    }
-    #container {
-      position: relative;
-      width: 100vw;
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-    #gameCanvas, #sparkCanvas {
-      display: block;
-      margin: 25px auto 10px auto;
-      background: #111;
-      border: 8px solid #ffcc00;
-      border-radius: 20px;
-      box-shadow: 0 0 18px #ffcc00;
-      max-width: 95vw;
-      width: 95vw;
-      height: 95vw;
-      min-width: 220px;
-      min-height: 220px;
-      max-height: 380px;
-      max-width: 380px;
-      touch-action: none;
-      position: absolute;
-      left: 0; top: 0;
-    }
-    #gameCanvas { z-index: 1; position: relative; }
-    #sparkCanvas { z-index: 3; pointer-events: none; }
-    #container { position:relative; height: 380px; max-width: 380px; }
-    @media (min-width: 600px) {
-      #gameCanvas, #sparkCanvas {
-        width: 340px;
-        height: 340px;
-        min-width: 290px;
-        min-height: 290px;
-        max-width: 380px;
-        max-height: 380px;
-      }
-      #container { height: 380px; }
-    }
-    #info-row {
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      margin: 16px auto 10px auto;
-      width: 100%;
-      max-width: 600px;
-      flex-wrap: wrap;
-    }
-    .info-box {
-      background: #222;
-      border: 2px solid #888;
-      border-radius: 10px;
-      box-shadow: 0 0 8px #222;
-      font-size: 16px;
-      min-width: 80px;
-      min-height: 32px;
-      padding: 6px 14px;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 500;
-      transition: color 0.5s, background 0.5s;
-    }
-    #coins { background-color: #2e8b57; }
-    #lastWin { background-color: #8b0000; }
-    #totalWin { background-color: #1e90ff; }
-
-    #bets {
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      margin: 12px auto 0 auto;
-      width: 100%;
-      max-width: 600px;
-      flex-wrap: wrap;
-    }
-    .btn {
-      padding: 8px 18px;
-      font-size: 16px;
-      color: white;
-      background-color: #222;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
-      margin: 0;
-      min-width: 48px;
-      min-height: 32px;
-      outline: none;
-      box-shadow: 0 1px 2px #0008;
-      font-weight: 500;
-      letter-spacing: 1px;
-    }
-    .btn.selected-bet,
-    .btn:active.selected-bet {
-      background-color: #00cc00 !important;
-      color: #fff !important;
-      box-shadow: 0 0 10px 2px #00cc00;
-      font-weight: bold;
-    }
-    .btn:focus-visible:not(.selected-bet) {
-      background-color: #444;
-      color: #fff;
-    }
-    #spinBtn {
-      background-color: #c00;
-      border-radius: 50%;
-      width: 90px;
-      height: 90px;
-      font-size: 26px;
-      font-weight: bold;
-      color: white;
-      margin: 22px auto 10px auto;
-      display: block;
-      transition: background-color 0.3s, transform 0.2s;
-      box-shadow: 0 0 20px #800;
-      border: none;
-      outline: none;
-      z-index: 1;
-      position: relative;
-      user-select: none;
-      animation: pulseSpinBtn 1.2s infinite alternate;
-    }
-    @keyframes pulseSpinBtn {
-      0% { box-shadow: 0 0 24px #e00; }
-      100% { box-shadow: 0 0 44px #fff; transform: scale(1.05);}
-    }
-    #spinBtn:hover, #spinBtn:focus-visible {
-      background-color: #e00;
-      transform: scale(1.08);
-    }
-    #spinBtn.auto {
-      background: linear-gradient(90deg, #0f0 0%, #c00 100%);
-      color: #fff;
-      animation: auto-spin-blink 1.2s infinite alternate;
-      box-shadow: 0 0 38px #0f0;
-    }
-    @keyframes auto-spin-blink {
-      0% { box-shadow: 0 0 24px #0f03; }
-      100% { box-shadow: 0 0 54px #0f0; }
-    }
-    #restartBtn {
-      background: #1e90ff;
-      border-radius: 50%;
-      width: 90px;
-      height: 90px;
-      font-size: 18px;
-      font-weight: bold;
-      color: white;
-      margin: 22px auto 10px auto;
-      display: block;
-      transition: background 0.3s, transform 0.2s;
-      box-shadow: 0 0 16px #1e90ff99;
-      border: none;
-      outline: none;
-      z-index: 1;
-      position: relative;
-    }
-    #restartBtn:hover, #restartBtn:focus-visible {
-      background: #00ccff;
-      transform: scale(1.05);
-    }
-    #winLabel {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      top: 9px;
-      font-size: 28px;
-      font-weight: 900;
-      color: #fff400;
-      text-shadow: 0 0 12px #ff0, 0 2px 17px #fff;
-      background: rgba(40,40,0,0.4);
-      padding: 6px 22px;
-      border-radius: 15px;
-      opacity: 0;
-      pointer-events: none;
-      z-index: 10;
-      transition: opacity 0.4s;
-      white-space: nowrap;
-    }
-    #winLabel.active {
-      opacity: 1 !important;
-      pointer-events: auto;
-      transition: none;
-    }
-    .small-title {
-      font-size: 22px;
-      font-weight: 600;
-      margin: 16px auto 0 auto;
-      letter-spacing: 1px;
-      line-height: 1;
-      max-width: 99vw;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
-    /* Double modal */
-    #doubleModalBg {
-      display: none;
-      position: fixed;
-      left:0; top:0; right:0; bottom:0;
-      z-index: 1000;
-      background: rgba(10,10,20,0.82);
-      align-items: center;
-      justify-content: center;
-    }
-    #doubleModalBg.active { display: flex; }
-    #doubleModal {
-      background: #181818;
-      border-radius: 24px;
-      border: 3px solid #fff;
-      box-shadow: 0 0 30px #ffec70;
-      padding: 30px 22px 18px 22px;
-      min-width: 220px;
-      min-height: 120px;
-      max-width: 90vw;
-      color: #fff;
-      font-size: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      animation: appear 0.5s;
-    }
-    @keyframes appear { from { scale: 0.8; opacity:0; } to { scale: 1; opacity:1; } }
-    #doubleBtns {
-      margin-top: 25px;
-      display: flex;
-      gap: 30px;
-    }
-    #doubleRed, #doubleGreen {
-      padding: 12px 26px;
-      font-size: 20px;
-      border: none;
-      border-radius: 12px;
-      font-weight: bold;
-      color: #fff;
-      cursor: pointer;
-      transition: box-shadow 0.15s, scale 0.1s, background 0.5s;
-      box-shadow: 0 2px 12px #000a;
-      animation: pulse 1s infinite alternate;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1);}
-      100% { transform: scale(1.13);}
-    }
-    #doubleRed { background: #e21; }
-    #doubleRed:hover { box-shadow: 0 0 20px #e21b; scale:1.12; }
-    #doubleGreen { background: #1c4; }
-    #doubleGreen:hover { box-shadow: 0 0 20px #1c4b; scale:1.12; }
-    #doubleResult {
-      margin-top: 18px;
-      font-size: 1.15em;
-      color: #fff;
-      font-weight: bold;
-      min-height: 26px;
-      letter-spacing: 1px;
-      text-shadow: 0 0 4px #000, 0 0 16px #ff0;
-    }
-    @media (max-width: 500px) {
-      #winLabel {
-        font-size: 16px;
-        padding: 3px 7px;
-      }
-      #spinBtn, #restartBtn { width: 60px; height: 60px; font-size: 13px; }
-      #bets { gap: 3px; }
-      .btn { font-size: 11px; min-height: 18px; padding: 4px 7px; }
-      .info-box { font-size: 11px; min-width: 39px; min-height: 10px; padding: 2px 4px; }
-      .small-title { font-size: 13px; }
-      #doubleModal { font-size:14px; padding:18px 8px 12px 8px; }
-      #doubleBtns { gap: 12px; }
-      #doubleRed, #doubleGreen { font-size: 13px; padding: 8px 12px;}
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="small-title">Добре дошли в Svetlyo Games</div>
@@ -311,7 +27,6 @@
   </div>
   <button id="spinBtn" onclick="userSpinClick()">СПИН</button>
   <button id="restartBtn" onclick="restartGame()" style="display:none">Нова игра</button>
-  <!-- Double Modal -->
   <div id="doubleModalBg">
     <div id="doubleModal">
       <div id="doubleText">Удвои печалбата си!</div>
@@ -322,298 +37,307 @@
       <div id="doubleResult"></div>
     </div>
   </div>
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const sparkCanvas = document.getElementById('sparkCanvas');
-    const sparkCtx = sparkCanvas.getContext('2d');
-    const winLabel = document.getElementById('winLabel');
-    const spinBtn = document.getElementById('spinBtn');
-    const restartBtn = document.getElementById('restartBtn');
+  <script src="main.js"></script>
+</body>
+</html>
 
-    // Double or Nothing Modal
-    const doubleModalBg = document.getElementById('doubleModalBg');
-    const doubleText = document.getElementById('doubleText');
-    const doubleResult = document.getElementById('doubleResult');
-    const doubleRed = document.getElementById('doubleRed');
-    const doubleGreen = document.getElementById('doubleGreen');
-
-    const FRUITS = ['🍎', '🍒', '🍇', '🍀', '🍉'];
-    const GRID_SIZE = 5;
-
-    let selectedBet = 20;
-    let coins = 500;
-    let lastWin = 0;
-    let totalWin = 0;
-    let grid = [];
-    let spinning = false;
-    let spinAnimFrame = 0;
-    let spinTargetGrid = [];
-    let winLabelTimeout = null;
-    let winFlash = false;
-    let winFlashType = null;
-    let winFlashLines = [];
-    let doublePending = false;
-    let doubleAmount = 0;
-    let noWinCount = 0;
-    let animCoins = coins, animLastWin = lastWin, animTotalWin = totalWin;
-
-    let autoSpin = false;
-    let autoSpinInterval = null;
-    let holdTimeout = null;
-    let holdingSpin = false;
-    let sparks = [];
-
-    function resizeCanvas() {
-      let size = Math.min(window.innerWidth * 0.95, 380, window.innerHeight * 0.65);
-      size = Math.max(size, 220);
-      canvas.width = size;
-      canvas.height = size;
-      sparkCanvas.width = size;
-      sparkCanvas.height = size;
-      drawGrid();
-    }
-    window.addEventListener('resize', resizeCanvas);
-
-    function saveStats() {
-      localStorage.setItem('slot_coins', coins);
-      localStorage.setItem('slot_lastWin', lastWin);
-      localStorage.setItem('slot_totalWin', totalWin);
-    }
-    function loadStats() {
-      coins = Number(localStorage.getItem('slot_coins')) || 500;
-      lastWin = Number(localStorage.getItem('slot_lastWin')) || 0;
-      totalWin = Number(localStorage.getItem('slot_totalWin')) || 0;
-      animCoins = coins;
-      animLastWin = lastWin;
-      animTotalWin = totalWin;
-    }
-
-    function setBet(bet) {
-      selectedBet = bet;
-      document.querySelectorAll('#bets .btn').forEach(btn => {
-        btn.classList.remove('selected-bet');
-        if (parseInt(btn.innerText) === bet) {
-          btn.classList.add('selected-bet');
-        }
-      });
-    }
-
-    // По-висок шанс за печалба и гарантирана печалба след серия загуби
-    function generateGrid() {
-      let arr = [];
-      let r = Math.random();
-      let forceWin = noWinCount >= 5;
-      if (r < 0.40 || forceWin) {
-        // ред
-        let winRow = Math.floor(Math.random() * GRID_SIZE);
-        let fruit = FRUITS[Math.floor(Math.random() * FRUITS.length)];
-        for (let row = 0; row < GRID_SIZE; row++) {
-          let rowData = [];
-          for (let col = 0; col < GRID_SIZE; col++) {
-            if (row === winRow) rowData.push(fruit);
-            else rowData.push(randomFruit());
-          }
-          arr.push(rowData);
-        }
-      } else if (r < 0.63) {
-        // колона
-        let winCol = Math.floor(Math.random() * GRID_SIZE);
-        let fruit = FRUITS[Math.floor(Math.random() * FRUITS.length)];
-        for (let row = 0; row < GRID_SIZE; row++) {
-          let rowData = [];
-          for (let col = 0; col < GRID_SIZE; col++) {
-            if (col === winCol) rowData.push(fruit);
-            else rowData.push(randomFruit());
-          }
-          arr.push(rowData);
-        }
-      } else if (r < 0.75) {
-        // диагонал
-        let mainDiag = Math.random() < 0.5;
-        let fruit = FRUITS[Math.floor(Math.random() * FRUITS.length)];
-        for (let row = 0; row < GRID_SIZE; row++) {
-          let rowData = [];
-          for (let col = 0; col < GRID_SIZE; col++) {
-            if ((mainDiag && row === col) || (!mainDiag && col === GRID_SIZE - 1 - row)) rowData.push(fruit);
-            else rowData.push(randomFruit());
-          }
-          arr.push(rowData);
-        }
-      } else {
-        for (let row = 0; row < GRID_SIZE; row++) {
-          let rowData = [];
-          for (let col = 0; col < GRID_SIZE; col++) {
-            rowData.push(randomFruit());
-          }
-          arr.push(rowData);
-        }
-      }
-      return arr;
-    }
-
-    function randomFruit() {
-      return FRUITS[Math.floor(Math.random() * FRUITS.length)];
-    }
-
-    function getWinningLines(grid) {
-      let lines = [];
-      for (let row = 0; row < GRID_SIZE; row++) {
-        if (grid[row].every(fruit => fruit === grid[row][0])) {
-          lines.push({type:'row', index:row, fruit:grid[row][0]});
-        }
-      }
-      for (let col = 0; col < GRID_SIZE; col++) {
-        let colFruits = [];
-        for (let row = 0; row < GRID_SIZE; row++) colFruits.push(grid[row][col]);
-        if (colFruits.every(fruit => fruit === colFruits[0])) {
-          lines.push({type:'col', index:col, fruit:colFruits[0]});
-        }
-      }
-      let diag1 = [];
-      for (let i = 0; i < GRID_SIZE; i++) diag1.push(grid[i][i]);
-      if (diag1.every(fruit => fruit === diag1[0])) {
-        lines.push({type:'diag', index:0, fruit:diag1[0]});
-      }
-      let diag2 = [];
-      for (let i = 0; i < GRID_SIZE; i++) diag2.push(grid[i][GRID_SIZE-1-i]);
-      if (diag2.every(fruit => fruit === diag2[0])) {
-        lines.push({type:'diag', index:1, fruit:diag2[0]});
-      }
-      return lines;
-    }
-
-    function getWinScore(lines) {
-      let score = 0;
-      for(const line of lines) {
-        if(line.type==="row") score+=100;
-        else if(line.type==="col") score+=150;
-        else if(line.type==="diag") score+=200;
-      }
-      return score;
-    }
-
-    function triggerWinFlash(lines) {
-      winFlash = true;
-      winFlashLines = lines;
-      if(lines.some(l=>l.type==="diag")) winFlashType="diag";
-      else if(lines.some(l=>l.type==="col")) winFlashType="col";
-      else if(lines.some(l=>l.type==="row")) winFlashType="row";
-      winLabel.classList.add("active");
-      createSparks();
-    }
-
-    function clearWinFlash() {
-      winFlash = false;
-      winLabel.classList.remove("active");
-      winFlashType = null;
-      winFlashLines = [];
-    }
-
-    function showWinLabel(win) {
-      winLabel.textContent = `ПЕЧАЛБА +${win}`;
-      winLabel.classList.add("active");
-    }
-
-    function drawGrid() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const cellSize = canvas.width / (GRID_SIZE + 0.16);
-      const margin = cellSize * 0.13;
-      ctx.save();
-      ctx.fillStyle = "#00c800";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.restore();
-      const offsetX = (canvas.width - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
-      const offsetY = (canvas.height - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
-
-      // Светене на печелившите плодове
-      let highlightCells = Array(GRID_SIZE).fill().map(()=>Array(GRID_SIZE).fill(false));
-      for(const line of winFlashLines) {
-        if(line.type==="row") for(let c=0;c<GRID_SIZE;c++) highlightCells[line.index][c]=true;
-        if(line.type==="col") for(let r=0;r<GRID_SIZE;r++) highlightCells[r][line.index]=true;
-        if(line.type==="diag"&&line.index===0) for(let i=0;i<GRID_SIZE;i++) highlightCells[i][i]=true;
-        if(line.type==="diag"&&line.index===1) for(let i=0;i<GRID_SIZE;i++) highlightCells[i][GRID_SIZE-1-i]=true;
-      }
-
-      for (let row = 0; row < GRID_SIZE; row++) {
-        for (let col = 0; col < GRID_SIZE; col++) {
-          const x = offsetX + col * (cellSize + margin);
-          const y = offsetY + row * (cellSize + margin);
-
-          ctx.save();
-          ctx.fillStyle = '#111';
-          ctx.globalAlpha = 0.97;
-          ctx.fillRect(x, y, cellSize, cellSize);
-          ctx.restore();
-
-          // Плавно разклащане и halo, ако печелиш!
-          let shake = 0, halo = 0;
-          if (highlightCells[row][col] && winFlash) {
-            halo = 1;
-            shake = Math.sin(Date.now()/45 + row+col)*3;
-          }
-          // Halo
-          if (halo) {
-            ctx.save();
-            ctx.globalAlpha = 0.35+0.15*Math.sin(Date.now()/120+row+col);
-            ctx.beginPath();
-            ctx.arc(x+cellSize/2, y+cellSize/2, cellSize*0.38, 0, 2*Math.PI);
-            ctx.fillStyle = "rgba(255,255,0,0.36)";
-            ctx.filter = "blur(6px)";
-            ctx.fill();
-            ctx.restore();
-          }
-          // Емоджи
-          ctx.save();
-          ctx.font = `${Math.floor(cellSize * 0.46)}px serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillStyle = 'white';
-          ctx.shadowColor = '#444';
-          ctx.shadowBlur = 6;
-          ctx.translate(x + cellSize / 2 + shake, y + cellSize / 2 + 0.5 + shake);
-          ctx.fillText(grid[row][col], 0, 0);
-          ctx.restore();
-        }
-      }
-      // Линия върху печелившата линия
-      if (winFlash && winFlashLines.length > 0) {
-        for(const line of winFlashLines) {
-          ctx.save();
-          if(line.type==="row") ctx.strokeStyle = "#ffe047";
-          else if(line.type==="col") ctx.strokeStyle = "#86e0fa";
-          else if(line.type==="diag") ctx.strokeStyle = "#ff88e0";
-          ctx.lineWidth = cellSize*0.15;
-          ctx.globalAlpha = 0.25+0.2*Math.abs(Math.sin(Date.now()/300));
-          ctx.beginPath();
-          if(line.type==="row") {
-            const y = offsetY + line.index * (cellSize + margin) + cellSize/2;
-            ctx.moveTo(offsetX, y);
-            ctx.lineTo(offsetX + GRID_SIZE * cellSize + (GRID_SIZE-1)*margin, y);
-          } else if(line.type==="col") {
-            const x = offsetX + line.index * (cellSize + margin) + cellSize/2;
-            ctx.moveTo(x, offsetY);
-            ctx.lineTo(x, offsetY + GRID_SIZE * cellSize + (GRID_SIZE-1)*margin);
-          } else if(line.type==="diag" && line.index===0) {
-            ctx.moveTo(offsetX, offsetY);
-            ctx.lineTo(offsetX + GRID_SIZE * (cellSize+margin)-margin, offsetY + GRID_SIZE * (cellSize+margin)-margin);
-          } else if(line.type==="diag" && line.index===1) {
-            ctx.moveTo(offsetX + GRID_SIZE * (cellSize+margin)-margin, offsetY);
-            ctx.lineTo(offsetX, offsetY + GRID_SIZE * (cellSize+margin)-margin);
-          }
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
-      updateInfo();
-    }
-
-    function animateNumber(current, target) {
-      if (Math.abs(current-target)<0.5) return target;
-      return current + (target-current)*0.15;
-    }
-
-    function updateInfo() {
-      animCoins = animateNumber(animCoins, coins);
-      animLastWin = animateNumber(animLastWin, lastWin);
-      animTotalWin = animateNumber(animTotalWin, 
+body {
+  margin: 0;
+  background: linear-gradient(to bottom, #000, #1a1a1a);
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+}
+.small-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 16px auto 0 auto;
+  letter-spacing: 1px;
+  line-height: 1;
+  max-width: 99vw;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+#container {
+  position: relative;
+  width: 100vw;
+  max-width: 1000px;
+  margin: 0 auto;
+  height: 380px;
+  max-width: 380px;
+}
+#gameCanvas, #sparkCanvas {
+  display: block;
+  margin: 25px auto 10px auto;
+  background: #111;
+  border: 8px solid #ffcc00;
+  border-radius: 20px;
+  box-shadow: 0 0 18px #ffcc00;
+  max-width: 95vw;
+  width: 95vw;
+  height: 95vw;
+  min-width: 220px;
+  min-height: 220px;
+  max-height: 380px;
+  max-width: 380px;
+  touch-action: none;
+  position: absolute;
+  left: 0; top: 0;
+}
+#gameCanvas { z-index: 1; position: relative; }
+#sparkCanvas { z-index: 3; pointer-events: none; }
+@media (min-width: 600px) {
+  #gameCanvas, #sparkCanvas {
+    width: 340px;
+    height: 340px;
+    min-width: 290px;
+    min-height: 290px;
+    max-width: 380px;
+    max-height: 380px;
+  }
+  #container { height: 380px; }
+}
+#info-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 16px auto 10px auto;
+  width: 100%;
+  max-width: 600px;
+  flex-wrap: wrap;
+}
+.info-box {
+  background: #222;
+  border: 2px solid #888;
+  border-radius: 10px;
+  box-shadow: 0 0 8px #222;
+  font-size: 16px;
+  min-width: 80px;
+  min-height: 32px;
+  padding: 6px 14px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  transition: color 0.5s, background 0.5s;
+}
+#coins { background-color: #2e8b57; }
+#lastWin { background-color: #8b0000; }
+#totalWin { background-color: #1e90ff; }
+#bets {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 12px auto 0 auto;
+  width: 100%;
+  max-width: 600px;
+  flex-wrap: wrap;
+}
+.btn {
+  padding: 8px 18px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #222;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+  margin: 0;
+  min-width: 48px;
+  min-height: 32px;
+  outline: none;
+  box-shadow: 0 1px 2px #0008;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+.btn.selected-bet,
+.btn:active.selected-bet {
+  background-color: #00cc00 !important;
+  color: #fff !important;
+  box-shadow: 0 0 10px 2px #00cc00;
+  font-weight: bold;
+}
+.btn:focus-visible:not(.selected-bet) {
+  background-color: #444;
+  color: #fff;
+}
+#spinBtn {
+  background-color: #c00;
+  border-radius: 50%;
+  width: 90px;
+  height: 90px;
+  font-size: 26px;
+  font-weight: bold;
+  color: #fff;
+  margin: 22px auto 10px auto;
+  display: block;
+  transition: background-color 0.3s, transform 0.2s;
+  box-shadow: 0 0 20px #800;
+  border: none;
+  outline: none;
+  z-index: 1;
+  position: relative;
+  user-select: none;
+  animation: pulseSpinBtn 1.2s infinite alternate;
+}
+@keyframes pulseSpinBtn {
+  0% { box-shadow: 0 0 24px #e00; }
+  100% { box-shadow: 0 0 44px #fff; transform: scale(1.05);}
+}
+#spinBtn:hover, #spinBtn:focus-visible {
+  background-color: #e00;
+  transform: scale(1.08);
+}
+#spinBtn.auto {
+  background: linear-gradient(90deg, #0f0 0%, #c00 100%);
+  color: #fff;
+  animation: auto-spin-blink 1.2s infinite alternate;
+  box-shadow: 0 0 38px #0f0;
+}
+@keyframes auto-spin-blink {
+  0% { box-shadow: 0 0 24px #0f03; }
+  100% { box-shadow: 0 0 54px #0f0; }
+}
+#restartBtn {
+  background: #1e90ff;
+  border-radius: 50%;
+  width: 90px;
+  height: 90px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+  margin: 22px auto 10px auto;
+  display: block;
+  transition: background 0.3s, transform 0.2s;
+  box-shadow: 0 0 16px #1e90ff99;
+  border: none;
+  outline: none;
+  z-index: 1;
+  position: relative;
+}
+#restartBtn:hover, #restartBtn:focus-visible {
+  background: #00ccff;
+  transform: scale(1.05);
+}
+#winLabel {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 9px;
+  font-size: 28px;
+  font-weight: 900;
+  color: #fff400;
+  text-shadow: 0 0 12px #ff0, 0 2px 17px #fff;
+  background: rgba(40,40,0,0.4);
+  padding: 6px 22px;
+  border-radius: 15px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 0.4s;
+  white-space: nowrap;
+}
+#winLabel.active {
+  opacity: 1 !important;
+  pointer-events: auto;
+  transition: none;
+}
+#doubleModalBg {
+  display: none;
+  position: fixed;
+  left:0; top:0; right:0; bottom:0;
+  z-index: 1000;
+  background: rgba(10,10,20,0.82);
+  align-items: center;
+  justify-content: center;
+}
+#doubleModalBg.active { display: flex; }
+#doubleModal {
+  background: #181818;
+  border-radius: 24px;
+  border: 3px solid #fff;
+  box-shadow: 0 0 30px #ffec70;
+  padding: 30px 22px 18px 22px;
+  min-width: 220px;
+  min-height: 120px;
+  max-width: 90vw;
+  color: #fff;
+  font-size: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: appear 0.5s;
+}
+@keyframes appear { from { scale: 0.8; opacity:0; } to { scale: 1; opacity:1; } }
+#doubleBtns {
+  margin-top: 25px;
+  display: flex;
+  gap: 30px;
+}
+#doubleRed, #doubleGreen {
+  padding: 12px 26px;
+  font-size: 20px;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  transition: box-shadow 0.15s, scale 0.1s, background 0.5s;
+  box-shadow: 0 2px 12px #000a;
+  animation: pulse 1s infinite alternate;
+}
+@keyframes pulse {
+  0% { transform: scale(1);}
+  100% { transform: scale(1.13);}
+}
+#doubleRed { background: #e21; }
+#doubleRed:hover { box-shadow: 0 0 20px #e21b; scale:1.12; }
+#doubleGreen { background: #1c4; }
+#doubleGreen:hover { box-shadow: 0 0 20px #1c4b; scale:1.12; }
+#doubleResult {
+  margin-top: 18px;
+  font-size: 1.15em;
+  color: #fff;
+  font-weight: bold;
+  min-height: 26px;
+  letter-spacing: 1px;
+  text-shadow: 0 0 4px #000, 0 0 16px #ff0;
+}
+@media (max-width: 500px) {
+  #winLabel {
+    font-size: 16px;
+    padding: 3px 7px;
+  }
+  #spinBtn, #restartBtn { width: 60px; height: 60px; font-size: 13px; }
+  #bets { gap: 3px; }
+  .btn { font-size: 11px; min-height: 18px; padding: 4px 7px; }
+  .info-box { font-size: 11px; min-width: 39px; min-height: 10px; padding: 2px 4px; }
+  .small-title { font-size: 13px; }
+  #doubleModal { font-size:14px; padding:18px 8px 12px 8px; }
+  #doubleBtns { gap: 12px; }
+  #doubleRed, #doubleGreen { font-size: 13px; padding: 8px 12px;}
+}const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d'),sparkCanvas=document.getElementById('sparkCanvas'),sparkCtx=sparkCanvas.getContext('2d'),winLabel=document.getElementById('winLabel'),spinBtn=document.getElementById('spinBtn'),restartBtn=document.getElementById('restartBtn'),doubleModalBg=document.getElementById('doubleModalBg'),doubleText=document.getElementById('doubleText'),doubleResult=document.getElementById('doubleResult'),doubleRed=document.getElementById('doubleRed'),doubleGreen=document.getElementById('doubleGreen'),FRUITS=['🍎','🍒','🍇','🍀','🍉'],GRID_SIZE=5;
+let selectedBet=20,coins=500,lastWin=0,totalWin=0,grid=[],spinning=!1,spinAnimFrame=0,spinTargetGrid=[],winFlash=!1,winFlashLines=[],doublePending=!1,doubleAmount=0,noWinCount=0,animCoins=coins,animLastWin=lastWin,animTotalWin=totalWin,autoSpin=!1,autoSpinInterval=null,holdTimeout=null,holdingSpin=!1,sparks=[];
+function resizeCanvas(){let s=Math.min(window.innerWidth*.95,380,window.innerHeight*.65);s=Math.max(s,220),canvas.width=s,canvas.height=s,sparkCanvas.width=s,sparkCanvas.height=s,drawGrid()}
+window.addEventListener('resize',resizeCanvas);
+function saveStats(){localStorage.setItem('slot_coins',coins),localStorage.setItem('slot_lastWin',lastWin),localStorage.setItem('slot_totalWin',totalWin)}
+function loadStats(){coins=Number(localStorage.getItem('slot_coins'))||500,lastWin=Number(localStorage.getItem('slot_lastWin'))||0,totalWin=Number(localStorage.getItem('slot_totalWin'))||0,animCoins=coins,animLastWin=lastWin,animTotalWin=totalWin}
+function setBet(bet){selectedBet=bet,document.querySelectorAll('#bets .btn').forEach(btn=>{btn.classList.remove('selected-bet'),parseInt(btn.innerText)===bet&&btn.classList.add('selected-bet')})}
+function generateGrid(){let arr=[],r=Math.random(),f=noWinCount>=5;if(r<.4||f){let winRow=Math.floor(Math.random()*GRID_SIZE),fruit=FRUITS[Math.floor(Math.random()*FRUITS.length)];for(let row=0;row<GRID_SIZE;row++){let rowData=[];for(let col=0;col<GRID_SIZE;col++)row===winRow?rowData.push(fruit):rowData.push(randomFruit());arr.push(rowData)}}else if(r<.63){let winCol=Math.floor(Math.random()*GRID_SIZE),fruit=FRUITS[Math.floor(Math.random()*FRUITS.length)];for(let row=0;row<GRID_SIZE;row++){let rowData=[];for(let col=0;col<GRID_SIZE;col++)col===winCol?rowData.push(fruit):rowData.push(randomFruit());arr.push(rowData)}}else if(r<.75){let mainDiag=Math.random()<.5,fruit=FRUITS[Math.floor(Math.random()*FRUITS.length)];for(let row=0;row<GRID_SIZE;row++){let rowData=[];for(let col=0;col<GRID_SIZE;col++)(mainDiag&&row===col||!mainDiag&&col===GRID_SIZE-1-row)?rowData.push(fruit):rowData.push(randomFruit());arr.push(rowData)}}else for(let row=0;row<GRID_SIZE;row++){let rowData=[];for(let col=0;col<GRID_SIZE;col++)rowData.push(randomFruit());arr.push(rowData)}return arr}
+function randomFruit(){return FRUITS[Math.floor(Math.random()*FRUITS.length)]}
+function getWinningLines(g){let l=[];for(let r=0;r<GRID_SIZE;r++)g[r].every(f=>f===g[r][0])&&l.push({type:'row',index:r,fruit:g[r][0]});for(let c=0;c<GRID_SIZE;c++){let colF=[];for(let r=0;r<GRID_SIZE;r++)colF.push(g[r][c]);colF.every(f=>f===colF[0])&&l.push({type:'col',index:c,fruit:colF[0]})}let d1=[],d2=[];for(let i=0;i<GRID_SIZE;i++)d1.push(g[i][i]),d2.push(g[i][GRID_SIZE-1-i]);d1.every(f=>f===d1[0])&&l.push({type:'diag',index:0,fruit:d1[0]}),d2.every(f=>f===d2[0])&&l.push({type:'diag',index:1,fruit:d2[0]});return l}
+function getWinScore(l){let s=0;for(const x of l)"row"===x.type?s+=100:"col"===x.type?s+=150:"diag"===x.type&&(s+=200);return s}
+function triggerWinFlash(lines){winFlash=!0,winFlashLines=lines,winLabel.classList.add("active"),createSparks()}
+function clearWinFlash(){winFlash=!1,winLabel.classList.remove("active"),winFlashLines=[]}
+function showWinLabel(w){winLabel.textContent=`ПЕЧАЛБА +${w}`,winLabel.classList.add("active")}
+function drawGrid(){ctx.clearRect(0,0,canvas.width,canvas.height);const c=canvas.width/(GRID_SIZE+.16),m=c*.13,o=(canvas.width-(GRID_SIZE*c+(GRID_SIZE-1)*m))/2,y=(canvas.height-(GRID_SIZE*c+(GRID_SIZE-1)*m))/2,h=Array(GRID_SIZE).fill().map(()=>Array(GRID_SIZE).fill(!1));for(const l of winFlashLines)"row"===l.type&&(()=>{for(let a=0;a<GRID_SIZE;a++)h[l.index][a]=!0})(),"col"===l.type&&(()=>{for(let a=0;a<GRID_SIZE;a++)h[a][l.index]=!0})(),"diag"===l.type&&0===l.index&&(()=>{for(let a=0;a<GRID_SIZE;a++)h[a][a]=!0})(),"diag"===l.type&&1===l.index&&(()=>{for(let a=0;a<GRID_SIZE;a++)h[a][GRID_SIZE-1-a]=!0})();for(let r=0;r<GRID_SIZE;r++)for(let col=0;col<GRID_SIZE;col++){const x=o+col*(c+m),y0=y+r*(c+m);ctx.save(),ctx.fillStyle='#111',ctx.globalAlpha=.97,ctx.fillRect(x,y0,c,c),ctx.restore();let shake=0,halo=0;h[r][col]&&winFlash&&(halo=1,shake=Math.sin(Date.now()/45+r+col)*3),halo&&(ctx.save(),ctx.globalAlpha=.35+.15*Math.sin(Date.now()/120+r+col),ctx.beginPath(),ctx.arc(x+c/2,y0+c/2,c*.38,0,2*Math.PI),ctx.fillStyle="rgba(255,255,0,0.36)",ctx.filter="blur(6px)",ctx.fill(),ctx.restore()),ctx.save(),ctx.font=`${Math.floor(c*.46)}px serif`,ctx.textAlign='center',ctx.textBaseline='middle',ctx.fillStyle='#fff',ctx.shadowColor='#444',ctx.shadowBlur=6,ctx.translate(x+c/2+shake,y0+c/2+.5+shake),ctx.fillText(grid[r][col],0,0),ctx.restore()}if(winFlash&&winFlashLines.length>0)for(const l of winFlashLines){ctx.save(),"row"===l.type?ctx.strokeStyle="#ffe047":"col"===l.type?ctx.strokeStyle="#86e0fa":"diag"===l.type&&(ctx.strokeStyle="#ff88e0"),ctx.lineWidth=c*.15,ctx.globalAlpha=.25+.2*Math.abs(Math.sin(Date.now()/300)),ctx.beginPath(),"row"===l.type?(ctx.moveTo(o,y+l.index*(c+m)+c/2),ctx.lineTo(o+GRID_SIZE*c+(GRID_SIZE-1)*m,y+l.index*(c+m)+c/2)):"col"===l.type?(ctx.moveTo(o+l.index*(c+m)+c/2,y),ctx.lineTo(o+l.index*(c+m)+c/2,y+GRID_SIZE*c+(GRID_SIZE-1)*m)):"diag"===l.type&&0===l.index?(ctx.moveTo(o,y),ctx.lineTo(o+GRID_SIZE*(c+m)-m,y+GRID_SIZE*(c+m)-m)):"diag"===l.type&&1===l.index&&(ctx.moveTo(o+GRID_SIZE*(c+m)-m,y),ctx.lineTo(o,y+GRID_SIZE*(c+m)-m)),ctx.stroke(),ctx.restore()}updateInfo()}
+function animateNumber(c,t){return Math.abs(c-t)<.5?t:c+(t-c)*.15}
+function updateInfo(){animCoins=animateNumber(animCoins,coins),animLastWin=animateNumber(animLastWin,lastWin),animTotalWin=animateNumber(animTotalWin,totalWin),document.getElementById('coins').innerText=`Монети: ${Math.round(animCoins)}`,document.getElementById('lastWin').innerText=`Последна печалба: ${Math.round(animLastWin)}`,document.getElementById('totalWin').innerText=`Обща печалба: ${Math.round(animTotalWin)}`,coins<=0?(spinBtn.style.display='none',restartBtn.style.display='block',stopAutoSpin()):(spinBtn.style.display='block',restartBtn.style.display='none'),spinBtn.classList.toggle('auto',autoSpin)}
+function createSparks(){sparks=[];const w=sparkCanvas.width,h=sparkCanvas.height;for(let i=0;i<60;i++){let a=2*Math.PI*Math.random(),s=2+3.5*Math.random();sparks.push({x:w/2,y:h/2,vx:Math.cos(a)*s,vy:Math.sin(a)*s,alpha:1,color0:`hsl(${360*Math.random()},100%,85%)`,color1:`hsl(${360*Math.random()},100%,60%)`,size:3+3*Math.random(),life:24+18*Math.random()})}}
+function updateSparks(){sparkCtx.clearRect(0,0,sparkCanvas.width,sparkCanvas.height);for(let i=0;i<sparks.length;i++){let s=sparks[i];if(s.life>0&&s.alpha>0){let g=sparkCtx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.size);g.addColorStop(0,s.color0),g.addColorStop(1,s.color1),sparkCtx.globalAlpha=s.alpha,sparkCtx.beginPath(),sparkCtx.arc(s.x
