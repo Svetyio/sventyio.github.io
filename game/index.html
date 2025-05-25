@@ -12,6 +12,12 @@
       font-family: 'Segoe UI', sans-serif;
       text-align: center;
     }
+    #container {
+      position: relative;
+      width: 100vw;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
     #gameCanvas {
       display: block;
       margin: 30px auto 10px auto;
@@ -35,23 +41,35 @@
         max-height: 1000px;
       }
     }
-    #ui {
-      margin-top: 10px;
-      margin-bottom: 0;
+    #info-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 16px auto 10px auto;
+      width: 100%;
+      max-width: 600px;
+      flex-wrap: wrap;
     }
     .info-box {
-      display: inline-block;
       background: #222;
       border: 2px solid #888;
-      padding: 10px 20px;
-      margin: 10px 10px 5px 10px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px #444;
-      font-size: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 8px #222;
+      font-size: 16px;
+      min-width: 80px;
+      min-height: 32px;
+      padding: 6px 14px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
     }
-    #coins { background-color: #2e8b57; color: #fff; }
-    #lastWin { background-color: #8b0000; color: #fff; }
-    #totalWin { background-color: #1e90ff; color: #fff; }
+    #coins { background-color: #2e8b57; }
+    #lastWin { background-color: #8b0000; }
+    #totalWin { background-color: #1e90ff; }
 
     #bets {
       display: flex;
@@ -59,23 +77,23 @@
       justify-content: center;
       align-items: center;
       gap: 10px;
-      margin: 15px auto 0 auto;
+      margin: 12px auto 0 auto;
       width: 100%;
       max-width: 600px;
       flex-wrap: wrap;
     }
     .btn {
-      padding: 10px 24px;
-      font-size: 18px;
+      padding: 8px 18px;
+      font-size: 16px;
       color: white;
       background-color: #222;
       border: none;
       border-radius: 10px;
       cursor: pointer;
       transition: background-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
-      margin: 5px 0;
-      min-width: 50px;
-      min-height: 38px;
+      margin: 0;
+      min-width: 48px;
+      min-height: 32px;
       outline: none;
       box-shadow: 0 1px 2px #0008;
       font-weight: 500;
@@ -85,7 +103,7 @@
     .btn:active.selected-bet {
       background-color: #00cc00 !important;
       color: #fff !important;
-      box-shadow: 0 0 12px 2px #00cc00;
+      box-shadow: 0 0 10px 2px #00cc00;
       font-weight: bold;
     }
     .btn:focus-visible:not(.selected-bet) {
@@ -95,9 +113,9 @@
     #spinBtn {
       background-color: #c00;
       border-radius: 50%;
-      width: 170px;
-      height: 170px;
-      font-size: 36px;
+      width: 120px;
+      height: 120px;
+      font-size: 32px;
       font-weight: bold;
       color: white;
       margin: 30px auto 10px auto;
@@ -114,17 +132,21 @@
       transform: scale(1.06);
     }
     #restartBtn {
-      padding: 10px 22px;
-      margin: 15px 10px;
-      font-size: 17px;
       background: #1e90ff;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      color: white;
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      font-size: 26px;
       font-weight: bold;
+      color: white;
+      margin: 30px auto 10px auto;
+      display: block;
       transition: background 0.3s, transform 0.2s;
-      box-shadow: 0 0 6px #1e90ff99;
+      box-shadow: 0 0 16px #1e90ff99;
+      border: none;
+      outline: none;
+      z-index: 1;
+      position: relative;
     }
     #restartBtn:hover, #restartBtn:focus-visible {
       background: #00ccff;
@@ -135,7 +157,7 @@
       left: 50%;
       transform: translateX(-50%);
       top: 18px;
-      font-size: 42px;
+      font-size: 36px;
       font-weight: 900;
       color: #fff400;
       text-shadow: 0 0 16px #ff0, 0 2px 24px #fff;
@@ -149,18 +171,13 @@
     }
     @media (max-width: 500px) {
       #winLabel {
-        font-size: 25px;
-        padding: 6px 13px;
+        font-size: 21px;
+        padding: 5px 10px;
       }
-      #spinBtn { width: 120px; height: 120px; font-size: 28px; }
-      #bets { gap: 6px; }
-      .btn { font-size: 15px; min-height: 30px; padding: 8px 12px; }
-    }
-    #container {
-      position: relative;
-      width: 100vw;
-      max-width: 1000px;
-      margin: 0 auto;
+      #spinBtn, #restartBtn { width: 75px; height: 75px; font-size: 16px; }
+      #bets { gap: 4px; }
+      .btn { font-size: 13px; min-height: 24px; padding: 6px 10px; }
+      .info-box { font-size: 13px; min-width: 54px; min-height: 18px; padding: 3px 7px; }
     }
   </style>
 </head>
@@ -170,24 +187,26 @@
     <span id="winLabel"></span>
     <canvas id="gameCanvas"></canvas>
   </div>
-  <div id="ui">
+  <div id="info-row">
     <div class="info-box" id="coins">Монети: 500</div>
     <div class="info-box" id="lastWin">Последна печалба: 0</div>
     <div class="info-box" id="totalWin">Обща печалба: 0</div>
-    <div id="bets">
-      <button class="btn" onclick="setBet(20)">20</button>
-      <button class="btn" onclick="setBet(40)">40</button>
-      <button class="btn" onclick="setBet(60)">60</button>
-      <button class="btn" onclick="setBet(100)">100</button>
-      <button class="btn" onclick="setBet(200)">200</button>
-    </div>
-    <button id="spinBtn" onclick="spin()">СПИН</button>
-    <button id="restartBtn" onclick="restartGame()">Рестартирай</button>
   </div>
+  <div id="bets">
+    <button class="btn" onclick="setBet(20)">20</button>
+    <button class="btn" onclick="setBet(40)">40</button>
+    <button class="btn" onclick="setBet(60)">60</button>
+    <button class="btn" onclick="setBet(100)">100</button>
+    <button class="btn" onclick="setBet(200)">200</button>
+  </div>
+  <button id="spinBtn" onclick="spin()">СПИН</button>
+  <button id="restartBtn" onclick="restartGame()" style="display:none">Нова игра</button>
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const winLabel = document.getElementById('winLabel');
+    const spinBtn = document.getElementById('spinBtn');
+    const restartBtn = document.getElementById('restartBtn');
 
     // Responsive canvas
     function resizeCanvas() {
@@ -202,7 +221,6 @@
     // Game variables
     const FRUITS = ['🍎', '🍒', '🍇', '⭐', '🍉'];
     const GRID_SIZE = 5;
-    const BET_OPTIONS = [20, 40, 60, 100, 200];
     const SECRET_PATTERN = [20, 60, 100, 60, 200];
     let selectedBet = 20;
     let coins = 500;
@@ -269,11 +287,14 @@
       const x = offsetX + col * (cellSize + margin);
       const y = offsetY + row * (cellSize + margin);
 
-      // Shadow for win
+      // Зелена рамка за лентите
       ctx.save();
-      ctx.fillStyle = '#222';
-      ctx.globalAlpha = 0.95;
+      ctx.fillStyle = '#111';
       ctx.fillRect(x, y, cellSize, cellSize);
+
+      ctx.strokeStyle = "#00c800";
+      ctx.lineWidth = cellSize * 0.08;
+      ctx.strokeRect(x + ctx.lineWidth/2, y + ctx.lineWidth/2, cellSize - ctx.lineWidth, cellSize - ctx.lineWidth);
       ctx.restore();
 
       // Fruit
@@ -308,6 +329,13 @@
       document.getElementById('coins').innerText = `Монети: ${coins}`;
       document.getElementById('lastWin').innerText = `Последна печалба: ${lastWin}`;
       document.getElementById('totalWin').innerText = `Обща печалба: ${totalWin}`;
+      if (coins <= 0) {
+        spinBtn.style.display = 'none';
+        restartBtn.style.display = 'block';
+      } else {
+        spinBtn.style.display = 'block';
+        restartBtn.style.display = 'none';
+      }
     }
 
     // Win logic
