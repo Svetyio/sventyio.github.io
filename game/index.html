@@ -241,7 +241,7 @@
     const restartBtn = document.getElementById('restartBtn');
 
     // Игрови настройки
-    const FRUITS = ['🍎', '🍒', '🍇', '🍀', '🍉'];
+    const FRUITS = ['🍎', '🍒', '🍇', '🍀', '🍉']; // със зелена четирилистна детелина
     const GRID_SIZE = 5;
 
     // Променливи на играта
@@ -342,10 +342,6 @@
       if (diag2.every(fruit => fruit === diag2[0])) {
         lines.push({type:'diag', index:1, fruit:diag2[0]});
       }
-      // Пълно попадение (цял екран с 1 плод) - ВЕЧЕ НЕ ДАВА ДОПЪЛНИТЕЛНА ПЕЧАЛБА!
-      // if (grid.flat().every(fruit => fruit === grid[0][0])) {
-      //   lines.push({type:'full', fruit:grid[0][0]});
-      // }
       return lines;
     }
 
@@ -355,12 +351,10 @@
         if(line.type==="row") score+=100;
         else if(line.type==="col") score+=150;
         else if(line.type==="diag") score+=200;
-        // else if(line.type==="full") score+=0; // няма бонус за full match вече
       }
       return score;
     }
 
-    // Анимации за различни линии
     function triggerWinFlash(lines) {
       winFlash = true;
       winFlashLines = lines;
@@ -382,7 +376,6 @@
       winLabel.classList.add("active");
     }
 
-    // Основен рендер
     function drawGrid() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -408,15 +401,15 @@
           ctx.fillRect(x, y, cellSize, cellSize);
           ctx.restore();
 
-          // Плодове - големи и центрирани!
+          // По-малки и центрирани плодове
           ctx.save();
-          ctx.font = `${Math.floor(cellSize * 0.72)}px serif`;
+          ctx.font = `${Math.floor(cellSize * 0.58)}px serif`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillStyle = 'white';
           ctx.shadowColor = '#444';
-          ctx.shadowBlur = 10;
-          ctx.fillText(grid[row][col], x + cellSize / 2, y + cellSize / 2 + 1);
+          ctx.shadowBlur = 6;
+          ctx.fillText(grid[row][col], x + cellSize / 2, y + cellSize / 2 + 0.5);
           ctx.restore();
         }
       }
@@ -587,7 +580,7 @@
       autoSpinInterval = setInterval(() => {
         if (!autoSpin || spinning || coins < selectedBet) return;
         spin();
-      }, 30000); // 30 секунди
+      }, 5000); // 5 секунди!
     }
     function stopAutoSpin() {
       autoSpin = false;
