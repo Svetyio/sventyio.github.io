@@ -172,6 +172,7 @@
       pointer-events: none;
       z-index: 10;
       transition: opacity 0.4s;
+      white-space: nowrap;
     }
     #winLabel.active {
       opacity: 1 !important;
@@ -229,6 +230,27 @@
     const spinBtn = document.getElementById('spinBtn');
     const restartBtn = document.getElementById('restartBtn');
 
+    // Игрови настройки
+    const FRUITS = ['🍎', '🍒', '🍇', '⭐', '🍉'];
+    const GRID_SIZE = 5;
+    const SECRET_PATTERN = [20, 60, 100, 60, 200];
+
+    // Променливи на играта
+    let selectedBet = 20;
+    let coins = 500;
+    let lastWin = 0;
+    let totalWin = 0;
+    let grid = [];
+    let betHistory = [];
+    let spinning = false;
+    let spinAnimFrame = 0;
+    let spinTargetGrid = [];
+    let winLabelTimeout = null;
+    let secretReady = false; // дали е активирана тайната комбинация този път
+    let winFlash = false;
+    let winFlashType = null; // "row", "col", "diag", "full"
+    let winFlashLines = []; // за ефекти на печелившите линии
+
     // Responsive canvas
     function resizeCanvas() {
       let size = Math.min(window.innerWidth * 0.95, 380, window.innerHeight * 0.65);
@@ -238,23 +260,6 @@
       drawGrid();
     }
     window.addEventListener('resize', resizeCanvas);
-
-    // Game variables
-    const FRUITS = ['🍎', '🍒', '🍇', '⭐', '🍉'];
-    const GRID_SIZE = 5;
-    const SECRET_PATTERN = [20, 60, 100, 60, 200];
-    let selectedBet = 20;
-    let coins = 500;
-    let lastWin = 0;
-    let totalWin = 0;
-    let grid = [];
-    let betHistory = [];
-    let winFlash = false;
-    let spinning = false;
-    let spinAnimFrame = 0;
-    let spinTargetGrid = [];
-    let winLabelTimeout = null;
-    let forceFullMatch = false; // за тайната печалба
 
     // LocalStorage save/load
     function saveStats() {
@@ -273,6 +278,11 @@
       selectedBet = bet;
       betHistory.push(bet);
       if (betHistory.length > 5) betHistory.shift();
+
+      // Проверка за тайната комбинация!
+      if (betHistory.length === 5 && SECRET_PATTERN.every((val, i) => val === betHistory[i])) {
+        secretReady = true;
+      }
       document.querySelectorAll('#bets .btn').forEach(btn => {
         btn.classList.remove('selected-bet');
         if (parseInt(btn.innerText) === bet) {
@@ -298,11 +308,82 @@
       return arr;
     }
 
-    // Drawing - зелена решетка, квадратчетата без рамка
+    // Връща масив с всички печеливши (редове, колони, диагонали)
+    function getWinningLines(grid) {
+      let lines = [];
+      // Хоризонтални редове
+      for (let row = 0; row < GRID_SIZE; row++) {
+        if (grid[row].every(fruit => fruit === grid[row][0])) {
+          lines.push({type:'row', index:row, fruit:grid[row][0]});
+        }
+      }
+      // Вертикални колони
+      for (let col = 0; col < GRID_SIZE; col++) {
+        let colFruits = [];
+        for (let row = 0; row < GRID_SIZE; row++) colFruits.push(grid[row][col]);
+        if (colFruits.every(fruit => fruit === colFruits[0])) {
+          lines.push({type:'col', index:col, fruit:colFruits[0]});
+        }
+      }
+      // Диагонал 1
+      let diag1 = [];
+      for (let i = 0; i < GRID_SIZE; i++) diag1.push(grid[i][i]);
+      if (diag1.every(fruit => fruit === diag1[0])) {
+        lines.push({type:'diag', index:0, fruit:diag1[0]});
+      }
+      // Диагонал 2
+      let diag2 = [];
+      for (let i = 0; i < GRID_SIZE; i++) diag2.push(grid[i][GRID_SIZE-1-i]);
+      if (diag2.every(fruit => fruit === diag2[0])) {
+        lines.push({type:'diag', index:1, fruit:diag2[0]});
+      }
+      // Пълно попадение (цял екран с 1 плод)
+      if (grid.flat().every(fruit => fruit === grid[0][0])) {
+        lines.push({type:'full', fruit:grid[0][0]});
+      }
+      return lines;
+    }
+
+    function getWinScore(lines,isSecret) {
+      let score = 0;
+      for(const line of lines) {
+        if(line.type==="row") score+=100;
+        else if(line.type==="col") score+=150;
+        else if(line.type==="diag") score+=200;
+        else if(line.type==="full" && isSecret) score+=500; // full match бонус само ако е тайната комбинация
+      }
+      return score;
+    }
+
+    // Анимации за различни линии
+    function triggerWinFlash(lines) {
+      winFlash = true;
+      winFlashLines = lines;
+      // Избира се най-силната линия за winFlashType (визуализация)
+      if(lines.some(l=>l.type==="full")) winFlashType="full";
+      else if(lines.some(l=>l.type==="diag")) winFlashType="diag";
+      else if(lines.some(l=>l.type==="col")) winFlashType="col";
+      else if(lines.some(l=>l.type==="row")) winFlashType="row";
+      winLabel.classList.add("active");
+    }
+
+    function clearWinFlash() {
+      winFlash = false;
+      winLabel.classList.remove("active");
+      winFlashType = null;
+      winFlashLines = [];
+    }
+
+    function showWinLabel(win) {
+      winLabel.textContent = `ПЕЧАЛБА +${win}`;
+      winLabel.classList.add("active");
+    }
+
+    // Основен рендер
     function drawGrid() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Първо - зелената решетка
+      // Зелена решетка
       const cellSize = canvas.width / (GRID_SIZE + 0.16);
       const margin = cellSize * 0.13;
       ctx.save();
@@ -310,7 +391,7 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.restore();
 
-      // После - самите квадратчета (без рамка)
+      // Квадратчета и плодове
       const offsetX = (canvas.width - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
       const offsetY = (canvas.height - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
 
@@ -324,24 +405,50 @@
           ctx.fillRect(x, y, cellSize, cellSize);
           ctx.restore();
 
-          // Fruit
-          ctx.font = `${Math.floor(cellSize * 0.6)}px serif`;
+          // Плодове - големи и центрирани!
+          ctx.save();
+          ctx.font = `${Math.floor(cellSize * 0.72)}px serif`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillStyle = 'white';
           ctx.shadowColor = '#444';
-          ctx.shadowBlur = 8;
-          ctx.fillText(grid[row][col], x + cellSize / 2, y + cellSize / 2 + 5);
-          ctx.shadowBlur = 0;
+          ctx.shadowBlur = 10;
+          ctx.fillText(grid[row][col], x + cellSize / 2, y + cellSize / 2 + 1);
+          ctx.restore();
         }
       }
 
-      if (winFlash) {
-        ctx.save();
-        ctx.globalAlpha = 0.25 + 0.25 * Math.sin(Date.now() / 80);
-        ctx.fillStyle = '#ff0';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.restore();
+      // Ефекти за печеливши линии
+      if (winFlash && winFlashLines.length > 0) {
+        for(const line of winFlashLines) {
+          ctx.save();
+          if(line.type==="row") ctx.fillStyle = "rgba(255,255,0,0.23)";
+          else if(line.type==="col") ctx.fillStyle = "rgba(0,180,255,0.22)";
+          else if(line.type==="diag") ctx.fillStyle = "rgba(255,0,150,0.16)";
+          else if(line.type==="full") ctx.fillStyle = "rgba(255,255,0,0.18)";
+          if(line.type==="row") {
+            const y = offsetY + line.index * (cellSize + margin);
+            ctx.fillRect(offsetX, y, GRID_SIZE * cellSize + (GRID_SIZE-1)*margin, cellSize);
+          } else if(line.type==="col") {
+            const x = offsetX + line.index * (cellSize + margin);
+            ctx.fillRect(x, offsetY, cellSize, GRID_SIZE * cellSize + (GRID_SIZE-1)*margin);
+          } else if(line.type==="diag" && line.index===0) {
+            ctx.save();
+            ctx.translate(offsetX, offsetY);
+            ctx.rotate(Math.atan2(canvas.height, canvas.width));
+            ctx.fillRect(0, cellSize/3, Math.sqrt(canvas.width**2+canvas.height**2), cellSize/1.7);
+            ctx.restore();
+          } else if(line.type==="diag" && line.index===1) {
+            ctx.save();
+            ctx.translate(offsetX + GRID_SIZE*cellSize + (GRID_SIZE-1)*margin, offsetY);
+            ctx.rotate(-Math.atan2(canvas.height, canvas.width));
+            ctx.fillRect(0, cellSize/3, Math.sqrt(canvas.width**2+canvas.height**2), cellSize/1.7);
+            ctx.restore();
+          } else if(line.type==="full") {
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+          }
+          ctx.restore();
+        }
       }
       updateInfo();
     }
@@ -359,42 +466,11 @@
       }
     }
 
-    // Win logic
-    function checkWin() {
-      let points = 0;
-      // Редове
-      for (let row = 0; row < GRID_SIZE; row++) {
-        if (grid[row].every(fruit => fruit === grid[row][0])) points += 100;
-      }
-      // Колони
-      for (let col = 0; col < GRID_SIZE; col++) {
-        let colFruits = [];
-        for (let row = 0; row < GRID_SIZE; row++) colFruits.push(grid[row][col]);
-        if (colFruits.every(fruit => fruit === colFruits[0])) points += 150;
-      }
-      return points;
-    }
-
-    function triggerWinFlash() {
-      winFlash = true;
-      winLabel.classList.add("active");
-    }
-
-    function clearWinFlash() {
-      winFlash = false;
-      winLabel.classList.remove("active");
-    }
-
-    function showWinLabel(win) {
-      winLabel.textContent = `ПЕЧАЛБА +${win}`;
-      winLabel.classList.add("active");
-    }
-
     // Spin animation
-    function animateSpin(targetGrid, onEnd, isSecret = false, secretFruit = null) {
+    function animateSpin(targetGrid, onEnd) {
       spinning = true;
       spinAnimFrame = 0;
-      let animSteps = isSecret ? 30 : 22;
+      let animSteps = 22;
       let tempGrid = grid.map(row => row.slice());
 
       function spinFrame() {
@@ -402,11 +478,7 @@
         if (spinAnimFrame < animSteps - GRID_SIZE) {
           for (let row = 0; row < GRID_SIZE; row++) {
             for (let col = 0; col < GRID_SIZE; col++) {
-              if (isSecret) {
-                tempGrid[row][col] = FRUITS[Math.floor(Math.random() * FRUITS.length)];
-              } else {
-                tempGrid[row][col] = randomFruit();
-              }
+              tempGrid[row][col] = randomFruit();
             }
           }
         } else {
@@ -418,11 +490,7 @@
               }
             } else {
               for (let col = 0; col < GRID_SIZE; col++) {
-                if (isSecret) {
-                  tempGrid[row][col] = FRUITS[Math.floor(Math.random() * FRUITS.length)];
-                } else {
-                  tempGrid[row][col] = randomFruit();
-                }
+                tempGrid[row][col] = randomFruit();
               }
             }
           }
@@ -446,39 +514,41 @@
     // Game actions
     function spin() {
       if (spinning || coins < selectedBet) return;
-      // Край на анимацията за печалба, ако има
       clearWinFlash();
 
-      const matchSecret = SECRET_PATTERN.every((val, i) => val === betHistory[i]);
-      coins -= selectedBet;
-      saveStats();
-
+      // Проверка за тайната комбинация
+      let isSecret = false;
       let finalGrid, secretFruit = null;
-      if (matchSecret) {
+      if(secretReady) {
+        isSecret = true;
         secretFruit = randomFruit();
         finalGrid = generateGrid(true, secretFruit);
+        secretReady = false; // изключва се, трябва да въведеш пак тайната комбинация!
+        betHistory = []; // reset history, така не може да се активира автоматично пак
       } else {
         finalGrid = generateGrid(false);
       }
+
+      coins -= selectedBet;
+      saveStats();
+
       spinTargetGrid = finalGrid.map(r=>r.slice());
 
       animateSpin(
         spinTargetGrid,
         () => {
-          let win = checkWin();
-          if (matchSecret) win += 500;
+          let lines = getWinningLines(grid);
+          let win = getWinScore(lines, isSecret);
           coins += win;
           lastWin = win;
           totalWin += win;
           saveStats();
           if (win > 0) {
-            triggerWinFlash();
+            triggerWinFlash(lines);
             showWinLabel(win);
           }
           drawGrid();
-        },
-        matchSecret,
-        secretFruit
+        }
       );
     }
 
@@ -487,6 +557,7 @@
       lastWin = 0;
       totalWin = 0;
       betHistory = [];
+      secretReady = false;
       saveStats();
       grid = generateGrid();
       drawGrid();
@@ -495,7 +566,6 @@
 
     // Game loop
     function gameLoop() {
-      // Анимацията за печалба повече не се маха автоматично!
       if (!spinning) drawGrid();
       requestAnimationFrame(gameLoop);
     }
