@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Svetlyo Slot Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       margin: 0;
@@ -11,13 +12,28 @@
       font-family: 'Segoe UI', sans-serif;
       text-align: center;
     }
-    canvas {
+    #gameCanvas {
       display: block;
       margin: 30px auto;
       background: #111;
       border: 10px solid #ffcc00;
       border-radius: 25px;
       box-shadow: 0 0 25px #ffcc00;
+      max-width: 98vw;
+      max-height: 65vw;
+      width: 90vw;
+      height: 90vw;
+      min-width: 320px;
+      min-height: 320px;
+      touch-action: none;
+    }
+    @media (min-width: 700px) {
+      #gameCanvas {
+        width: 600px;
+        height: 600px;
+        max-width: 1000px;
+        max-height: 1000px;
+      }
     }
     #ui {
       margin-top: 20px;
@@ -46,7 +62,7 @@
       cursor: pointer;
       transition: background-color 0.3s, transform 0.2s;
     }
-    .btn:hover {
+    .btn:hover, .btn:focus-visible {
       background-color: #444;
       transform: scale(1.05);
     }
@@ -67,15 +83,31 @@
       margin-top: 30px;
       transition: background-color 0.3s, transform 0.2s;
     }
-    #spinBtn:hover {
+    #spinBtn:hover, #spinBtn:focus-visible {
       background-color: #e00;
       transform: scale(1.1);
+    }
+    #restartBtn {
+      padding: 12px 22px;
+      margin: 10px;
+      font-size: 18px;
+      background: #1e90ff;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      transition: background 0.3s, transform 0.2s;
+    }
+    #restartBtn:hover, #restartBtn:focus-visible {
+      background: #00ccff;
+      transform: scale(1.05);
     }
   </style>
 </head>
 <body>
   <h1>Добре дошли в Svetlyo Games</h1>
-  <canvas id="gameCanvas" width="1000" height="1000"></canvas>
+  <canvas id="gameCanvas"></canvas>
   <div id="ui">
     <div class="info-box" id="coins">Монети: 500</div>
     <div class="info-box" id="lastWin">Последна печалба: 0</div>
@@ -88,15 +120,27 @@
       <button class="btn" onclick="setBet(200)">200</button>
     </div>
     <button id="spinBtn" onclick="spin()">СПИН</button>
+    <button id="restartBtn" onclick="restartGame()">Рестартирай</button>
   </div>
-  <script>const canvas = document.getElementById('gameCanvas');
+  <script>
+    const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
+    // Responsive canvas
+    function resizeCanvas() {
+      let size = Math.min(window.innerWidth * 0.9, 1000, window.innerHeight * 0.65);
+      size = Math.max(size, 320);
+      canvas.width = size;
+      canvas.height = size;
+      drawGrid();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // Game variables
     const FRUITS = ['🍎', '🍒', '🍇', '⭐', '🍉'];
     const GRID_SIZE = 5;
     const BET_OPTIONS = [20, 40, 60, 100, 200];
     const SECRET_PATTERN = [20, 60, 100, 60, 200];
-
     let selectedBet = 20;
     let coins = 500;
     let lastWin = 0;
@@ -106,6 +150,19 @@
     let flashTimer = 0;
     let winFlash = false;
 
+    // LocalStorage save/load
+    function saveStats() {
+      localStorage.setItem('slot_coins', coins);
+      localStorage.setItem('slot_lastWin', lastWin);
+      localStorage.setItem('slot_totalWin', totalWin);
+    }
+    function loadStats() {
+      coins = Number(localStorage.getItem('slot_coins')) || 500;
+      lastWin = Number(localStorage.getItem('slot_lastWin')) || 0;
+      totalWin = Number(localStorage.getItem('slot_totalWin')) || 0;
+    }
+
+    // Bets UI
     function setBet(bet) {
       selectedBet = bet;
       betHistory.push(bet);
@@ -119,33 +176,39 @@
       });
     }
 
+    // Fruits
     function randomFruit() {
       return FRUITS[Math.floor(Math.random() * FRUITS.length)];
     }
 
     function generateGrid(fullMatch = false) {
       grid = [];
+      let fruitForFull = FRUITS[Math.floor(Math.random() * FRUITS.length)];
       for (let row = 0; row < GRID_SIZE; row++) {
         const rowData = [];
         for (let col = 0; col < GRID_SIZE; col++) {
-          rowData.push(fullMatch ? FRUITS[Math.floor(Math.random() * FRUITS.length)] : randomFruit());
+          rowData.push(fullMatch ? fruitForFull : randomFruit());
         }
         grid.push(rowData);
       }
     }
 
+    // Drawing
     function drawCell(row, col, fruit) {
-      const cellSize = 160;
-      const margin = 8;
+      const cellSize = canvas.width / (GRID_SIZE + 0.18); // Responsive cell size
+      const margin = cellSize * 0.05;
       const offsetX = (canvas.width - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
-      const offsetY = 80;
+      const offsetY = (canvas.height - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
       const x = offsetX + col * (cellSize + margin);
       const y = offsetY + row * (cellSize + margin);
+
       ctx.fillStyle = '#222';
       ctx.fillRect(x, y, cellSize, cellSize);
-      ctx.font = '70px serif';
+      ctx.font = `${Math.floor(cellSize * 0.6)}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       ctx.fillStyle = 'white';
-      ctx.fillText(fruit, x + 40, y + 100);
+      ctx.fillText(fruit, x + cellSize / 2, y + cellSize / 2 + 5);
     }
 
     function drawGrid() {
@@ -156,8 +219,11 @@
         }
       }
       if (winFlash) {
-        ctx.fillStyle = 'rgba(255, 255, 0, 0.15)';
+        ctx.save();
+        ctx.globalAlpha = 0.25 + 0.25 * Math.sin(Date.now() / 80); // Flash effect
+        ctx.fillStyle = '#ff0';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
       }
       updateInfo();
     }
@@ -168,19 +234,25 @@
       document.getElementById('totalWin').innerText = `Обща печалба: ${totalWin}`;
     }
 
+    // Win logic
     function checkWin() {
       let points = 0;
+      // За редове
       for (let row = 0; row < GRID_SIZE; row++) {
-        if (grid[row].every(fruit => fruit === grid[row][0])) {
-          points += 100;
-        }
+        if (grid[row].every(fruit => fruit === grid[row][0])) points += 100;
+      }
+      // За колони
+      for (let col = 0; col < GRID_SIZE; col++) {
+        let colFruits = [];
+        for (let row = 0; row < GRID_SIZE; row++) colFruits.push(grid[row][col]);
+        if (colFruits.every(fruit => fruit === colFruits[0])) points += 150;
       }
       return points;
     }
 
     function triggerWinFlash() {
       winFlash = true;
-      flashTimer = 20;
+      flashTimer = 30;
     }
 
     function updateFlash() {
@@ -192,6 +264,7 @@
       }
     }
 
+    // Game actions
     function spin() {
       if (coins < selectedBet) return;
       const matchSecret = SECRET_PATTERN.every((val, i) => val === betHistory[i]);
@@ -202,6 +275,7 @@
       coins += win;
       lastWin = win;
       totalWin += win;
+      saveStats();
       if (win > 0) triggerWinFlash();
       drawGrid();
     }
@@ -211,19 +285,24 @@
       lastWin = 0;
       totalWin = 0;
       betHistory = [];
+      saveStats();
       generateGrid();
       drawGrid();
     }
 
+    // Game loop
     function gameLoop() {
       updateFlash();
       drawGrid();
       requestAnimationFrame(gameLoop);
     }
 
+    // Init
+    loadStats();
     generateGrid();
-    drawGrid();
     setBet(selectedBet);
+    resizeCanvas();
+    drawGrid();
     gameLoop();
   </script>
 </body>
