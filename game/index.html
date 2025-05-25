@@ -20,25 +20,29 @@
     }
     #gameCanvas {
       display: block;
-      margin: 30px auto 10px auto;
+      margin: 25px auto 10px auto;
       background: #111;
-      border: 10px solid #ffcc00;
-      border-radius: 25px;
-      box-shadow: 0 0 25px #ffcc00;
-      max-width: 98vw;
-      width: 90vw;
-      height: 90vw;
-      min-width: 320px;
-      min-height: 320px;
-      max-height: 70vw;
+      border: 8px solid #ffcc00;
+      border-radius: 20px;
+      box-shadow: 0 0 18px #ffcc00;
+      max-width: 95vw;
+      width: 95vw;
+      height: 95vw;
+      min-width: 220px;
+      min-height: 220px;
+      max-height: 380px;
+      max-width: 380px;
       touch-action: none;
+      background-color: #111;
     }
-    @media (min-width: 700px) {
+    @media (min-width: 600px) {
       #gameCanvas {
-        width: 600px;
-        height: 600px;
-        max-width: 1000px;
-        max-height: 1000px;
+        width: 340px;
+        height: 340px;
+        min-width: 290px;
+        min-height: 290px;
+        max-width: 380px;
+        max-height: 380px;
       }
     }
     #info-row {
@@ -113,12 +117,12 @@
     #spinBtn {
       background-color: #c00;
       border-radius: 50%;
-      width: 120px;
-      height: 120px;
-      font-size: 32px;
+      width: 90px;
+      height: 90px;
+      font-size: 26px;
       font-weight: bold;
       color: white;
-      margin: 30px auto 10px auto;
+      margin: 22px auto 10px auto;
       display: block;
       transition: background-color 0.3s, transform 0.2s;
       box-shadow: 0 0 20px #800;
@@ -134,12 +138,12 @@
     #restartBtn {
       background: #1e90ff;
       border-radius: 50%;
-      width: 120px;
-      height: 120px;
-      font-size: 26px;
+      width: 90px;
+      height: 90px;
+      font-size: 18px;
       font-weight: bold;
       color: white;
-      margin: 30px auto 10px auto;
+      margin: 22px auto 10px auto;
       display: block;
       transition: background 0.3s, transform 0.2s;
       box-shadow: 0 0 16px #1e90ff99;
@@ -156,14 +160,14 @@
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
-      top: 18px;
-      font-size: 36px;
+      top: 9px;
+      font-size: 28px;
       font-weight: 900;
       color: #fff400;
-      text-shadow: 0 0 16px #ff0, 0 2px 24px #fff;
+      text-shadow: 0 0 12px #ff0, 0 2px 17px #fff;
       background: rgba(40,40,0,0.4);
-      padding: 8px 32px;
-      border-radius: 18px;
+      padding: 6px 22px;
+      border-radius: 15px;
       opacity: 0;
       pointer-events: none;
       z-index: 10;
@@ -171,13 +175,13 @@
     }
     @media (max-width: 500px) {
       #winLabel {
-        font-size: 21px;
-        padding: 5px 10px;
+        font-size: 16px;
+        padding: 3px 7px;
       }
-      #spinBtn, #restartBtn { width: 75px; height: 75px; font-size: 16px; }
-      #bets { gap: 4px; }
-      .btn { font-size: 13px; min-height: 24px; padding: 6px 10px; }
-      .info-box { font-size: 13px; min-width: 54px; min-height: 18px; padding: 3px 7px; }
+      #spinBtn, #restartBtn { width: 60px; height: 60px; font-size: 13px; }
+      #bets { gap: 3px; }
+      .btn { font-size: 11px; min-height: 18px; padding: 4px 7px; }
+      .info-box { font-size: 11px; min-width: 39px; min-height: 10px; padding: 2px 4px; }
     }
   </style>
 </head>
@@ -210,8 +214,9 @@
 
     // Responsive canvas
     function resizeCanvas() {
-      let size = Math.min(window.innerWidth * 0.9, 1000, window.innerHeight * 0.68);
-      size = Math.max(size, 320);
+      // Ограничава полето до максимум 380px, по-малко на телефон
+      let size = Math.min(window.innerWidth * 0.95, 380, window.innerHeight * 0.65);
+      size = Math.max(size, 220);
       canvas.width = size;
       canvas.height = size;
       drawGrid();
@@ -234,6 +239,7 @@
     let spinAnimFrame = 0;
     let spinTargetGrid = [];
     let winLabelTimeout = null;
+    let forceFullMatch = false; // за тайната печалба
 
     // LocalStorage save/load
     function saveStats() {
@@ -265,9 +271,9 @@
       return FRUITS[Math.floor(Math.random() * FRUITS.length)];
     }
 
-    function generateGrid(fullMatch = false) {
+    function generateGrid(fullMatch = false, fixedFruit = null) {
       let arr = [];
-      let fruitForFull = FRUITS[Math.floor(Math.random() * FRUITS.length)];
+      let fruitForFull = fixedFruit || FRUITS[Math.floor(Math.random() * FRUITS.length)];
       for (let row = 0; row < GRID_SIZE; row++) {
         const rowData = [];
         for (let col = 0; col < GRID_SIZE; col++) {
@@ -278,43 +284,44 @@
       return arr;
     }
 
-    // Drawing
-    function drawCell(row, col, fruit) {
-      const cellSize = canvas.width / (GRID_SIZE + 0.18);
-      const margin = cellSize * 0.05;
-      const offsetX = (canvas.width - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
-      const offsetY = (canvas.height - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
-      const x = offsetX + col * (cellSize + margin);
-      const y = offsetY + row * (cellSize + margin);
-
-      // Зелена рамка за лентите
-      ctx.save();
-      ctx.fillStyle = '#111';
-      ctx.fillRect(x, y, cellSize, cellSize);
-
-      ctx.strokeStyle = "#00c800";
-      ctx.lineWidth = cellSize * 0.08;
-      ctx.strokeRect(x + ctx.lineWidth/2, y + ctx.lineWidth/2, cellSize - ctx.lineWidth, cellSize - ctx.lineWidth);
-      ctx.restore();
-
-      // Fruit
-      ctx.font = `${Math.floor(cellSize * 0.6)}px serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'white';
-      ctx.shadowColor = '#444';
-      ctx.shadowBlur = 8;
-      ctx.fillText(fruit, x + cellSize / 2, y + cellSize / 2 + 5);
-      ctx.shadowBlur = 0;
-    }
-
+    // Drawing - зелена решетка, квадратчетата без рамка
     function drawGrid() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Първо - зелената решетка
+      const cellSize = canvas.width / (GRID_SIZE + 0.16);
+      const margin = cellSize * 0.13;
+      ctx.save();
+      ctx.fillStyle = "#00c800";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+
+      // После - самите квадратчета (без рамка)
+      const offsetX = (canvas.width - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
+      const offsetY = (canvas.height - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
+
       for (let row = 0; row < GRID_SIZE; row++) {
         for (let col = 0; col < GRID_SIZE; col++) {
-          drawCell(row, col, grid[row][col]);
+          const x = offsetX + col * (cellSize + margin);
+          const y = offsetY + row * (cellSize + margin);
+          ctx.save();
+          ctx.fillStyle = '#111';
+          ctx.globalAlpha = 0.97;
+          ctx.fillRect(x, y, cellSize, cellSize);
+          ctx.restore();
+
+          // Fruit
+          ctx.font = `${Math.floor(cellSize * 0.6)}px serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = 'white';
+          ctx.shadowColor = '#444';
+          ctx.shadowBlur = 8;
+          ctx.fillText(grid[row][col], x + cellSize / 2, y + cellSize / 2 + 5);
+          ctx.shadowBlur = 0;
         }
       }
+
       if (winFlash) {
         ctx.save();
         ctx.globalAlpha = 0.25 + 0.25 * Math.sin(Date.now() / 80);
@@ -378,10 +385,10 @@
     }
 
     // Spin animation
-    function animateSpin(targetGrid, onEnd) {
+    function animateSpin(targetGrid, onEnd, isSecret = false, secretFruit = null) {
       spinning = true;
       spinAnimFrame = 0;
-      let animSteps = 24;
+      let animSteps = isSecret ? 30 : 22;
       let tempGrid = grid.map(row => row.slice());
 
       function spinFrame() {
@@ -390,7 +397,11 @@
         if (spinAnimFrame < animSteps - GRID_SIZE) {
           for (let row = 0; row < GRID_SIZE; row++) {
             for (let col = 0; col < GRID_SIZE; col++) {
-              tempGrid[row][col] = randomFruit();
+              if (isSecret) {
+                tempGrid[row][col] = FRUITS[Math.floor(Math.random() * FRUITS.length)];
+              } else {
+                tempGrid[row][col] = randomFruit();
+              }
             }
           }
         } else {
@@ -403,7 +414,11 @@
               }
             } else {
               for (let col = 0; col < GRID_SIZE; col++) {
-                tempGrid[row][col] = randomFruit();
+                if (isSecret) {
+                  tempGrid[row][col] = FRUITS[Math.floor(Math.random() * FRUITS.length)];
+                } else {
+                  tempGrid[row][col] = randomFruit();
+                }
               }
             }
           }
@@ -431,22 +446,36 @@
       coins -= selectedBet;
       saveStats();
 
-      let finalGrid = generateGrid(matchSecret);
+      let finalGrid, secretFruit = null;
+      if (matchSecret) {
+        // Тайната печалба: целият екран е един и същи плод, избран на случаен принцип
+        secretFruit = randomFruit();
+        finalGrid = generateGrid(true, secretFruit);
+        forceFullMatch = true;
+      } else {
+        finalGrid = generateGrid(false);
+        forceFullMatch = false;
+      }
       spinTargetGrid = finalGrid.map(r=>r.slice());
 
-      animateSpin(spinTargetGrid, () => {
-        let win = checkWin();
-        if (matchSecret) win += 500;
-        coins += win;
-        lastWin = win;
-        totalWin += win;
-        saveStats();
-        if (win > 0) {
-          triggerWinFlash();
-          showWinLabel(win);
-        }
-        drawGrid();
-      });
+      animateSpin(
+        spinTargetGrid,
+        () => {
+          let win = checkWin();
+          if (matchSecret) win += 500;
+          coins += win;
+          lastWin = win;
+          totalWin += win;
+          saveStats();
+          if (win > 0) {
+            triggerWinFlash();
+            showWinLabel(win);
+          }
+          drawGrid();
+        },
+        matchSecret,
+        secretFruit
+      );
     }
 
     function restartGame() {
