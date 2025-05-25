@@ -2,7 +2,7 @@
 <html lang="bg">
 <head>
   <meta charset="UTF-8" />
-  <title>Svetlyo Slot Game Animated</title>
+  <title>Svetlyo Slot Game</title>
   <style>
     body {
       margin: 0;
@@ -19,101 +19,212 @@
       border-radius: 25px;
       box-shadow: 0 0 25px #ffcc00;
     }
+    #ui {
+      margin-top: 20px;
+    }
+    .info-box {
+      display: inline-block;
+      background: #222;
+      border: 2px solid #888;
+      padding: 10px 20px;
+      margin: 10px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #444;
+      font-size: 20px;
+    }
+    #coins { background-color: #2e8b57; color: #fff; }
+    #lastWin { background-color: #8b0000; color: #fff; }
+    #totalWin { background-color: #1e90ff; color: #fff; }
+    .btn {
+      padding: 18px 38px;
+      margin: 15px;
+      font-size: 22px;
+      color: white;
+      background-color: black;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+    .btn:hover {
+      background-color: #444;
+      transform: scale(1.05);
+    }
+    .selected-bet {
+      background-color: #00cc00;
+      color: white;
+      box-shadow: 0 0 12px 2px #00cc00;
+      font-weight: bold;
+    }
+    #spinBtn {
+      background-color: #c00;
+      border-radius: 50%;
+      width: 180px;
+      height: 180px;
+      font-size: 36px;
+      font-weight: bold;
+      color: white;
+      margin-top: 30px;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+    #spinBtn:hover {
+      background-color: #e00;
+      transform: scale(1.1);
+    }
   </style>
 </head>
 <body>
   <h1>Добре дошли в Svetlyo Games</h1>
   <canvas id="gameCanvas" width="1000" height="1000"></canvas>
-  <script>
-    const canvas = document.getElementById('gameCanvas');
+  <div id="ui">
+    <div class="info-box" id="coins">Монети: 500</div>
+    <div class="info-box" id="lastWin">Последна печалба: 0</div>
+    <div class="info-box" id="totalWin">Обща печалба: 0</div>
+    <div id="bets">
+      <button class="btn" onclick="setBet(20)">20</button>
+      <button class="btn" onclick="setBet(40)">40</button>
+      <button class="btn" onclick="setBet(60)">60</button>
+      <button class="btn" onclick="setBet(100)">100</button>
+      <button class="btn" onclick="setBet(200)">200</button>
+    </div>
+    <button id="spinBtn" onclick="spin()">СПИН</button>
+  </div>
+  <script>const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+
     const FRUITS = ['🍎', '🍒', '🍇', '⭐', '🍉'];
     const GRID_SIZE = 5;
-    let grid = [...Array(GRID_SIZE)].map(() => Array(GRID_SIZE).fill(''));
-    let animationPattern = 0;
+    const BET_OPTIONS = [20, 40, 60, 100, 200];
+    const SECRET_PATTERN = [20, 60, 100, 60, 200];
 
-    function drawCell(x, y, fruit) {
-      const size = 160;
+    let selectedBet = 20;
+    let coins = 500;
+    let lastWin = 0;
+    let totalWin = 0;
+    let grid = [];
+    let betHistory = [];
+    let flashTimer = 0;
+    let winFlash = false;
+
+    function setBet(bet) {
+      selectedBet = bet;
+      betHistory.push(bet);
+      if (betHistory.length > 5) betHistory.shift();
+
+      document.querySelectorAll('#bets .btn').forEach(btn => {
+        btn.classList.remove('selected-bet');
+        if (parseInt(btn.innerText) === bet) {
+          btn.classList.add('selected-bet');
+        }
+      });
+    }
+
+    function randomFruit() {
+      return FRUITS[Math.floor(Math.random() * FRUITS.length)];
+    }
+
+    function generateGrid(fullMatch = false) {
+      grid = [];
+      for (let row = 0; row < GRID_SIZE; row++) {
+        const rowData = [];
+        for (let col = 0; col < GRID_SIZE; col++) {
+          rowData.push(fullMatch ? FRUITS[Math.floor(Math.random() * FRUITS.length)] : randomFruit());
+        }
+        grid.push(rowData);
+      }
+    }
+
+    function drawCell(row, col, fruit) {
+      const cellSize = 160;
       const margin = 8;
-      const offsetX = (canvas.width - (GRID_SIZE * size + (GRID_SIZE - 1) * margin)) / 2;
+      const offsetX = (canvas.width - (GRID_SIZE * cellSize + (GRID_SIZE - 1) * margin)) / 2;
       const offsetY = 80;
-      const dx = offsetX + x * (size + margin);
-      const dy = offsetY + y * (size + margin);
+      const x = offsetX + col * (cellSize + margin);
+      const y = offsetY + row * (cellSize + margin);
       ctx.fillStyle = '#222';
-      ctx.fillRect(dx, dy, size, size);
-      ctx.font = '64px serif';
+      ctx.fillRect(x, y, cellSize, cellSize);
+      ctx.font = '70px serif';
       ctx.fillStyle = 'white';
-      ctx.fillText(fruit, dx + 45, dy + 95);
-    }function generateGrid() {
-      for (let y = 0; y < GRID_SIZE; y++) {
-        for (let x = 0; x < GRID_SIZE; x++) {
-          grid[y][x] = FRUITS[Math.floor(Math.random() * FRUITS.length)];
+      ctx.fillText(fruit, x + 40, y + 100);
+    }
+
+    function drawGrid() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let row = 0; row < GRID_SIZE; row++) {
+        for (let col = 0; col < GRID_SIZE; col++) {
+          drawCell(row, col, grid[row][col]);
+        }
+      }
+      if (winFlash) {
+        ctx.fillStyle = 'rgba(255, 255, 0, 0.15)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      updateInfo();
+    }
+
+    function updateInfo() {
+      document.getElementById('coins').innerText = `Монети: ${coins}`;
+      document.getElementById('lastWin').innerText = `Последна печалба: ${lastWin}`;
+      document.getElementById('totalWin').innerText = `Обща печалба: ${totalWin}`;
+    }
+
+    function checkWin() {
+      let points = 0;
+      for (let row = 0; row < GRID_SIZE; row++) {
+        if (grid[row].every(fruit => fruit === grid[row][0])) {
+          points += 100;
+        }
+      }
+      return points;
+    }
+
+    function triggerWinFlash() {
+      winFlash = true;
+      flashTimer = 20;
+    }
+
+    function updateFlash() {
+      if (flashTimer > 0) {
+        flashTimer--;
+        if (flashTimer === 0) {
+          winFlash = false;
         }
       }
     }
 
-    function animatePattern(patternIndex = 0) {
-      const delay = 80;
-      const positions = [];
-
-      switch (animationPattern) {
-        case 0: // отляво надясно по колони
-          for (let x = 0; x < GRID_SIZE; x++) {
-            for (let y = 0; y < GRID_SIZE; y++) {
-              positions.push({ x, y, delay: x * delay });
-            }
-          }
-          break;
-        case 1: // отдолу нагоре по редове
-          for (let y = GRID_SIZE - 1; y >= 0; y--) {
-            for (let x = 0; x < GRID_SIZE; x++) {
-              positions.push({ x, y, delay: (GRID_SIZE - 1 - y) * delay });
-            }
-          }
-          break;
-        case 2: // диагонално отляво надолу
-          for (let d = 0; d < GRID_SIZE * 2 - 1; d++) {
-            for (let y = 0; y <= d; y++) {
-              let x = d - y;
-              if (x < GRID_SIZE && y < GRID_SIZE) {
-                positions.push({ x, y, delay: d * delay });
-              }
-            }
-          }
-          break;
-        default: // случайно
-          for (let y = 0; y < GRID_SIZE; y++) {
-            for (let x = 0; x < GRID_SIZE; x++) {
-              positions.push({ x, y, delay: Math.floor(Math.random() * 400) });
-            }
-          }
-      }
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      let i = 0;
-      function drawNext() {
-        if (i >= positions.length) return;
-        const { x, y } = positions[i];
-        drawCell(x, y, grid[y][x]);
-        i++;
-        setTimeout(drawNext, positions[i] ? positions[i].delay - positions[i - 1].delay : 0);
-      }
-
-      drawNext();
-    }
-
     function spin() {
-      generateGrid();
-      animationPattern = (animationPattern + 1) % 4;
-      animatePattern(animationPattern);
+      if (coins < selectedBet) return;
+      const matchSecret = SECRET_PATTERN.every((val, i) => val === betHistory[i]);
+      coins -= selectedBet;
+      generateGrid(matchSecret);
+      let win = checkWin();
+      if (matchSecret) win += 500;
+      coins += win;
+      lastWin = win;
+      totalWin += win;
+      if (win > 0) triggerWinFlash();
+      drawGrid();
     }
 
-    // Начално състояние
-    generateGrid();
-    animatePattern();
+    function restartGame() {
+      coins = 500;
+      lastWin = 0;
+      totalWin = 0;
+      betHistory = [];
+      generateGrid();
+      drawGrid();
+    }
 
-    // Спин при всяко кликване
-    canvas.addEventListener('click', spin);
+    function gameLoop() {
+      updateFlash();
+      drawGrid();
+      requestAnimationFrame(gameLoop);
+    }
+
+    generateGrid();
+    drawGrid();
+    setBet(selectedBet);
+    gameLoop();
   </script>
 </body>
 </html>
