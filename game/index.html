@@ -5,33 +5,33 @@
   <title>Svetlyo Slot Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {margin:0;background:linear-gradient(to bottom,#000,#1a1a1a);color:#fff;font-family:'Segoe UI',sans-serif;text-align:center;}
-    .small-title {font-size:22px;font-weight:600;margin:16px auto 0;letter-spacing:1px;max-width:99vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-    #container {position:relative;width:100vw;max-width:380px;margin:0 auto;height:380px;}
-    #gameCanvas {display:block;margin:25px auto 10px;background:#111;border:8px solid #ffcc00;border-radius:20px;box-shadow:0 0 18px #ffcc00;max-width:95vw;width:95vw;height:95vw;min-width:220px;min-height:220px;max-height:380px;touch-action:none;position:relative;}
-    #info-row {display:flex;flex-direction:row;justify-content:center;align-items:center;gap:10px;margin:16px auto 10px;width:100%;max-width:600px;flex-wrap:wrap;}
-    .info-box {background:#222;border:2px solid #888;border-radius:10px;box-shadow:0 0 8px #222;font-size:16px;min-width:80px;min-height:32px;padding:6px 14px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:500;transition:color 0.5s,background 0.5s;}
-    #coins {background-color:#2e8b57;} #lastWin {background-color:#8b0000;} #totalWin {background-color:#1e90ff;}
-    #bets {display:flex;flex-direction:row;justify-content:center;align-items:center;gap:10px;margin:12px auto 0;width:100%;max-width:600px;flex-wrap:wrap;}
-    .btn {padding:8px 18px;font-size:16px;color:#fff;background-color:#222;border:none;border-radius:10px;cursor:pointer;transition:background-color 0.2s,color 0.2s,transform 0.15s,box-shadow 0.2s;margin:0;min-width:48px;min-height:32px;outline:none;box-shadow:0 1px 2px #0008;font-weight:500;letter-spacing:1px;}
-    .btn.selected-bet,.btn:active.selected-bet{background-color:#00cc00!important;color:#fff!important;box-shadow:0 0 10px 2px #00cc00;font-weight:bold;}
-    .btn:focus-visible:not(.selected-bet){background-color:#444;color:#fff;}
-    #spinBtn {background-color:#c00;border-radius:50%;width:90px;height:90px;font-size:26px;font-weight:bold;color:#fff;margin:22px auto 10px auto;display:block;transition:background-color 0.3s,transform 0.2s;box-shadow:0 0 20px #800;border:none;outline:none;z-index:1;position:relative;user-select:none;animation:pulseSpinBtn 1.2s infinite alternate;}
-    @keyframes pulseSpinBtn {0%{box-shadow:0 0 24px #e00;}100%{box-shadow:0 0 44px #fff;transform:scale(1.05);}}
-    #spinBtn:hover,#spinBtn:focus-visible{background-color:#e00;transform:scale(1.08);}
-    #spinBtn.auto {background-color:#00cc00!important;box-shadow:0 0 20px #0f0,0 0 44px #fff;animation:none!important;transform:scale(1.05);}
-    #restartBtn {background:#1e90ff;border-radius:50%;width:90px;height:90px;font-size:18px;font-weight:bold;color:#fff;margin:22px auto 10px auto;display:block;transition:background 0.3s,transform 0.2s;box-shadow:0 0 16px #1e90ff99;border:none;outline:none;z-index:1;position:relative;}
-    #restartBtn:hover,#restartBtn:focus-visible{background:#00ccff;transform:scale(1.05);}
-    #winLabel {position:absolute;left:50%;transform:translateX(-50%);top:9px;font-size:28px;font-weight:900;color:#fff400;text-shadow:0 0 12px #ff0,0 2px 17px #fff;background:rgba(40,40,0,0.4);padding:6px 22px;border-radius:15px;opacity:0;pointer-events:none;z-index:10;transition:opacity 0.4s;white-space:nowrap;}
-    #winLabel.active {opacity:1!important;pointer-events:auto;transition:none;}
-    @media (max-width: 500px) {
-      #winLabel { font-size: 16px; padding: 3px 7px; }
-      #spinBtn, #restartBtn { width: 60px; height: 60px; font-size: 13px; }
-      #bets { gap: 3px; }
-      .btn { font-size: 11px; min-height: 18px; padding: 4px 7px; }
-      .info-box { font-size: 11px; min-width: 39px; min-height: 10px; padding: 2px 4px; }
-      .small-title { font-size: 13px; }
-    }
+body {margin:0;background:linear-gradient(to bottom,#000,#1a1a1a);color:#fff;font-family:'Segoe UI',sans-serif;text-align:center;}
+.small-title {font-size:22px;font-weight:600;margin:16px auto 0;letter-spacing:1px;max-width:99vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+#container {position:relative;width:100vw;max-width:380px;margin:0 auto;height:380px;}
+#gameCanvas {display:block;margin:25px auto 10px;background:#111;border:8px solid #ffcc00;border-radius:20px;box-shadow:0 0 18px #ffcc00;max-width:95vw;width:95vw;height:95vw;min-width:220px;min-height:220px;max-height:380px;touch-action:none;position:relative;}
+#info-row {display:flex;flex-direction:row;justify-content:center;align-items:center;gap:10px;margin:16px auto 10px;width:100%;max-width:600px;flex-wrap:wrap;}
+.info-box {background:#222;border:2px solid #888;border-radius:10px;box-shadow:0 0 8px #222;font-size:16px;min-width:80px;min-height:32px;padding:6px 14px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:500;transition:color 0.5s,background 0.5s;}
+#coins {background-color:#2e8b57;} #lastWin {background-color:#8b0000;} #totalWin {background-color:#1e90ff;}
+#bets {display:flex;flex-direction:row;justify-content:center;align-items:center;gap:10px;margin:12px auto 0;width:100%;max-width:600px;flex-wrap:wrap;}
+.btn {padding:8px 18px;font-size:16px;color:#fff;background-color:#222;border:none;border-radius:10px;cursor:pointer;transition:background-color 0.2s,color 0.2s,transform 0.15s,box-shadow 0.2s;margin:0;min-width:48px;min-height:32px;outline:none;box-shadow:0 1px 2px #0008;font-weight:500;letter-spacing:1px;}
+.btn.selected-bet,.btn:active.selected-bet{background-color:#00cc00!important;color:#fff!important;box-shadow:0 0 10px 2px #00cc00;font-weight:bold;}
+.btn:focus-visible:not(.selected-bet){background-color:#444;color:#fff;}
+#spinBtn {background-color:#c00;border-radius:50%;width:90px;height:90px;font-size:26px;font-weight:bold;color:#fff;margin:22px auto 10px auto;display:block;transition:background-color 0.3s,transform 0.2s;box-shadow:0 0 20px #800;border:none;outline:none;z-index:1;position:relative;user-select:none;animation:pulseSpinBtn 1.2s infinite alternate;}
+@keyframes pulseSpinBtn {0%{box-shadow:0 0 24px #e00;}100%{box-shadow:0 0 44px #fff;transform:scale(1.05);}}
+#spinBtn:hover,#spinBtn:focus-visible{background-color:#e00;transform:scale(1.08);}
+#spinBtn.auto {background-color:#00cc00!important;box-shadow:0 0 20px #0f0,0 0 44px #fff;animation:none!important;transform:scale(1.05);}
+#restartBtn {background:#1e90ff;border-radius:50%;width:90px;height:90px;font-size:18px;font-weight:bold;color:#fff;margin:22px auto 10px auto;display:block;transition:background 0.3s,transform 0.2s;box-shadow:0 0 16px #1e90ff99;border:none;outline:none;z-index:1;position:relative;}
+#restartBtn:hover,#restartBtn:focus-visible{background:#00ccff;transform:scale(1.05);}
+#winLabel {position:absolute;left:50%;transform:translateX(-50%);top:9px;font-size:28px;font-weight:900;color:#fff400;text-shadow:0 0 12px #ff0,0 2px 17px #fff;background:rgba(40,40,0,0.4);padding:6px 22px;border-radius:15px;opacity:0;pointer-events:none;z-index:10;transition:opacity 0.4s;white-space:nowrap;}
+#winLabel.active {opacity:1!important;pointer-events:auto;transition:none;}
+@media (max-width: 500px) {
+  #winLabel { font-size: 16px; padding: 3px 7px; }
+  #spinBtn, #restartBtn { width: 60px; height: 60px; font-size: 13px; }
+  #bets { gap: 3px; }
+  .btn { font-size: 11px; min-height: 18px; padding: 4px 7px; }
+  .info-box { font-size: 11px; min-width: 39px; min-height: 10px; padding: 2px 4px; }
+  .small-title { font-size: 13px; }
+}
   </style>
 </head>
 <body>
@@ -56,6 +56,7 @@
   <button id="restartBtn" style="display:none">Нова игра</button>
   <script>
 (() => {
+  // --- Основни променливи ---
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
   const spinBtn = document.getElementById('spinBtn');
@@ -65,10 +66,11 @@
   const FRUIT_VALUES = {'🍎':20,'🍒':30,'🍇':40,'🍀':50,'🍉':60};
   const GRID_SIZE = 5;
   let selectedBet = 20, coins = 500, lastWin = 0, totalWin = 0, grid = [];
-  let spinning = false, autoSpinActive = false, autoSpinTimer = null, spinHoldTimeout = null;
-  let animating = false, animationProgress = 0, animationGrid = [];
+  let spinning = false, autoSpin = false, autoSpinTimer = null, spinHoldTimeout = null;
+  let animating = false, animationProgress = 0, animationGrid = [], animFrameId = null;
+  let pointerDownTime = 0, pointerUpTime = 0, pointerIsDown = false;
 
-  // ============ CANVAS UTILS ==============
+  // --- Canvas и инфо ---
   function resizeCanvas() {
     let s = Math.min(window.innerWidth * 0.95, 380, window.innerHeight * 0.65);
     s = Math.max(s, 220);
@@ -77,7 +79,6 @@
   window.addEventListener("resize",resizeCanvas);
   window.addEventListener("load",()=>{resizeCanvas();drawGrid();});
 
-  // ============ BETTING ===================
   window.setBet = function(bet) {
     if (![20,40,60,100,200].includes(bet)) return;
     selectedBet = bet;
@@ -87,65 +88,49 @@
     });
   }
 
-  // ============ GRID LOGIC ================
+  // --- Генериране на решетка ---
   function randomFruit(){return FRUITS[Math.floor(Math.random()*FRUITS.length)]}
   function generateGrid(){let arr=[];for(let r=0;r<GRID_SIZE;r++){let row=[];for(let c=0;c<GRID_SIZE;c++)row.push(randomFruit());arr.push(row)}return arr;}
 
-  // ============ DRAWING & ANIMATION =======
+  // --- Рисуване и анимация на плодовете с въртене и pop ефект ---
   function drawGrid(anim){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     const c=canvas.width/(GRID_SIZE+.16),m=c*.13,o=(canvas.width-(GRID_SIZE*c+(GRID_SIZE-1)*m))/2,y=(canvas.height-(GRID_SIZE*c+(GRID_SIZE-1)*m))/2;
     for(let r=0;r<GRID_SIZE;r++)for(let col=0;col<GRID_SIZE;col++){
       const x=o+col*(c+m),y0=y+r*(c+m);
-      // Background
-      ctx.save();
-      ctx.fillStyle='#111';
-      ctx.globalAlpha=.97;
-      ctx.fillRect(x,y0,c,c);
-      ctx.restore();
-
-      // Fruit
-      ctx.save();
-      ctx.font=`${Math.floor(c*.46)}px serif`;
-      ctx.textAlign='center';
-      ctx.textBaseline='middle';
+      ctx.save(); ctx.fillStyle='#111'; ctx.globalAlpha=.97; ctx.fillRect(x,y0,c,c); ctx.restore();
+      ctx.save(); ctx.font=`${Math.floor(c*.46)}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
       if(anim&&animating&&animationGrid.length){
-        let p = animationProgress, oldF = animationGrid[r][col], newF = grid[r][col];
-        // Ефект: старото изчезва с мащабиране и ротация, новото се появява с pop/blur
-        let angle = Math.PI * p;
-        let scaleOld = 1-0.5*p, scaleNew = 0.6+p*0.4;
+        let p=animationProgress,oldF=animationGrid[r][col],newF=grid[r][col];
+        // Въртене, pop, blur, скалиране
+        let blur = Math.round(12*(1-p));
+        let scaleOld = 1-0.7*p, scaleNew = 0.7+0.3*p;
         let alphaOld = 1-p*1.3; if(alphaOld<0)alphaOld=0;
-        let alphaNew = (p-0.15)/0.85; if(alphaNew<0)alphaNew=0; if(alphaNew>1)alphaNew=1;
-        // Стар плод
+        let alphaNew = (p-0.13)/0.87; if(alphaNew<0)alphaNew=0; if(alphaNew>1)alphaNew=1;
+        let rotOld = -Math.PI*p*1.2, rotNew = (1-p)*Math.PI*1.1;
+        // Стар плод (изчезва)
+        ctx.save();
         ctx.globalAlpha = alphaOld;
-        ctx.filter = `blur(${10*(1-p)}px)`;
-        ctx.translate(x+c/2,y0+c/2-c*p*0.5);
-        ctx.rotate(-angle*0.7);
+        ctx.filter = `blur(${blur}px)`;
+        ctx.translate(x+c/2,y0+c/2-c*p*0.8);
+        ctx.rotate(rotOld);
         ctx.scale(scaleOld,scaleOld);
         ctx.fillText(oldF,0,0);
         ctx.restore();
-
-        // Нов плод
+        // Нов плод (появява се)
         ctx.save();
-        ctx.font=`${Math.floor(c*.46)}px serif`;
-        ctx.textAlign='center';
-        ctx.textBaseline='middle';
         ctx.globalAlpha = alphaNew;
-        ctx.filter = `blur(${16*(1-alphaNew)}px)`;
+        ctx.filter = `blur(${Math.round(14*(1-alphaNew))}px)`;
         ctx.translate(x+c/2,y0+c/2+c*(1-p)*0.7);
-        ctx.rotate((1-p)*Math.PI*0.8);
+        ctx.rotate(rotNew);
         ctx.scale(scaleNew,scaleNew);
         ctx.shadowColor='#fff400';
         ctx.shadowBlur=20*alphaNew;
         ctx.fillText(newF,0,0);
         ctx.restore();
       } else {
-        ctx.fillStyle='#fff';
-        ctx.shadowColor='#444';
-        ctx.shadowBlur=7;
-        ctx.translate(x+c/2,y0+c/2+.5);
-        ctx.fillText(grid[r][col],0,0);
-        ctx.restore();
+        ctx.fillStyle='#fff';ctx.shadowColor='#444';ctx.shadowBlur=7;ctx.translate(x+c/2,y0+c/2+.5);
+        ctx.fillText(grid[r][col],0,0);ctx.restore();
       }
     }
     updateInfo();
@@ -159,6 +144,7 @@
     restartBtn.style.display = coins > 0 ? 'none' : 'block';
   }
 
+  // --- Плавна анимация (950ms) ---
   function animateSpin(newGrid,cb){
     animating = true;
     animationGrid = JSON.parse(JSON.stringify(grid));
@@ -168,14 +154,14 @@
       let el=ts-start;
       animationProgress=Math.min(el/duration,1);
       drawGrid(true);
-      if(animationProgress<1)requestAnimationFrame(step);
+      if(animationProgress<1)animFrameId=requestAnimationFrame(step);
       else{animating=false;animationGrid=[];cb();}
     }
     grid=newGrid;
-    requestAnimationFrame(step);
+    animFrameId=requestAnimationFrame(step);
   }
 
-  // ============ GAME LOGIC ================
+  // --- Основно завъртане ---
   function spin(){
     if(spinning||coins<selectedBet)return;
     spinning=true;
@@ -185,10 +171,11 @@
       const win=checkWin();lastWin=win;totalWin+=win;if(win>0)coins+=win;drawGrid();
       if(win>0){winLabel.textContent=`ПЕЧАЛБА +${win}`;winLabel.classList.add("active");setTimeout(()=>winLabel.classList.remove("active"),1500);}
       spinning=false;
-      if(autoSpinActive&&coins<selectedBet)stopAutoSpin();
+      if(autoSpin&&coins<selectedBet)stopAutoSpin();
     });
   }
 
+  // --- Изчисляване на печалбата ---
   function checkWin(){
     let win=0;
     for(let r=0;r<GRID_SIZE;r++)if(grid[r].every(f=>f===grid[r][0]))win+=FRUIT_VALUES[grid[r][0]]*5;
@@ -198,50 +185,60 @@
     return win;
   }
 
+  // --- Рестарт на играта ---
   function restartGame(){coins=500;lastWin=0;totalWin=0;grid=generateGrid();drawGrid();}
 
-  // ============ AUTO-SPIN LOGIC ===========
+  // --- Автоматичен спин: задържане 1 секунда, пускане => авто режим; клик => спира авто-режима ---
   function startSpinHold(e){
     if(spinHoldTimeout)clearTimeout(spinHoldTimeout);
+    pointerIsDown = true;
+    pointerDownTime = Date.now();
     spinHoldTimeout = setTimeout(()=>{
-      spinHoldTimeout = null;
-      // Активирай режима: пусни бутона -> стартира авто-спин
-      spinBtn.classList.add('auto');
-      autoSpinActive = true;
-      autoSpinTimer = setInterval(()=>{
-        if(!autoSpinActive||spinning||coins<selectedBet){stopAutoSpin();return;}
-        spin();
-      },5000);
+      if(pointerIsDown && !autoSpin){
+        autoSpin = true;
+        spinBtn.classList.add('auto');
+        doAutoSpin();
+      }
     },1000);
   }
-  function cancelSpinHold(){ if(spinHoldTimeout) { clearTimeout(spinHoldTimeout); spinHoldTimeout=null; } }
-
+  function stopSpinHold(e){
+    pointerIsDown = false;
+    if(spinHoldTimeout){clearTimeout(spinHoldTimeout);spinHoldTimeout=null;}
+  }
+  function doAutoSpin(){
+    if(!autoSpin){spinBtn.classList.remove('auto');return;}
+    if(coins<selectedBet){stopAutoSpin();return;}
+    if(!spinning)spin();
+    let nextSpin = 3000 + Math.random()*2000; // 3-5 секунди
+    autoSpinTimer = setTimeout(doAutoSpin, nextSpin);
+  }
   function stopAutoSpin(){
-    autoSpinActive = false;
+    autoSpin=false;
     spinBtn.classList.remove('auto');
-    if(autoSpinTimer) { clearInterval(autoSpinTimer); autoSpinTimer=null; }
+    if(autoSpinTimer){clearTimeout(autoSpinTimer);autoSpinTimer=null;}
   }
 
-  // ============ BUTTON EVENTS =============
-  let lastPointerDown = 0;
-  spinBtn.addEventListener('mousedown',e=>{lastPointerDown=Date.now();startSpinHold(e);});
-  spinBtn.addEventListener('touchstart',e=>{lastPointerDown=Date.now();startSpinHold(e);});
-  spinBtn.addEventListener('mouseup',e=>{
-    let held = Date.now()-lastPointerDown;
-    cancelSpinHold();
-    if(held>=1000 && !autoSpinActive) { /*режим ще се включи след timeout*/ }
-    else if(!autoSpinActive && !spinning) spin();
+  // --- Слушатели за бутона СПИН ---
+  spinBtn.addEventListener('mousedown',startSpinHold);
+  spinBtn.addEventListener('touchstart',startSpinHold);
+  spinBtn.addEventListener('mouseup',function(e){
+    pointerUpTime = Date.now();
+    let held = pointerUpTime - pointerDownTime;
+    stopSpinHold();
+    if(autoSpin) return stopAutoSpin();
+    if(held < 1000 && !spinning) spin(); // единичен спин при клик
   });
-  spinBtn.addEventListener('mouseleave',cancelSpinHold);
-  spinBtn.addEventListener('touchend',e=>{
-    let held = Date.now()-lastPointerDown;
-    cancelSpinHold();
-    if(held>=1000 && !autoSpinActive) { /*режим ще се включи след timeout*/ }
-    else if(!autoSpinActive && !spinning) spin();
+  spinBtn.addEventListener('mouseleave',stopSpinHold);
+  spinBtn.addEventListener('touchend',function(e){
+    pointerUpTime = Date.now();
+    let held = pointerUpTime - pointerDownTime;
+    stopSpinHold();
+    if(autoSpin) return stopAutoSpin();
+    if(held < 1000 && !spinning) spin(); // единичен спин при тъч
   });
-  spinBtn.addEventListener('click',e=>{
-    if(autoSpinActive) { stopAutoSpin(); }
-    else if(!spinning) spin();
+  spinBtn.addEventListener('click',function(e){
+    // Спира авто-режима с клик по време на авто-режим
+    if(autoSpin){stopAutoSpin();}
   });
 
   restartBtn.addEventListener('click',restartGame);
@@ -249,7 +246,7 @@
     btn.addEventListener('click',()=>{const val=parseInt(btn.innerText);if(!isNaN(val))window.setBet(val);});
   });
 
-  // ============ INIT ======================
+  // --- Инициализация ---
   grid=generateGrid();window.setBet(selectedBet);resizeCanvas();drawGrid();
 })();
   </script>
