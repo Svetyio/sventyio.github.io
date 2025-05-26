@@ -48,6 +48,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   function drawGrid() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!grid.length) return;
     const c = canvas.width / (GRID_SIZE + 0.16);
     const m = c * 0.13;
     const o = (canvas.width - (GRID_SIZE * c + (GRID_SIZE - 1) * m)) / 2;
@@ -107,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   function checkWin() {
-    // Проверява дали има пълна редица или колона с еднакви плодове
+    // Проверява дали има пълна редица, колона или диагонал с еднакви плодове
     let win = 0;
     for (let r = 0; r < GRID_SIZE; r++) {
       if (grid[r].every(f => f === grid[r][0])) win += 100;
@@ -146,6 +147,11 @@ document.addEventListener("DOMContentLoaded", function() {
   // Начално състояние
   grid = generateGrid();
   setBet(selectedBet);
+  // Винаги първо resize, после draw!
   resizeCanvas();
   drawGrid();
+  window.addEventListener("load", () => {
+    resizeCanvas();
+    drawGrid();
+  });
 });
