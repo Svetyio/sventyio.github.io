@@ -1,70 +1,353 @@
 <!DOCTYPE html>
-      }
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <title>Svetlyo Slot Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(to bottom, #000, #1a1a1a);
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+    }
+    .small-title {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 16px auto 0 auto;
+      letter-spacing: 1px;
+      max-width: 99vw;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    #container {
+      position: relative;
+      width: 100vw;
+      max-width: 380px;
+      margin: 0 auto;
+      height: 380px;
+    }
+    #gameCanvas {
+      display: block;
+      margin: 25px auto 10px auto;
+      background: #111;
+      border: 8px solid #ffcc00;
+      border-radius: 20px;
+      box-shadow: 0 0 18px #ffcc00;
+      max-width: 95vw;
+      width: 95vw;
+      height: 95vw;
+      min-width: 220px;
+      min-height: 220px;
+      max-height: 380px;
+      touch-action: none;
+      position: relative;
+    }
+    #info-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 16px auto 10px auto;
+      width: 100%;
+      max-width: 600px;
+      flex-wrap: wrap;
+    }
+    .info-box {
+      background: #222;
+      border: 2px solid #888;
+      border-radius: 10px;
+      box-shadow: 0 0 8px #222;
+      font-size: 16px;
+      min-width: 80px;
+      min-height: 32px;
+      padding: 6px 14px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      transition: color 0.5s, background 0.5s;
+    }
+    #coins { background-color: #2e8b57; }
+    #lastWin { background-color: #8b0000; }
+    #totalWin { background-color: #1e90ff; }
+    #bets {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 12px auto 0 auto;
+      width: 100%;
+      max-width: 600px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 8px 18px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #222;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+      margin: 0;
+      min-width: 48px;
+      min-height: 32px;
+      outline: none;
+      box-shadow: 0 1px 2px #0008;
+      font-weight: 500;
+      letter-spacing: 1px;
+    }
+    .btn.selected-bet,
+    .btn:active.selected-bet {
+      background-color: #00cc00 !important;
+      color: #fff !important;
+      box-shadow: 0 0 10px 2px #00cc00;
+      font-weight: bold;
+    }
+    .btn:focus-visible:not(.selected-bet) {
+      background-color: #444;
+      color: #fff;
+    }
+    #spinBtn {
+      background-color: #c00;
+      border-radius: 50%;
+      width: 90px;
+      height: 90px;
+      font-size: 26px;
+      font-weight: bold;
+      color: #fff;
+      margin: 22px auto 10px auto;
+      display: block;
+      transition: background-color 0.3s, transform 0.2s;
+      box-shadow: 0 0 20px #800;
+      border: none;
+      outline: none;
+      z-index: 1;
+      position: relative;
+      user-select: none;
+      animation: pulseSpinBtn 1.2s infinite alternate;
+    }
+    @keyframes pulseSpinBtn {
+      0% { box-shadow: 0 0 24px #e00; }
+      100% { box-shadow: 0 0 44px #fff; transform: scale(1.05);}
+    }
+    #spinBtn:hover, #spinBtn:focus-visible {
+      background-color: #e00;
+      transform: scale(1.08);
+    }
+    #spinBtn.auto {
+      background-color: #00cc00 !important;
+      box-shadow: 0 0 25px #00cc00, 0 0 44px #fff;
+      animation: none !important;
+      transform: scale(1.05);
+    }
+    #restartBtn {
+      background: #1e90ff;
+      border-radius: 50%;
+      width: 90px;
+      height: 90px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #fff;
+      margin: 22px auto 10px auto;
+      display: block;
+      transition: background 0.3s, transform 0.2s;
+      box-shadow: 0 0 16px #1e90ff99;
+      border: none;
+      outline: none;
+      z-index: 1;
+      position: relative;
+    }
+    #restartBtn:hover, #restartBtn:focus-visible {
+      background: #00ccff;
+      transform: scale(1.05);
+    }
+    #winLabel {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 9px;
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff400;
+      text-shadow: 0 0 12px #ff0, 0 2px 17px #fff;
+      background: rgba(40,40,0,0.4);
+      padding: 6px 22px;
+      border-radius: 15px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10;
+      transition: opacity 0.4s;
+      white-space: nowrap;
+    }
+    #winLabel.active {
+      opacity: 1 !important;
+      pointer-events: auto;
+      transition: none;
+    }
+    @media (max-width: 500px) {
+      #winLabel { font-size: 16px; padding: 3px 7px; }
+      #spinBtn, #restartBtn { width: 60px; height: 60px; font-size: 13px; }
+      #bets { gap: 3px; }
+      .btn { font-size: 11px; min-height: 18px; padding: 4px 7px; }
+      .info-box { font-size: 11px; min-width: 39px; min-height: 10px; padding: 2px 4px; }
+      .small-title { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="small-title">Добре дошли в Svetlyo Games</div>
+  <div id="container">
+    <span id="winLabel"></span>
+    <canvas id="gameCanvas"></canvas>
+  </div>
+  <div id="info-row">
+    <div class="info-box" id="coins">Монети: 500</div>
+    <div class="info-box" id="lastWin">Последна печалба: 0</div>
+    <div class="info-box" id="totalWin">Обща печалба: 0</div>
+  </div>
+  <div id="bets">
+    <button class="btn" onclick="setBet(20)">20</button>
+    <button class="btn" onclick="setBet(40)">40</button>
+    <button class="btn" onclick="setBet(60)">60</button>
+    <button class="btn" onclick="setBet(100)">100</button>
+    <button class="btn" onclick="setBet(200)">200</button>
+  </div>
+  <button id="spinBtn">СПИН</button>
+  <button id="restartBtn" style="display:none">Нова игра</button>
+  <script>
+  // --- SLOT LOGIC ---
+  (() => {
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const spinBtn = document.getElementById('spinBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const winLabel = document.getElementById('winLabel');
+    const FRUITS = ['🍎','🍒','🍇','🍀','🍉'];
+    const FRUIT_VALUES = {'🍎': 20, '🍒': 30, '🍇': 40, '🍀': 50, '🍉': 60 };
+    const GRID_SIZE = 5;
+    let selectedBet = 20, coins = 500, lastWin = 0, totalWin = 0, grid = [];
+    let spinning = false, autoSpinActive = false, autoSpinTimer = null, spinHoldTimeout = null;
+    let animating = false, animationProgress = 0, animationGrid = [];
 
-      function spin() {
-        if (spinning || coins < selectedBet) return;
-        spinning = true;
-        coins -= selectedBet;
-        grid = generateGrid();
-        const win = checkWin();
-        lastWin = win;
-        totalWin += win;
-        if (win > 0) coins += win;
-        drawGrid();
-        if (win > 0) {
-          winLabel.textContent = `ПЕЧАЛБА +${win}`;
-          winLabel.classList.add("active");
-          setTimeout(() => winLabel.classList.remove("active"), 1500);
-        }
-        spinning = false;
-      }
-
-      function checkWin() {
-        let win = 0;
-        for (let r = 0; r < GRID_SIZE; r++) {
-          if (grid[r].every(f => f === grid[r][0])) win += FRUIT_VALUES[grid[r][0]] * 5;
-        }
-        for (let c = 0; c < GRID_SIZE; c++) {
-          let colF = [];
-          for (let r = 0; r < GRID_SIZE; r++) colF.push(grid[r][c]);
-          if (colF.every(f => f === colF[0])) win += FRUIT_VALUES[colF[0]] * 5;
-        }
-        let d1 = [], d2 = [];
-        for (let i = 0; i < GRID_SIZE; i++) {
-          d1.push(grid[i][i]);
-          d2.push(grid[i][GRID_SIZE - 1 - i]);
-        }
-        if (d1.every(f => f === d1[0])) win += FRUIT_VALUES[d1[0]] * 5;
-        if (d2.every(f => f === d2[0])) win += FRUIT_VALUES[d2[0]] * 5;
-        return win;
-      }
-
-      function restartGame() {
-        coins = 500;
-        lastWin = 0;
-        totalWin = 0;
-        grid = generateGrid();
-        drawGrid();
-      }
-
-      spinBtn.addEventListener('click', spin);
-      restartBtn.addEventListener('click', restartGame);
-      document.querySelectorAll('#bets .btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const val = parseInt(btn.innerText);
-          if (!isNaN(val)) setBet(val);
-        });
-      });
-
-      grid = generateGrid();
-      setBet(selectedBet);
-      resizeCanvas();
+    function resizeCanvas() {
+      let s = Math.min(window.innerWidth * 0.95, 380, window.innerHeight * 0.65);
+      s = Math.max(s, 220);
+      canvas.width = s;
+      canvas.height = s;
       drawGrid();
-      window.addEventListener("load", () => {
-        resizeCanvas();
-        drawGrid();
+    }
+    window.addEventListener("resize",resizeCanvas);
+    window.addEventListener("load",()=>{resizeCanvas();drawGrid();});
+
+    window.setBet = function(bet) {
+      if (![20,40,60,100,200].includes(bet)) return;
+      selectedBet = bet;
+      document.querySelectorAll('#bets .btn').forEach(btn=>{
+        btn.classList.remove('selected-bet');
+        if(parseInt(btn.innerText)===bet)btn.classList.add('selected-bet');
       });
-    })();
+    }
+
+    function randomFruit(){return FRUITS[Math.floor(Math.random()*FRUITS.length)]}
+    function generateGrid(){let arr=[];for(let r=0;r<GRID_SIZE;r++){let row=[];for(let c=0;c<GRID_SIZE;c++)row.push(randomFruit());arr.push(row)}return arr}
+    function drawGrid(anim){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const c=canvas.width/(GRID_SIZE+.16),m=c*.13,o=(canvas.width-(GRID_SIZE*c+(GRID_SIZE-1)*m))/2,y=(canvas.height-(GRID_SIZE*c+(GRID_SIZE-1)*m))/2;
+      for(let r=0;r<GRID_SIZE;r++)for(let col=0;col<GRID_SIZE;col++){
+        const x=o+col*(c+m),y0=y+r*(c+m);
+        ctx.save();ctx.fillStyle='#111';ctx.globalAlpha=.97;ctx.fillRect(x,y0,c,c);ctx.restore();
+        ctx.save();ctx.font=`${Math.floor(c*.46)}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+        if(anim&&animating&&animationGrid.length){
+          let p=animationProgress,oldF=animationGrid[r][col],newF=grid[r][col],offY=Math.sin(p*Math.PI)*c*1.2,fadeOut=1-Math.min(1,p*2),fadeIn=Math.max(0,(p-.5)*2);
+          ctx.globalAlpha=fadeOut;ctx.fillStyle='#fff';ctx.shadowColor='#444';ctx.shadowBlur=6;ctx.translate(x+c/2,y0+c/2-offY*(1-p));ctx.fillText(oldF,0,0);ctx.restore();
+          ctx.save();ctx.font=`${Math.floor(c*.46)}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+          ctx.globalAlpha=fadeIn;ctx.fillStyle='#fff';ctx.shadowColor='#ff0';ctx.shadowBlur=12*fadeIn;ctx.translate(x+c/2,y0+c/2+offY*p);ctx.fillText(newF,0,0);ctx.restore();
+        }else{
+          ctx.fillStyle='#fff';ctx.shadowColor='#444';ctx.shadowBlur=6;ctx.translate(x+c/2,y0+c/2+.5);ctx.fillText(grid[r][col],0,0);ctx.restore();
+        }
+      }
+      updateInfo();
+    }
+    function updateInfo(){
+      document.getElementById('coins').innerText=`Монети: ${coins}`;
+      document.getElementById('lastWin').innerText=`Последна печалба: ${lastWin}`;
+      document.getElementById('totalWin').innerText=`Обща печалба: ${totalWin}`;
+      spinBtn.style.display = coins > 0 ? 'block' : 'none';
+      restartBtn.style.display = coins > 0 ? 'none' : 'block';
+    }
+    function animateSpin(newGrid,cb){
+      animating = true;
+      animationGrid = JSON.parse(JSON.stringify(grid));
+      let duration=700; animationProgress=0; let start=null;
+      function step(ts){if(!start)start=ts;let el=ts-start;animationProgress=Math.min(el/duration,1);drawGrid(true);
+        if(animationProgress<1)requestAnimationFrame(step);
+        else{animating=false;animationGrid=[];cb();}
+      }
+      grid=newGrid;
+      requestAnimationFrame(step);
+    }
+    function spin(){
+      if(spinning||coins<selectedBet)return;
+      spinning=true;
+      coins-=selectedBet;
+      let newGrid=generateGrid();
+      animateSpin(newGrid,()=>{
+        const win=checkWin();lastWin=win;totalWin+=win;if(win>0)coins+=win;drawGrid();
+        if(win>0){winLabel.textContent=`ПЕЧАЛБА +${win}`;winLabel.classList.add("active");setTimeout(()=>winLabel.classList.remove("active"),1500);}
+        spinning=false;
+        if(autoSpinActive&&coins<selectedBet)stopSpinHold();
+      });
+    }
+    function checkWin(){
+      let win=0;
+      for(let r=0;r<GRID_SIZE;r++)if(grid[r].every(f=>f===grid[r][0]))win+=FRUIT_VALUES[grid[r][0]]*5;
+      for(let c=0;c<GRID_SIZE;c++){let colF=[];for(let r=0;r<GRID_SIZE;r++)colF.push(grid[r][c]);if(colF.every(f=>f===colF[0]))win+=FRUIT_VALUES[colF[0]]*5}
+      let d1=[],d2=[];for(let i=0;i<GRID_SIZE;i++){d1.push(grid[i][i]);d2.push(grid[i][GRID_SIZE-1-i])}
+      if(d1.every(f=>f===d1[0]))win+=FRUIT_VALUES[d1[0]]*5;if(d2.every(f=>f===d2[0]))win+=FRUIT_VALUES[d2[0]]*5;
+      return win;
+    }
+    function restartGame(){coins=500;lastWin=0;totalWin=0;grid=generateGrid();drawGrid();}
+    function startSpinHold(){
+      if(spinHoldTimeout)clearTimeout(spinHoldTimeout);
+      spinHoldTimeout=setTimeout(()=>{
+        if(spinning||coins<selectedBet)return;
+        autoSpinActive=true;
+        spinBtn.classList.add('auto');
+        autoSpinLoop();
+      },1000);
+    }
+    function stopSpinHold(){
+      autoSpinActive=false;
+      spinBtn.classList.remove('auto');
+      if(autoSpinTimer)clearTimeout(autoSpinTimer);
+      if(spinHoldTimeout)clearTimeout(spinHoldTimeout);
+    }
+    function autoSpinLoop(){
+      if(!autoSpinActive||coins<selectedBet){stopSpinHold();return;}
+      spin();
+      autoSpinTimer=setTimeout(autoSpinLoop,5000);
+    }
+
+    spinBtn.addEventListener('mousedown',startSpinHold);
+    spinBtn.addEventListener('touchstart',startSpinHold);
+    spinBtn.addEventListener('mouseup',stopSpinHold);
+    spinBtn.addEventListener('mouseleave',stopSpinHold);
+    spinBtn.addEventListener('touchend',stopSpinHold);
+    spinBtn.addEventListener('click',e=>{if(!autoSpinActive)spin();});
+    restartBtn.addEventListener('click',restartGame);
+    document.querySelectorAll('#bets .btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{const val=parseInt(btn.innerText);if(!isNaN(val))window.setBet(val);});
+    });
+
+    grid=generateGrid();window.setBet(selectedBet);resizeCanvas();drawGrid();
+  })();
   </script>
 </body>
 </html>
