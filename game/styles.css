@@ -1,0 +1,22 @@
+body {
+  margin: 0;
+  background: linear-gradient(to bottom, #000, #1a1a1a);
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+}
+... (truncated for brevity) ...
+@media (max-width: 500px) {
+  #winLabel {
+    font-size: 16px;
+    padding: 3px 7px;
+  }
+  #spinBtn, #restartBtn { width: 60px; height: 60px; font-size: 13px; }
+  #bets { gap: 3px; }
+  .btn { font-size: 11px; min-height: 18px; padding: 4px 7px; }
+  .info-box { font-size: 11px; min-width: 39px; min-height: 10px; padding: 2px 4px; }
+  .small-title { font-size: 13px; }
+  #doubleModal { font-size:14px; padding:18px 8px 12px 8px; }
+  #doubleBtns { gap: 12px; }
+  #doubleRed, #doubleGreen { font-size: 13px; padding: 8px 12px;}
+}
