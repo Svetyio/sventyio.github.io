@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Svetlyo Slot Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts за плодовете -->
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
         html, body {
             margin: 0;
@@ -64,11 +66,20 @@
             transition: opacity 0.4s;
             white-space: nowrap;
         }
-        #winLabel.active {
-            opacity: 1 !important;
-            pointer-events: auto;
-            transition: none;
+        #winLabel.active { opacity: 1 !important; pointer-events: auto; transition: none;}
+        #loseLabel {
+            display: none;
+            position: fixed;
+            left: 0; right: 0; top: 0; bottom: 0;
+            background: rgba(20,20,20,0.65);
+            color: #FFD700;
+            font-size: 2.3em;
+            font-weight: bold;
+            align-items: center;
+            justify-content: center;
+            z-index: 400;
         }
+        #loseLabel.show { display: flex; }
         #info-row {
             display: flex;
             flex-direction: row;
@@ -97,7 +108,7 @@
         #coins { background-color: #2ecc71; }
         #lastWin { background-color: #e74c3c; }
         #totalWin { background-color: #2980b9; }
-
+        #currentBet { background-color: #ff9900; min-width:70px; }
         #bets {
             display: flex;
             flex-direction: row;
@@ -152,7 +163,9 @@
             border: none;
             outline: none;
             animation: pulseSpinBtn 1.3s infinite alternate;
-0 0 24px #e67e22,0 0 10px #fff0; }
+        }
+        @keyframes pulseSpinBtn {
+            0% { box-shadow: 0 0 24px #e67e22,0 0 10px #fff0; }
             100% { box-shadow: 0 0 44px #FFD700,0 0 44px #fff4; transform: scale(1.08);}
         }
         #spinBtn:hover, #spinBtn:focus-visible {
@@ -184,6 +197,51 @@
             background: #00ccff;
             transform: scale(1.05);
         }
+        #clearProgressBtn {
+            margin: 0 15px;
+            background: #c0392b;
+            color: #fff;
+            font-size: 14px;
+            border-radius: 8px;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        #clearProgressBtn:hover { background: #e74c3c;}
+        #paytable {
+            margin: 15px auto 0 auto;
+            max-width: 400px;
+        }
+        .paytable-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            font-size: 1.3em;
+            margin:2px 0;
+        }
+        .paytable-symbol {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.6em;
+            cursor: pointer;
+            transition: filter 0.25s;
+        }
+        .paytable-symbol:hover { filter: brightness(1.6) drop-shadow(0 0 6px gold); }
+        .tooltip {
+            position: absolute;
+            background: #222;
+            color: #FFD700;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 1.1em;
+            font-weight: 700;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 1001;
+            border: 2px solid #FFD700;
+            box-shadow: 0 2px 14px #000;
+        }
         @media (max-width: 600px) {
             #container {max-width:98vw;}
             #gameCanvas {max-width:98vw; max-height:240px;}
@@ -201,6 +259,7 @@
     <div class="small-title">Добре дошли в Svetlyo Games</div>
     <div id="container">
         <span id="winLabel"></span>
+        <span id="loseLabel">Свършиха ти парите!<br>Натисни „Нова игра“</span>
         <canvas id="gameCanvas" width="400" height="400">
             Вашият браузър не поддържа canvas или JavaScript е изключен.<br>
             Моля, активирайте JavaScript или използвайте модерен браузър, за да играете.
@@ -210,6 +269,7 @@
         <div class="info-box" id="coins">Монети: 500</div>
         <div class="info-box" id="lastWin">Последна печалба: 0</div>
         <div class="info-box" id="totalWin">Обща печалба: 0</div>
+        <div class="info-box" id="currentBet">Залог: 20</div>
     </div>
     <div id="bets">
         <button class="btn" onclick="setBet(20)" tabindex="1">20</button>
@@ -220,438 +280,445 @@
     </div>
     <button id="spinBtn" tabindex="6">СПИН</button>
     <button id="restartBtn" style="display:none" tabindex="7">Нова игра</button>
+    <button id="clearProgressBtn" title="Изчиства локалния прогрес">Изчисти прогрес</button>
+    <div id="paytable">
+        <div style="margin-bottom:5px;font-weight:bold;color:#FFD700;">Таблица на печалбите (за залог 20):</div>
+        <div class="paytable-row">
+            <span class="paytable-symbol" data-symbol="🍎">🍎</span> = 20
+            <span class="paytable-symbol" data-symbol="🍒">🍒</span> = 30
+            <span class="paytable-symbol" data-symbol="🍇">🍇</span> = 40
+            <span class="paytable-symbol" data-symbol="🍀">🍀</span> = 50
+            <span class="paytable-symbol" data-symbol="🍉">🍉</span> = 60
+        </div>
+    </div>
+    <div id="tooltip" class="tooltip" style="display:none"></div>
     <script>
-        // --- Основни константи и състояние ---
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const spinBtn = document.getElementById('spinBtn');
-        const restartBtn = document.getElementById('restartBtn');
-        const winLabel = document.getElementById('winLabel');
-        const VALID_BETS = [20, 40, 60, 100, 200];
+    // --- Основни константи и състояние ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const spinBtn = document.getElementById('spinBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const winLabel = document.getElementById('winLabel');
+    const loseLabel = document.getElementById('loseLabel');
+    const clearProgressBtn = document.getElementById('clearProgressBtn');
+    const currentBetBox = document.getElementById('currentBet');
+    const tooltip = document.getElementById('tooltip');
+    const VALID_BETS = [20, 40, 60, 100, 200];
 
-        const FRUITS = [
-            {char:'🍎',name:'apple', points: 20, color: "#ff4040"},
-            {char:'🍒',name:'cherry',points: 30, color: "#ff5bcd"},
-            {char:'🍇',name:'grape', points: 40, color: "#a87fff"},
-            {char:'🍀',name:'clover',points: 50, color: "#00e676"},
-            {char:'🍉',name:'watermelon',points: 60, color: "#42e1fe"}
-        ];
-        const FRUIT_CHARS = FRUITS.map(f=>f.char);
-        const FRUIT_POINTS = {};
-        FRUITS.forEach(f=>FRUIT_POINTS[f.char]=f.points);
+    const FRUITS = [
+        {char:'🍎',name:'Ябълка', points: 20, color: "#ff4040"},
+        {char:'🍒',name:'Череша',points: 30, color: "#ff5bcd"},
+        {char:'🍇',name:'Грозде', points: 40, color: "#a87fff"},
+        {char:'🍀',name:'Детелина',points: 50, color: "#00e676"},
+        {char:'🍉',name:'Диня',points: 60, color: "#42e1fe"}
+    ];
+    const FRUIT_CHARS = FRUITS.map(f=>f.char);
+    const FRUIT_POINTS = {};
+    FRUITS.forEach(f=>FRUIT_POINTS[f.char]=f.points);
 
-        const GRID_SIZE = 5;
+    const GRID_SIZE = 5;
 
-        let selectedBet = 20, coins = 500, lastWin = 0, totalWin = 0, grid = [];
-        let spinning = false, autoSpin = false, autoSpinTimer = null, spinHoldTimeout = null;
-        let animating = false, animationType = "", animationProgress = 0, animationGrid = [], animFrameId = null;
-        let pointerDownTime = 0, pointerIsDown = false;
-        let winLines = [], winFruits = [], winEffectActive = false, winEffectTimer = null;
+    let selectedBet = 20, coins = 500, lastWin = 0, totalWin = 0, grid = [];
+    let spinning = false, autoSpin = false, autoSpinTimer = null, spinHoldTimeout = null;
+    let animating = false, animationType = "", animationProgress = 0, animationGrid = [], animFrameId = null;
+    let pointerDownTime = 0, pointerIsDown = false;
+    let winLines = [], winFruits = [], winEffectActive = false;
+    let winEffectFrame = 0;
+    let loseEffectActive = false, loseEffectFrame = 0;
+    let debounceTimer = null;
 
-        // --- Локално съхранение на прогреса ---
-        function saveProgress() {
+    // --- Локално съхранение на прогреса с debounce ---
+    function saveProgress() {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
             const data = {
-                coins,
-                lastWin,
-                totalWin,
-                selectedBet
+                coins, lastWin, totalWin, selectedBet
             };
             localStorage.setItem("svetlyo_slot_progress", JSON.stringify(data));
+        }, 500);
+    }
+    function loadProgress() {
+        const data = localStorage.getItem("svetlyo_slot_progress");
+        if (data) {
+            try {
+                const obj = JSON.parse(data);
+                if (typeof obj.coins === 'number') coins = obj.coins;
+                if (typeof obj.lastWin === 'number') lastWin = obj.lastWin;
+                if (typeof obj.totalWin === 'number') totalWin = obj.totalWin;
+                if (VALID_BETS.includes(obj.selectedBet)) selectedBet = obj.selectedBet;
+            } catch (e) {}
         }
-        function loadProgress() {
-            const data = localStorage.getItem("svetlyo_slot_progress");
-            if (data) {
-                try {
-                    const obj = JSON.parse(data);
-                    if (typeof obj.coins === 'number') coins = obj.coins;
-                    if (typeof obj.lastWin === 'number') lastWin = obj.lastWin;
-                    if (typeof obj.totalWin === 'number') totalWin = obj.totalWin;
-                    if (VALID_BETS.includes(obj.selectedBet)) selectedBet = obj.selectedBet;
-                } catch (e) {}
-            }
+    }
+    clearProgressBtn.onclick = function() {
+        localStorage.removeItem("svetlyo_slot_progress");
+        coins = 500; lastWin = 0; totalWin = 0; selectedBet = 20;
+        showLose(false);
+        grid = generateGrid();
+        window.setBet(selectedBet);
+        drawGrid();
+        updateInfo();
+    };
+
+    function resizeCanvas() {
+        let s = Math.min(window.innerWidth * 0.95, 400, window.innerHeight * 0.65);
+        s = Math.max(s, 240);
+        canvas.width = s;
+        canvas.height = s;
+        drawGrid();
+    }
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("load", () => { loadProgress(); resizeCanvas(); drawGrid(); });
+
+    window.setBet = function(bet) {
+        bet = Number(bet);
+        if (!VALID_BETS.includes(bet)) return;
+        selectedBet = bet;
+        document.querySelectorAll('#bets .btn').forEach(btn => {
+            let val = Number(btn.innerText);
+            if (VALID_BETS.includes(val) && val === bet) btn.classList.add('selected-bet');
+            else btn.classList.remove('selected-bet');
+        });
+        updateInfo();
+        saveProgress();
+    };
+
+    function randomFruit() {
+        let chance = Math.random();
+        if (chance < 0.28) return FRUITS[0].char;
+        if (chance < 0.53) return FRUITS[1].char;
+        if (chance < 0.73) return FRUITS[2].char;
+        if (chance < 0.89) return FRUITS[3].char;
+        return FRUITS[4].char;
+    }
+
+    function generateGrid() {
+        let arr = [];
+        for (let r = 0; r < GRID_SIZE; r++) {
+            let row = [];
+            for (let c = 0; c < GRID_SIZE; c++) row.push(randomFruit());
+            arr.push(row);
         }
+        // Печеливши линии (хоризонтални, вертикални, диагонал)
+        if (Math.random() < 0.40) generateWinningRow(arr);
+        if (Math.random() < 0.25) generateWinningCol(arr);
+        if (Math.random() < 0.15) generateWinningDiag(arr);
+        if (Math.random() < 0.12) generateWinningDiag2(arr);
+        return arr;
+    }
+    function generateWinningRow(arr) {
+        let winRow = Math.floor(Math.random() * GRID_SIZE);
+        let winFruit = FRUIT_CHARS[Math.floor(Math.random() * FRUIT_CHARS.length)];
+        for (let c = 0; c < GRID_SIZE; c++) arr[winRow][c] = winFruit;
+    }
+    function generateWinningCol(arr) {
+        let winCol = Math.floor(Math.random() * GRID_SIZE);
+        let winFruit = FRUIT_CHARS[Math.floor(Math.random() * FRUIT_CHARS.length)];
+        for (let r = 0; r < GRID_SIZE; r++) arr[r][winCol] = winFruit;
+    }
+    function generateWinningDiag(arr) {
+        let winFruit = FRUIT_CHARS[Math.floor(Math.random() * FRUIT_CHARS.length)];
+        for (let i = 0; i < GRID_SIZE; i++) arr[i][i] = winFruit;
+    }
+    function generateWinningDiag2(arr) {
+        let winFruit = FRUIT_CHARS[Math.floor(Math.random() * FRUIT_CHARS.length)];
+        for (let i = 0; i < GRID_SIZE; i++) arr[i][GRID_SIZE - 1 - i] = winFruit;
+    }
 
-        function resizeCanvas() {
-            let s = Math.min(window.innerWidth * 0.95, 400, window.innerHeight * 0.65);
-            s = Math.max(s, 240);
-            canvas.width = s;
-            canvas.height = s;
-            drawGrid();
+    function drawGrid(anim) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Ефект при загуба
+        if (loseEffectActive) {
+            let t = Math.abs(Math.sin(loseEffectFrame * 0.18));
+            ctx.save();
+            ctx.globalAlpha = 0.23 + 0.12 * t;
+            ctx.fillStyle = "#FFD700";
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.globalAlpha = 1;
+            ctx.restore();
         }
-        window.addEventListener("resize", resizeCanvas);
-        window.addEventListener("load", () => { loadProgress(); resizeCanvas(); drawGrid(); });
+        const c = canvas.width / (GRID_SIZE + .14), m = c * .125;
+        const o = (canvas.width - (GRID_SIZE * c + (GRID_SIZE - 1) * m)) / 2;
+        const y = (canvas.height - (GRID_SIZE * c + (GRID_SIZE - 1) * m)) / 2;
+        for (let r = 0; r < GRID_SIZE; r++) for (let col = 0; col < GRID_SIZE; col++) {
+            const x = o + col * (c + m), y0 = y + r * (c + m);
+            ctx.save();
+            ctx.fillStyle = '#141418';
+            ctx.globalAlpha = .98;
+            ctx.fillRect(x, y0, c, c);
+            ctx.restore();
 
-        window.setBet = function(bet) {
-            bet = Number(bet);
-            if (!VALID_BETS.includes(bet)) return;
-            selectedBet = bet;
-            document.querySelectorAll('#bets .btn').forEach(btn => {
-                let val = Number(btn.innerText);
-                if (VALID_BETS.includes(val) && val === bet) btn.classList.add('selected-bet');
-                else btn.classList.remove('selected-bet');
-            });
-            saveProgress();
-        };
+            ctx.save();
+            ctx.font = `bold ${Math.floor(c * .54)}px 'Luckiest Guy', cursive, serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
 
-        function randomFruit() {
-            let chance = Math.random();
-            if (chance < 0.28) return FRUITS[0].char;
-            if (chance < 0.53) return FRUITS[1].char;
-            if (chance < 0.73) return FRUITS[2].char;
-            if (chance < 0.89) return FRUITS[3].char;
-            return FRUITS[4].char;
-        }
-        function generateGrid() {
-            let arr = [];
-            for (let r = 0; r < GRID_SIZE; r++) {
-                let row = [];
-                for (let c = 0; c < GRID_SIZE; c++) row.push(randomFruit());
-                arr.push(row);
-            }
-            // 40% шанс за хоризонтална линия
-            if (Math.random() < 0.40) {
-                let winRow = Math.floor(Math.random() * GRID_SIZE);
-                let winFruit = FRUIT_CHARS[Math.floor(Math.random() * FRUIT_CHARS.length)];
-                for (let c = 0; c < GRID_SIZE; c++) arr[winRow][c] = winFruit;
-            }
-            // 25% шанс за вертикална линия
-            if (Math.random() < 0.25) {
-                let winCol = Math.floor(Math.random() * GRID_SIZE);
-                let winFruit = FRUIT_CHARS[Math.floor(Math.random() * FRUIT_CHARS.length)];
-                for (let r = 0; r < GRID_SIZE; r++) arr[r][winCol] = winFruit;
-            }
-            // 15% шанс за диагонал
-            if (Math.random() < 0.15) {
-                let winFruit = FRUIT_CHARS[Math.floor(Math.random() * FRUIT_CHARS.length)];
-                for (let i = 0; i < GRID_SIZE; i++) arr[i][i] = winFruit;
-            }
-            if (Math.random() < 0.12) {
-                let winFruit = FRUIT_CHARS[Math.floor(Math.random() * FRUIT_CHARS.length)];
-                for (let i = 0; i < GRID_SIZE; i++) arr[i][GRID_SIZE - 1 - i] = winFruit;
-            }
-            return arr;
-        }
-
-        function drawGrid(anim) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const c = canvas.width / (GRID_SIZE + .14), m = c * .125;
-            const o = (canvas.width - (GRID_SIZE * c + (GRID_SIZE - 1) * m)) / 2;
-            const y = (canvas.height - (GRID_SIZE * c + (GRID_SIZE - 1) * m)) / 2;
-            for (let r = 0; r < GRID_SIZE; r++) for (let col = 0; col < GRID_SIZE; col++) {
-                const x = o + col * (c + m), y0 = y + r * (c + m);
-                ctx.save();
-                ctx.fillStyle = '#141418';
-                ctx.globalAlpha = .98;
-                ctx.fillRect(x, y0, c, c);
-                ctx.restore();
-
-                ctx.save();
-                ctx.font = `${Math.floor(c * .49)}px serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-
-                let fruit = grid[r][col];
-                let highlight = false, animWinType = null;
-                if (winEffectActive && winLines.length) {
-                    for (let i = 0; i < winLines.length; i++) {
-                        let line = winLines[i];
-                        for (let j = 0; j < line.coords.length; j++) {
-                            if (line.coords[j][0] === r && line.coords[j][1] === col) {
-                                highlight = true;
-                                animWinType = line.fruit;
-                            }
+            let fruit = grid[r][col];
+            let highlight = false;
+            if (winEffectActive && winLines.length) {
+                for (let i = 0; i < winLines.length; i++) {
+                    let line = winLines[i];
+                    for (let j = 0; j < line.coords.length; j++) {
+                        if (line.coords[j][0] === r && line.coords[j][1] === col) {
+                            highlight = true;
                         }
                     }
                 }
-
-                if (anim && animating && animationGrid.length) {
-                    let p = animationProgress;
-                    if (animationType === "shake") {
-                        let shake = Math.sin(p * 16 * Math.PI) * (1 - p) * 11;
-                        let shakeAngle = Math.sin(p * 16 * Math.PI) * (1 - p) * 0.17;
-                        ctx.translate(x + c / 2 + shake, y0 + c / 2);
-                        ctx.rotate(shakeAngle);
-                        ctx.shadowBlur = 17 * (1 - p);
-                        ctx.shadowColor = "#fff";
-                        ctx.globalAlpha = 0.8 + 0.2 * Math.cos(p * 8);
-                        ctx.fillText(grid[r][col], 0, 0);
-                    } else if (animationType === "spin") {
-                        let oldF = animationGrid[r][col], newF = grid[r][col];
-                        let blur = Math.round(13 * (1 - p));
-                        let scaleOld = 1 - 0.8 * p, scaleNew = 0.7 + 0.3 * p;
-                        let alphaOld = 1 - p * 1.2;
-                        if (alphaOld < 0) alphaOld = 0;
-                        let alphaNew = (p - 0.09) / 0.91;
-                        if (alphaNew < 0) alphaNew = 0;
-                        if (alphaNew > 1) alphaNew = 1;
-                        let rotOld = -Math.PI * p * 1.1, rotNew = (1 - p) * Math.PI * 1.18;
-                        ctx.save();
-                        ctx.globalAlpha = alphaOld;
-                        ctx.filter = `blur(${blur}px)`;
-                        ctx.translate(x + c / 2, y0 + c / 2 - c * p * 0.9);
-                        ctx.rotate(rotOld);
-                        ctx.scale(scaleOld, scaleOld);
-                        ctx.fillText(oldF, 0, 0);
-                        ctx.restore();
-                        ctx.save();
-                        ctx.globalAlpha = alphaNew;
-                        ctx.filter = `blur(${Math.round(17 * (1 - alphaNew))}px)`;
-                        ctx.translate(x + c / 2, y0 + c / 2 + c * (1 - p) * 0.7);
-                        ctx.rotate(rotNew);
-                        ctx.scale(scaleNew, scaleNew);
-                        ctx.shadowColor = '#FFD700';
-                        ctx.shadowBlur = 22 * alphaNew;
-                        ctx.fillText(newF, 0, 0);
-                        ctx.restore();
-                    }
-                    ctx.restore();
-                } else if (highlight) {
-                    let fruitObj = FRUITS.find(f => f.char === fruit);
-                    let t = Date.now() / 600;
-                    ctx.save();
-                    ctx.translate(x + c / 2, y0 + c / 2);
-                    switch (fruitObj.name) {
-                        case "apple":
-                            ctx.scale(1.14 + 0.09 * Math.sin(t * 6), 1.14 + 0.09 * Math.cos(t * 4));
-                            ctx.shadowColor = "#ff4040";
-                            ctx.shadowBlur = 38 + 12 * Math.abs(Math.sin(t * 2));
-                            break;
-                        case "cherry":
-                            ctx.translate(0, Math.sin(t * 7) * 16);
-                            ctx.rotate(Math.sin(t * 4) * 0.13);
-                            ctx.shadowColor = "#ff5bcd";
-                            ctx.shadowBlur = 25;
-                            break;
-                        case "grape":
-                            ctx.rotate(Math.sin(t * 2.5) * 0.55);
-                            ctx.shadowColor = "#a87fff";
-                            ctx.shadowBlur = 30;
-                            break;
-                        case "clover":
-                            ctx.rotate(t * 2);
-                            ctx.shadowColor = "#00e676";
-                            ctx.shadowBlur = 40 + 12 * Math.abs(Math.cos(t * 2));
-                            ctx.scale(1.10 + 0.12 * Math.cos(t * 2), 1.10 + 0.13 * Math.sin(t * 4));
-                            break;
-                        case "watermelon":
-                            ctx.translate(Math.sin(t * 6) * 9, Math.cos(t * 10) * 6);
-                            ctx.shadowColor = "#42e1fe";
-                            ctx.shadowBlur = 30;
-                            break;
-                    }
-                    ctx.globalAlpha = 1;
-                    ctx.fillStyle = "#fff";
-                    ctx.font = `${Math.floor(c * .54)}px serif`;
-                    ctx.fillText(fruit, 0, 0);
-                    ctx.restore();
-                } else {
-                    ctx.fillStyle = '#fff';
-                    ctx.shadowColor = '#FFD700';
-                    ctx.shadowBlur = 10;
-                    ctx.translate(x + c / 2, y0 + c / 2 + .5);
-                    ctx.fillText(grid[r][col], 0, 0);
-                    ctx.restore();
-                }
             }
-            updateInfo();
-        }
 
-        function updateInfo() {
-            document.getElementById('coins').innerText = `Монети: ${coins}`;
-            document.getElementById('lastWin').innerText = `Последна печалба: ${lastWin}`;
-            document.getElementById('totalWin').innerText = `Обща печалба: ${totalWin}`;
-            spinBtn.style.display = coins > 0 ? 'block' : 'none';
-            restartBtn.style.display = coins > 0 ? 'none' : 'block';
-        }
-
-        function animate(type, cb) {
-            animating = true;
-            animationType = type;
-            animationGrid = JSON.parse(JSON.stringify(grid));
-            let duration = type === "shake" ? 450 : 1150;
-            animationProgress = 0;
-            let start = null;
-            function step(ts) {
-                if (!start) start = ts;
-                let el = ts - start;
-                animationProgress = Math.min(el / duration, 1);
-                drawGrid(true);
-                if (animationProgress < 1) animFrameId = requestAnimationFrame(step);
-                else { animating = false; animationGrid = []; cb && cb(); }
+            if (highlight && winEffectActive) {
+                // Нов мигащ ефект: сменя цвят и сияние в синхрон
+                let phase = Math.abs(Math.sin(winEffectFrame * 0.18 + (r+col)));
+                let colr = phase > 0.5 ? "#fff" : "#FFD700";
+                ctx.shadowColor = "#FFD700";
+                ctx.shadowBlur = 35 * phase + 8;
+                ctx.globalAlpha = 0.77 + 0.23 * phase;
+                ctx.fillStyle = colr;
+                ctx.fillText(fruit, x + c / 2, y0 + c / 2);
+            } else {
+                ctx.shadowColor = '#FFD700';
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = '#fff';
+                ctx.globalAlpha = 1;
+                ctx.fillText(fruit, x + c / 2, y0 + c / 2);
             }
-            animFrameId = requestAnimationFrame(step);
+            ctx.restore();
         }
+        updateInfo();
+    }
 
-        function animateSpin(newGrid, cb) {
-            animationGrid = JSON.parse(JSON.stringify(grid));
-            animate("spin", cb);
-            grid = newGrid;
-        }
+    function updateInfo() {
+        document.getElementById('coins').innerText = `Монети: ${coins}`;
+        document.getElementById('lastWin').innerText = `Последна печалба: ${lastWin}`;
+        document.getElementById('totalWin').innerText = `Обща печалба: ${totalWin}`;
+        currentBetBox.innerText = `Залог: ${selectedBet}`;
+        spinBtn.style.display = coins > 0 ? 'block' : 'none';
+        restartBtn.style.display = coins > 0 ? 'none' : 'block';
+        showLose(coins===0);
+    }
 
-        function animateShake(cb) {
-            animate("shake", cb);
-        }
+    function showLose(show) {
+        loseLabel.classList.toggle("show", !!show);
+    }
 
-        function spin(isAuto) {
-            if (spinning || coins < selectedBet) return;
-            spinning = true;
-            stopWinEffect();
-            animateShake(() => {
-                coins -= selectedBet;
-                let newGrid = generateGrid();
-                animateSpin(newGrid, () => {
-                    let { win, lines, fruits } = calcWins();
-                    lastWin = win;
-                    totalWin += win;
-                    if (win > 0) coins += win;
-                    drawGrid();
-                    if (win > 0 && lines.length) {
-                        winLines = lines;
-                        winFruits = fruits;
-                        startWinEffect();
-                        winLabel.textContent = `ПЕЧАЛБА +${win}`;
-                        winLabel.classList.add("active");
-                    }
-                    setTimeout(() => winLabel.classList.remove("active"), 1700);
-                    spinning = false;
-                    saveProgress();
-                    if (autoSpin && coins < selectedBet) stopAutoSpin();
-                    if (autoSpin && !isAuto) doAutoSpin();
-                });
-            });
-        }
-
-        function startWinEffect() {
-            winEffectActive = true;
-            function winAnimLoop() {
-                if (!winEffectActive) return;
-                drawGrid();
-                winEffectTimer = setTimeout(winAnimLoop, 60);
-            }
-            winAnimLoop();
-        }
-        function stopWinEffect() {
-            winEffectActive = false;
-            winLines = [];
-            winFruits = [];
-            if (winEffectTimer) clearTimeout(winEffectTimer);
-        }
-
-        function calcWins() {
-            let win = 0, lines = [], fruits = [];
-            for (let r = 0; r < GRID_SIZE; r++) {
-                let f = grid[r][0];
-                if (grid[r].every(ff => ff === f)) {
-                    let points = FRUIT_POINTS[f] * selectedBet / 20;
-                    win += points;
-                    lines.push({type: "row", coords: Array.from({length:GRID_SIZE},(_,i)=>[r,i]), fruit: f});
-                    fruits.push(f);
-                }
-            }
-            for (let c = 0; c < GRID_SIZE; c++) {
-                let f = grid[0][c];
-                let all = true;
-                for (let r = 0; r < GRID_SIZE; r++)
-                    if (grid[r][c] !== f) all = false;
-                if (all) {
-                    let points = FRUIT_POINTS[f] * selectedBet / 20;
-                    win += points;
-                    lines.push({type: "col", coords: Array.from({length:GRID_SIZE},(_,i)=>[i,c]), fruit: f});
-                    fruits.push(f);
-                }
-            }
-            let f1 = grid[0][0], all1 = true;
-            for (let i = 0; i < GRID_SIZE; i++) if (grid[i][i] !== f1) all1 = false;
-            if (all1) {
-                let points = FRUIT_POINTS[f1] * selectedBet / 20;
-                win += points;
-                lines.push({type: "diag", coords: Array.from({length:GRID_SIZE},(_,i)=>[i,i]), fruit: f1});
-                fruits.push(f1);
-            }
-            let f2 = grid[0][GRID_SIZE-1], all2 = true;
-            for (let i = 0; i < GRID_SIZE; i++) if (grid[i][GRID_SIZE-1-i] !== f2) all2 = false;
-            if (all2) {
-                let points = FRUIT_POINTS[f2] * selectedBet / 20;
-                win += points;
-                lines.push({type: "diag2", coords: Array.from({length:GRID_SIZE},(_,i)=>[i,GRID_SIZE-1-i]), fruit: f2});
-                fruits.push(f2);
-            }
-            return { win: Math.round(win), lines, fruits };
-        }
-
-        function restartGame() {
-            stopWinEffect();
-            coins = 500;
-            lastWin = 0;
-            totalWin = 0;
-            grid = generateGrid();
-            saveProgress();
+    // --- Win & Lose ефекти с requestAnimationFrame ---
+    function startWinEffect() {
+        winEffectActive = true;
+        winEffectFrame = 0;
+        function winAnimLoop() {
+            if (!winEffectActive) return;
+            winEffectFrame++;
             drawGrid();
+            requestAnimationFrame(winAnimLoop);
         }
+        winAnimLoop();
+    }
+    function stopWinEffect() { winEffectActive = false; winLines = []; winFruits = []; }
 
-        function startSpinHold(e) {
-            if (spinHoldTimeout) clearTimeout(spinHoldTimeout);
-            pointerIsDown = true;
-            pointerDownTime = Date.now();
-            spinHoldTimeout = setTimeout(() => {
-                if (pointerIsDown && !autoSpin) {
-                    autoSpin = true;
-                    spinBtn.classList.add('auto');
-                    doAutoSpin();
+    function startLoseEffect() {
+        loseEffectActive = true;
+        loseEffectFrame = 0;
+        function loseAnimLoop() {
+            if (!loseEffectActive) return;
+            loseEffectFrame++;
+            drawGrid();
+            if (loseEffectFrame < 20) requestAnimationFrame(loseAnimLoop);
+            else { loseEffectActive = false; drawGrid(); }
+        }
+        loseAnimLoop();
+    }
+
+    function animate(type, cb) {
+        animating = true;
+        animationType = type;
+        animationGrid = JSON.parse(JSON.stringify(grid));
+        let duration = type === "shake" ? 450 : 1150;
+        animationProgress = 0;
+        let start = null;
+        function step(ts) {
+            if (!start) start = ts;
+            let el = ts - start;
+            animationProgress = Math.min(el / duration, 1);
+            drawGrid(true);
+            if (animationProgress < 1) animFrameId = requestAnimationFrame(step);
+            else { animating = false; animationGrid = []; cb && cb(); }
+        }
+        animFrameId = requestAnimationFrame(step);
+    }
+    function animateSpin(newGrid, cb) { animationGrid = JSON.parse(JSON.stringify(grid)); animate("spin", cb); grid = newGrid; }
+    function animateShake(cb) { animate("shake", cb); }
+
+    function spin(isAuto) {
+        if (spinning || coins < selectedBet) return;
+        spinning = true;
+        stopWinEffect();
+        animateShake(() => {
+            coins -= selectedBet;
+            let newGrid = generateGrid();
+            animateSpin(newGrid, () => {
+                let { win, lines, fruits } = calcWins();
+                lastWin = win;
+                totalWin += win;
+                if (win > 0) {
+                    coins += win;
                 }
-            }, 1500);
-        }
-        function stopSpinHold(e) {
-            pointerIsDown = false;
-            if (spinHoldTimeout) { clearTimeout(spinHoldTimeout); spinHoldTimeout = null; }
-        }
-        function doAutoSpin() {
-            if (!autoSpin) { spinBtn.classList.remove('auto'); return; }
-            if (coins < selectedBet) { stopAutoSpin(); return; }
-            if (!spinning) spin(true);
-            let nextSpin = 3000 + Math.random() * 2000;
-            autoSpinTimer = setTimeout(doAutoSpin, nextSpin);
-        }
-        function stopAutoSpin() {
-            autoSpin = false;
-            spinBtn.classList.remove('auto');
-            if (autoSpinTimer) { clearTimeout(autoSpinTimer); autoSpinTimer = null; }
-        }
-
-        spinBtn.addEventListener('mousedown', startSpinHold);
-        spinBtn.addEventListener('touchstart', startSpinHold);
-        spinBtn.addEventListener('mouseup', function (e) {
-            stopSpinHold();
-            if (autoSpin) return stopAutoSpin();
-            let held = Date.now() - pointerDownTime;
-            if (held < 1500 && !spinning) spin();
-        });
-        spinBtn.addEventListener('mouseleave', stopSpinHold);
-        spinBtn.addEventListener('touchend', function (e) {
-            stopSpinHold();
-            if (autoSpin) return stopAutoSpin();
-            let held = Date.now() - pointerDownTime;
-            if (held < 1500 && !spinning) spin();
-        });
-        spinBtn.addEventListener('click', function (e) {
-            if (autoSpin) { stopAutoSpin(); }
-            stopWinEffect();
-        });
-
-        restartBtn.addEventListener('click', restartGame);
-        document.querySelectorAll('#bets .btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const val = Number(btn.innerText);
-                window.setBet(val);
+                drawGrid();
+                if (win > 0 && lines.length) {
+                    winLines = lines;
+                    winFruits = fruits;
+                    startWinEffect();
+                    winLabel.textContent = `ПЕЧАЛБА +${win}`;
+                    winLabel.classList.add("active");
+                } else {
+                    startLoseEffect();
+                }
+                setTimeout(() => winLabel.classList.remove("active"), 1700);
+                spinning = false;
+                saveProgress();
+                if (autoSpin && coins < selectedBet) stopAutoSpin();
+                if (autoSpin && !isAuto) doAutoSpin();
             });
         });
+    }
 
-        // Инициализация
+    function calcWins() {
+        let win = 0, lines = [], fruits = [];
+        // Хоризонтални линии
+        for (let r = 0; r < GRID_SIZE; r++) {
+            let f = grid[r][0];
+            if (grid[r].every(ff => ff === f)) {
+                let points = FRUIT_POINTS[f] * selectedBet / 20;
+                win += points;
+                lines.push({type: "row", coords: Array.from({length:GRID_SIZE},(_,i)=>[r,i]), fruit: f});
+                fruits.push(f);
+            }
+        }
+        // Вертикални линии
+        for (let c = 0; c < GRID_SIZE; c++) {
+            let f = grid[0][c];
+            let all = true;
+            for (let r = 0; r < GRID_SIZE; r++)
+                if (grid[r][c] !== f) all = false;
+            if (all) {
+                let points = FRUIT_POINTS[f] * selectedBet / 20;
+                win += points;
+                lines.push({type: "col", coords: Array.from({length:GRID_SIZE},(_,i)=>[i,c]), fruit: f});
+                fruits.push(f);
+            }
+        }
+        // Диагонали
+        let f1 = grid[0][0], all1 = true;
+        for (let i = 0; i < GRID_SIZE; i++) if (grid[i][i] !== f1) all1 = false;
+        if (all1) {
+            let points = FRUIT_POINTS[f1] * selectedBet / 20;
+            win += points;
+            lines.push({type: "diag", coords: Array.from({length:GRID_SIZE},(_,i)=>[i,i]), fruit: f1});
+            fruits.push(f1);
+        }
+        let f2 = grid[0][GRID_SIZE-1], all2 = true;
+        for (let i = 0; i < GRID_SIZE; i++) if (grid[i][GRID_SIZE-1-i] !== f2) all2 = false;
+        if (all2) {
+            let points = FRUIT_POINTS[f2] * selectedBet / 20;
+            win += points;
+            lines.push({type: "diag2", coords: Array.from({length:GRID_SIZE},(_,i)=>[i,GRID_SIZE-1-i]), fruit: f2});
+            fruits.push(f2);
+        }
+        return { win: Math.round(win), lines, fruits };
+    }
+
+    function restartGame() {
+        stopWinEffect();
+        coins = 500;
+        lastWin = 0;
+        totalWin = 0;
         grid = generateGrid();
-        loadProgress();
-        window.setBet(selectedBet);
-        resizeCanvas();
+        saveProgress();
+        showLose(false);
         drawGrid();
+    }
+
+    function startSpinHold(e) {
+        if (spinHoldTimeout) clearTimeout(spinHoldTimeout);
+        pointerIsDown = true;
+        pointerDownTime = Date.now();
+        spinHoldTimeout = setTimeout(() => {
+            if (pointerIsDown && !autoSpin) {
+                autoSpin = true;
+                spinBtn.classList.add('auto');
+                doAutoSpin();
+            }
+        }, 1500);
+    }
+    function stopSpinHold(e) {
+        pointerIsDown = false;
+        if (spinHoldTimeout) { clearTimeout(spinHoldTimeout); spinHoldTimeout = null; }
+    }
+    function doAutoSpin() {
+        if (!autoSpin) { spinBtn.classList.remove('auto'); return; }
+        if (coins < selectedBet) { stopAutoSpin(); return; }
+        if (!spinning) spin(true);
+        let nextSpin = 1800 + Math.random() * 1000;
+        autoSpinTimer = setTimeout(doAutoSpin, nextSpin);
+    }
+    function stopAutoSpin() {
+        autoSpin = false;
+        spinBtn.classList.remove('auto');
+        if (autoSpinTimer) { clearTimeout(autoSpinTimer); autoSpinTimer = null; }
+    }
+
+    spinBtn.addEventListener('mousedown', startSpinHold);
+    spinBtn.addEventListener('touchstart', startSpinHold);
+    spinBtn.addEventListener('mouseup', function (e) {
+        stopSpinHold();
+        if (autoSpin) return stopAutoSpin();
+        let held = Date.now() - pointerDownTime;
+        if (held < 1500 && !spinning) spin();
+    });
+    spinBtn.addEventListener('mouseleave', stopSpinHold);
+    spinBtn.addEventListener('touchend', function (e) {
+        stopSpinHold();
+        if (autoSpin) return stopAutoSpin();
+        let held = Date.now() - pointerDownTime;
+        if (held < 1500 && !spinning) spin();
+    });
+    spinBtn.addEventListener('click', function (e) {
+        if (autoSpin) { stopAutoSpin(); }
+        stopWinEffect();
+    });
+
+    restartBtn.addEventListener('click', restartGame);
+    document.querySelectorAll('#bets .btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const val = Number(btn.innerText);
+            window.setBet(val);
+        });
+    });
+
+    // Tooltip за таблица на печалбите
+    document.querySelectorAll('.paytable-symbol').forEach(el => {
+        el.addEventListener('mouseenter', function(e) {
+            const symbol = this.getAttribute('data-symbol');
+            const fruit = FRUITS.find(f => f.char === symbol);
+            if(!fruit) return;
+            tooltip.innerHTML = `${fruit.name}<br>Печалба: <b>${fruit.points}</b> (за лин.)`;
+            tooltip.style.display = 'block';
+            tooltip.style.left = (e.clientX + 12) + 'px';
+            tooltip.style.top = (e.clientY - 10) + 'px';
+        });
+        el.addEventListener('mouseleave', function(e) {
+            tooltip.style.display = 'none';
+        });
+        el.addEventListener('mousemove', function(e) {
+            tooltip.style.left = (e.clientX + 12) + 'px';
+            tooltip.style.top = (e.clientY - 10) + 'px';
+        });
+    });
+
+    // Инициализация
+    grid = generateGrid();
+    loadProgress();
+    window.setBet(selectedBet);
+    resizeCanvas();
+    drawGrid();
     </script>
 </body>
 </html>
