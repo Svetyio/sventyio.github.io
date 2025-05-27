@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="bg">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>Svetlyo Slot Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         html, body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(to bottom,#232526,#414345 100%);
             min-height: 100vh;
+            background: linear-gradient(to bottom,#232526,#414345 100%);
         }
         body {
             color: #fff;
@@ -28,25 +28,46 @@
         #container {
             position: relative;
             width: 100vw;
-            max-width: 440px;
+            max-width: 430px;
             margin: 0 auto;
-            height: 420px;
         }
         #gameCanvas {
             display: block;
-            margin: 32px auto 12px auto;
+            margin: 25px auto 5px auto;
             background: #17181C;
-            border: 8px solid #FFD700;
+            border: 8px solid #2ecc71;
             border-radius: 24px;
-            box-shadow: 0 0 28px #FFD70044,0 0 12px #000;
-            max-width: 98vw;
-            width: 98vw;
-            height: 98vw;
+            box-shadow: 0 0 28px #2ecc7144,0 0 12px #000;
+            max-width: 95vw;
+            width: 95vw;
+            height: 95vw;
             min-width: 240px;
             min-height: 240px;
-            max-height: 420px;
+            max-height: 400px;
             touch-action: none;
-            position: relative;
+        }
+        #winLabel {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 15px;
+            font-size: 30px;
+            font-weight: 900;
+            color: #FFD700;
+            text-shadow: 0 0 12px #FFD700, 0 2px 17px #fff;
+            background: rgba(40,40,0,0.44);
+            padding: 8px 22px;
+            border-radius: 30px;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 100;
+            transition: opacity 0.4s;
+            white-space: nowrap;
+        }
+        #winLabel.active {
+            opacity: 1 !important;
+            pointer-events: auto;
+            transition: none;
         }
         #info-row {
             display: flex;
@@ -54,7 +75,7 @@
             justify-content: center;
             align-items: center;
             gap: 14px;
-            margin: 20px auto 10px auto;
+            margin: 10px auto 10px auto;
             width: 100%;
             max-width: 600px;
             flex-wrap: wrap;
@@ -63,7 +84,6 @@
             background: #232526;
             border: 2px solid #888;
             border-radius: 13px;
-            box-shadow: 0 0 10px #23252644;
             font-size: 18px;
             min-width: 90px;
             min-height: 38px;
@@ -73,32 +93,30 @@
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            transition: color 0.5s, background 0.5s;
         }
         #coins { background-color: #2ecc71; }
         #lastWin { background-color: #e74c3c; }
         #totalWin { background-color: #2980b9; }
+
         #bets {
             display: flex;
             flex-direction: row;
             justify-content: center;
             align-items: center;
-            gap: 12px;
-            margin: 18px auto 0 auto;
+            gap: 10px;
+            margin: 10px auto 0 auto;
             width: 100%;
             max-width: 600px;
             flex-wrap: wrap;
-            pointer-events: none;
         }
         .btn {
-            padding: 10px 22px;
+            padding: 10px 18px;
             font-size: 18px;
             color: #fff;
             background-color: #232526;
             border: none;
             border-radius: 13px;
             cursor: pointer;
-            margin: 0;
             min-width: 54px;
             min-height: 38px;
             outline: none;
@@ -106,13 +124,7 @@
             font-weight: 600;
             letter-spacing: 1px;
             transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
-            pointer-events: auto;
             user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            -webkit-touch-callout: none;
-            -webkit-user-drag: none;
         }
         .btn.selected-bet,
         .btn:active.selected-bet {
@@ -124,17 +136,6 @@
         .btn:focus-visible:not(.selected-bet) {
             background-color: #444;
             color: #fff;
-        }
-        #spinBtn, #restartBtn {
-            position: relative;
-            z-index: 10;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            -webkit-touch-callout: none;
-            -webkit-user-drag: none;
-            pointer-events: auto;
         }
         #spinBtn {
             background: linear-gradient(145deg,#e74c3c,#e67e22 80%);
@@ -151,9 +152,7 @@
             border: none;
             outline: none;
             animation: pulseSpinBtn 1.3s infinite alternate;
-        }
-        @keyframes pulseSpinBtn {
-            0% { box-shadow: 0 0 24px #e67e22,0 0 10px #fff0; }
+0 0 24px #e67e22,0 0 10px #fff0; }
             100% { box-shadow: 0 0 44px #FFD700,0 0 44px #fff4; transform: scale(1.08);}
         }
         #spinBtn:hover, #spinBtn:focus-visible {
@@ -185,50 +184,16 @@
             background: #00ccff;
             transform: scale(1.05);
         }
-        #winLabel {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            top: 18px;
-            font-size: 32px;
-            font-weight: 900;
-            color: #FFD700;
-            text-shadow: 0 0 12px #FFD700, 0 2px 17px #fff;
-            background: rgba(40,40,0,0.44);
-            padding: 10px 32px;
-            border-radius: 30px;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 100;
-            transition: opacity 0.4s;
-            white-space: nowrap;
-        }
-        #winLabel.active {
-            opacity: 1 !important;
-            pointer-events: auto;
-            transition: none;
-        }
-        button, .btn {
-            user-select: none !important;
-            -webkit-user-select: none !important;
-            -moz-user-select: none !important;
-            -ms-user-select: none !important;
-            -webkit-touch-callout: none !important;
-            -webkit-user-drag: none !important;
-            pointer-events: auto !important;
-            position: relative;
-        }
-        button:active, .btn:active { transform: scale(1.01);}
-        button[draggable], .btn[draggable] { draggable: false !important;}
-        button, .btn { touch-action: manipulation; }
         @media (max-width: 600px) {
-            #winLabel { font-size: 18px; padding: 6px 12px; }
-            #spinBtn, #restartBtn { width: 68px; height: 68px; font-size: 15px; }
-            #bets { gap: 5px; }
-            .btn { font-size: 13px; min-height: 24px; padding: 6px 10px; }
+            #container {max-width:98vw;}
+            #gameCanvas {max-width:98vw; max-height:240px;}
+            #winLabel { font-size: 16px; padding: 4px 10px; }
+            .small-title { font-size: 17px; }
             .info-box { font-size: 12px; min-width: 38px; min-height: 13px; padding: 3px 7px; }
-            .small-title { font-size: 15px; }
-            #container {max-width:98vw; height:240px;}
+            #bets { gap: 3px; }
+            .btn { font-size: 13px; min-height: 24px; padding: 6px 10px; }
+            #spinBtn {width:60px; height:60px; font-size:20px;}
+            #restartBtn {width:44px; height:44px; font-size:12px;}
         }
     </style>
 </head>
@@ -236,7 +201,7 @@
     <div class="small-title">Добре дошли в Svetlyo Games</div>
     <div id="container">
         <span id="winLabel"></span>
-        <canvas id="gameCanvas">
+        <canvas id="gameCanvas" width="400" height="400">
             Вашият браузър не поддържа canvas или JavaScript е изключен.<br>
             Моля, активирайте JavaScript или използвайте модерен браузър, за да играете.
         </canvas>
@@ -251,7 +216,9 @@
         <button class="btn" onclick="setBet(40)" tabindex="2">40</button>
         <button class="btn" onclick="setBet(60)" tabindex="3">60</button>
         <button class="btn" onclick="setBet(100)" tabindex="4">100</button>
-        <button class="btn" onclick="setBet(200)" tabindex="5">200</ИН</button>
+        <button class="btn" onclick="setBet(200)" tabindex="5">200</button>
+    </div>
+    <button id="spinBtn" tabindex="6">СПИН</button>
     <button id="restartBtn" style="display:none" tabindex="7">Нова игра</button>
     <script>
         // --- Основни константи и състояние ---
@@ -305,7 +272,7 @@
         }
 
         function resizeCanvas() {
-            let s = Math.min(window.innerWidth * 0.98, 420, window.innerHeight * 0.69);
+            let s = Math.min(window.innerWidth * 0.95, 400, window.innerHeight * 0.65);
             s = Math.max(s, 240);
             canvas.width = s;
             canvas.height = s;
