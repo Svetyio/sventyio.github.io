@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="bg">
 <head>
@@ -252,9 +251,7 @@
         <button class="btn" onclick="setBet(40)" tabindex="2">40</button>
         <button class="btn" onclick="setBet(60)" tabindex="3">60</button>
         <button class="btn" onclick="setBet(100)" tabindex="4">100</button>
-        <button class="btn" onclick="setBet(200)" tabindex="5">200</button>
-    </div>
-    <button id="spinBtn" tabindex="6">СПИН</button>
+        <button class="btn" onclick="setBet(200)" tabindex="5">200</ИН</button>
     <button id="restartBtn" style="display:none" tabindex="7">Нова игра</button>
     <script>
         // --- Основни константи и състояние ---
@@ -267,7 +264,7 @@
 
         const FRUITS = [
             {char:'🍎',name:'apple', points: 20, color: "#ff4040"},
-            {char:'🍒',name:'cherry color: "#ff5bcd"},
+            {char:'🍒',name:'cherry',points: 30, color: "#ff5bcd"},
             {char:'🍇',name:'grape', points: 40, color: "#a87fff"},
             {char:'🍀',name:'clover',points: 50, color: "#00e676"},
             {char:'🍉',name:'watermelon',points: 60, color: "#42e1fe"}
@@ -284,6 +281,29 @@
         let pointerDownTime = 0, pointerIsDown = false;
         let winLines = [], winFruits = [], winEffectActive = false, winEffectTimer = null;
 
+        // --- Локално съхранение на прогреса ---
+        function saveProgress() {
+            const data = {
+                coins,
+                lastWin,
+                totalWin,
+                selectedBet
+            };
+            localStorage.setItem("svetlyo_slot_progress", JSON.stringify(data));
+        }
+        function loadProgress() {
+            const data = localStorage.getItem("svetlyo_slot_progress");
+            if (data) {
+                try {
+                    const obj = JSON.parse(data);
+                    if (typeof obj.coins === 'number') coins = obj.coins;
+                    if (typeof obj.lastWin === 'number') lastWin = obj.lastWin;
+                    if (typeof obj.totalWin === 'number') totalWin = obj.totalWin;
+                    if (VALID_BETS.includes(obj.selectedBet)) selectedBet = obj.selectedBet;
+                } catch (e) {}
+            }
+        }
+
         function resizeCanvas() {
             let s = Math.min(window.innerWidth * 0.98, 420, window.innerHeight * 0.69);
             s = Math.max(s, 240);
@@ -292,19 +312,18 @@
             drawGrid();
         }
         window.addEventListener("resize", resizeCanvas);
-        window.addEventListener("load", () => { resizeCanvas(); drawGrid(); });
+        window.addEventListener("load", () => { loadProgress(); resizeCanvas(); drawGrid(); });
 
-        window.setBet = function (bet) {
-            // Accept only numeric, exact allowed values
+        window.setBet = function(bet) {
             bet = Number(bet);
             if (!VALID_BETS.includes(bet)) return;
             selectedBet = bet;
-            // Remove selection from all and only select correct button
             document.querySelectorAll('#bets .btn').forEach(btn => {
                 let val = Number(btn.innerText);
                 if (VALID_BETS.includes(val) && val === bet) btn.classList.add('selected-bet');
                 else btn.classList.remove('selected-bet');
             });
+            saveProgress();
         };
 
         function randomFruit() {
@@ -528,6 +547,7 @@
                     }
                     setTimeout(() => winLabel.classList.remove("active"), 1700);
                     spinning = false;
+                    saveProgress();
                     if (autoSpin && coins < selectedBet) stopAutoSpin();
                     if (autoSpin && !isAuto) doAutoSpin();
                 });
@@ -598,6 +618,7 @@
             lastWin = 0;
             totalWin = 0;
             grid = generateGrid();
+            saveProgress();
             drawGrid();
         }
 
@@ -658,7 +679,9 @@
             });
         });
 
+        // Инициализация
         grid = generateGrid();
+        loadProgress();
         window.setBet(selectedBet);
         resizeCanvas();
         drawGrid();
