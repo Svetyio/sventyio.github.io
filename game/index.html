@@ -1,67 +1,758 @@
 <!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Svetlyo Slot Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <style>
+        /* ... (оставям CSS-а непроменен от предишния перфектен вид) ... */
+        html,body{margin:0;padding:0;min-height:100vh;background:linear-gradient(to bottom,#232526,#414345 100%);}
+        body{color:#fff;font-family:'Segoe UI',Arial,sans-serif;text-align:center;user-select:none;}
+        .small-title{font-size:28px;font-weight:700;margin:28px auto 0 auto;letter-spacing:2px;max-width:99vw;text-shadow:0 2px 14px #000, 0 0 4px #F2C811;}
+        #container{position:relative;width:100vw;max-width:430px;margin:0 auto;}
+        #gameCanvas{display:block;margin:25px auto 5px auto;background:#17181C;border:8px solid #2ecc71;border-radius:24px;
+            box-shadow:0 0 28px #2ecc7144,0 0 12px #000;max-width:95vw;width:95vw;height:95vw;min-width:240px;min-height:240px;max-height:400px;touch-action:none;}
+        #winLabel{position:absolute;left:50%;transform:translateX(-50%);top:15px;font-size:30px;font-weight:900;color:#FFD700;text-shadow:0 0 12px #FFD700,0 2px 17px #fff;
+            background:rgba(40,40,0,0.44);padding:8px 22px;border-radius:30px;opacity:0;pointer-events:none;z-index:100;transition:opacity 0.4s;white-space:nowrap;}
+        #winLabel.active{opacity:1!important;pointer-events:auto;transition:none;}
+        #loseLabel{display:none;position:fixed;left:0;right:0;top:0;bottom:0;background:rgba(20,20,20,0.65);color:#FFD700;font-size:2.3em;font-weight:bold;align-items:center;justify-content:center;z-index:400;flex-direction:column;}
+        #loseLabel.show{display:flex;}
+        #loseLabel button {
+            margin-top: 32px;
+            background: #1e90ff;
+            color: #fff;
+            border: none;
+            border-radius: 17px;
+            font-size: 1.1em;
+            font-weight: bold;
+            padding: 16px 42px;
+            box-shadow: 0 0 14px #1e90ff99;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+        #loseLabel button:hover,
+        #loseLabel button:focus-visible {
+            background: #00ccff;
+            transform: scale(1.07);
+        }
+        #noCoinsMsg {
+            display:none;
+            color:#FFD700;
+            font-weight:bold;
+            margin-top:10px;
+            font-size:1.25em;
+        }
+        #info-row{display:flex;flex-direction:row;justify-content:center;align-items:center;gap:14px;margin:10px auto 10px auto;width:100%;max-width:600px;flex-wrap:wrap;}
+        .info-box{background:#232526;border:2px solid #888;border-radius:13px;font-size:18px;min-width:90px;min-height:38px;padding:8px 18px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;}
+        #coins{background-color:#2ecc71;}
+        #lastWin{background-color:#e74c3c;}
+        #totalWin{background-color:#2980b9;}
+        #currentBet{background-color:#ff9900;min-width:70px;}
+        #stats{background:#232526;border:2px solid #FFD700;color:#FFD700;border-radius:13px;font-size:14px;min-width:80px;padding:6px 12px;display:inline-block;margin:8px 2px;}
+        #autoSpinIndicator{
+            background:rgba(255,223,0,0.15);
+            color:#FFD700;
+            font-weight:bold;
+            display:none;
+            padding:3px 10px;
+            border-radius:12px;
+            margin:5px auto 0 auto;
+            font-size:1.1em;
+            animation:autosign 1.1s infinite alternate;
+        }
+        @keyframes autosign{0%{box-shadow:0 0 0 #FFD700;}100%{box-shadow:0 0 12px #FFD700;}}
+        #bets{display:flex;flex-direction:row;justify-content:center;align-items:center;gap:10px;margin:10px auto 0 auto;width:100%;max-width:600px;flex-wrap:wrap;}
+        .btn{padding:10px 18px;font-size:18px;color:#fff;background-color:#232526;border:none;border-radius:13px;cursor:pointer;min-width:54px;min-height:38px;outline:none;box-shadow:0 1px 4px #0006;font-weight:600;letter-spacing:1px;transition:background 0.2s,color 0.2s,transform 0.15s,box-shadow 0.2s;user-select:none;}
+        .btn.selected-bet,.btn:active.selected-bet{background-color:#00cc00!important;color:#fff!important;box-shadow:0 0 10px 2px #00cc00;font-weight:bold;animation:betpulse 0.31s;}
+        .btn:focus-visible:not(.selected-bet){background-color:#444;color:#fff;}
+        .btn:disabled{background:#444!important;color:#888!important;cursor:not-allowed;box-shadow:none;}
+        @keyframes betpulse {
+            0%{box-shadow:0 0 0 #FFD700;}
+            50%{box-shadow:0 0 18px #FFD700,0 0 10px #fff;}
+            100%{box-shadow:0 0 0 #00cc00;}
+        }
+        #spinBtn{background:linear-gradient(145deg,#e74c3c,#e67e22 80%);border-radius:50%;width:110px;height:110px;font-size:32px;font-weight:bold;color:#fff;margin:28px auto 12px auto;display:block;transition:background 0.3s,transform 0.2s;box-shadow:0 0 26px #e67e22,0 0 48px #fff0;border:none;outline:none;animation:pulseSpinBtn 1.3s infinite alternate;position:relative;}
+        @keyframes pulseSpinBtn{0%{box-shadow:0 0 24px #e67e22,0 0 10px #fff0;}100%{box-shadow:0 0 44px #FFD700,0 0 44px #fff4;transform:scale(1.08);}}
+        #spinBtn:hover,#spinBtn:focus-visible{background:linear-gradient(145deg,#e67e22,#FFD700 80%);transform:scale(1.12);}
+        #spinBtn.auto{background:linear-gradient(145deg,#00cc00,#26df26 80%)!important;box-shadow:0 0 28px #00cc00,0 0 48px #fff;animation:none!important;transform:scale(1.10);}
+        #spinTooltip {
+            display:none;
+            position:absolute;
+            left:50%;
+            top:-40px;
+            transform:translateX(-50%);
+            background:rgba(20,20,20,0.93);
+            color:#FFD700;
+            font-size:1.04em;
+            font-weight:700;
+            border-radius:10px;
+            padding:7px 16px;
+            white-space:nowrap;
+            z-index:3000;
+            pointer-events:none;
+            box-shadow:0 0 12px #FFD70055;
+        }
+        #musicBtn {
+            background:#232526;
+            color:#FFD700;
+            border:none;
+            border-radius:20px;
+            font-size:1.25em;
+            font-weight:600;
+            margin:0 0 0 15px;
+            padding:9px 23px;
+            cursor:pointer;
+            transition:background 0.2s,color 0.2s;
+        }
+        #musicBtn.on {
+            background:linear-gradient(145deg,#FFD700,#e67e22 70%);
+            color:#232526;
+        }
+        #paytable{margin:15px auto 0 auto;max-width:440px;}
+        .paytable-table{width:100%;border-collapse:separate;border-spacing:0 4px;}
+        .paytable-table th,.paytable-table td{padding:7px 9px;font-size:1.15em;text-align:center;}
+        .paytable-table th{color:#FFD700;background:#232526;border-radius:7px;}
+        .paytable-table td{background:#14181C;}
+        .paytable-symbol{font-family:'Luckiest Guy',cursive;font-size:1.5em;vertical-align:middle;}
+        .paytable-points{font-weight:700;}
+        #bigWinEffect {
+            display:none;
+            position:fixed;
+            left:0; top:0; width:100vw; height:100vh;
+            background:rgba(255,215,0,0.07);
+            z-index:1002;
+            animation:bigpulse 1.2s 3;
+            pointer-events:none;
+        }
+        @keyframes bigpulse {
+            0%{background:rgba(255,215,0,0.07);}
+            50%{background:rgba(255,215,0,0.23);}
+            100%{background:rgba(255,215,0,0.07);}
+        }
+        @media (max-width:600px){
+            #container{max-width:98vw;}
+            #gameCanvas{max-width:98vw;max-height:240px;}
+            #winLabel{font-size:16px;padding:4px 10px;}
+            .small-title{font-size:17px;}
+            .info-box{font-size:12px;min-width:38px;min-height:13px;padding:3px 7px;}
+            #bets{gap:3px;}
+            .btn{font-size:13px;min-height:24px;padding:6px 10px;}
+            #spinBtn{width:60px;height:60px;font-size:20px;}
+        }
+        .coin-fall{position:absolute;left:50%;top:-40px;font-size:2em;pointer-events:none;animation:coin-fall-anim 0.9s cubic-bezier(.42,.25,.58,.94) forwards;}
+        @keyframes coin-fall-anim{0%{top:-40px;opacity:0.7;transform:scale(0.9);}80%{opacity:1;transform:scale(1.15);}100%{top:80%;opacity:0;transform:scale(1.07);}}
+    </style>
+</head>
+<body>
+    <div id="startScreen">
+        <h1>Svetlyo Slot</h1>
+        <div style="color:#fff;font-size:1.1em;">Добре дошъл!<br>Натисни бутона, за да започнеш играта.</div>
+        <button class="btn" id="startBtn">Играй</button>
+    </div>
+    <div class="small-title">Svetlyo Games
+        <button id="musicBtn" title="Музика ON/OFF">🎵</button>
+    </div>
+    <div id="bigWinEffect"></div>
+    <div id="container" style="position:relative;">
+        <span id="winLabel"></span>
+        <span id="loseLabel">
+            Свършиха ти парите!<br>Натисни <button id="restartBtn" tabindex="7">Нова игра</button>
+        </span>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div id="coinContainer" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;"></div>
+    </div>
+    <div id="noCoinsMsg">Нямаш достатъчно монети!</div>
+    <div id="autoSpinIndicator">Автоматичен режим</div>
+    <div id="info-row">
+        <div class="info-box" id="coins">Монети: 500</div>
+        <div class="info-box" id="lastWin">Последна печалба: 0</div>
+        <div class="info-box" id="totalWin">Обща печалба: 0</div>
+        <div class="info-box" id="currentBet">Залог: 20</div>
+    </div>
+    <div id="stats">
+        Изиграни игри: <span id="gamesPlayed">0</span> |
+        Общи спинове: <span id="totalSpins">0</span> |
+        Най-голяма печалба: <span id="maxWin">0</span>
+        <span id="todayStats"></span>
+    </div>
+    <div id="bets">
+        <button class="btn" tabindex="1" id="betBtn20">20</button>
+        <button class="btn" tabindex="2" id="betBtn40">40</button>
+        <button class="btn" tabindex="3" id="betBtn60">60</button>
+        <button class="btn" tabindex="4" id="betBtn100">100</button>
+        <button class="btn" tabindex="5" id="betBtn200">200</button>
+    </div>
+    <div style="position:relative;">
+        <button id="spinBtn" tabindex="6">СПИН</button>
+        <div id="spinTooltip">Задръж за авто-спин</div>
+    </div>
+    <div id="paytable">
+        <div style="margin-bottom:5px;font-weight:bold;color:#FFD700;font-size:1.12em;">Таблица на печалбите (<span id="paytableBet">20</span>):</div>
+        <table class="paytable-table">
+            <thead>
+                <tr>
+                    <th>Символ</th>
+                    <th>Име</th>
+                    <th>Печалба</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td class="paytable-symbol" style="color:#ff4040;">🍎</td><td>Ябълка</td><td class="paytable-points" id="ppApple">20</td></tr>
+                <tr><td class="paytable-symbol" style="color:#ff5bcd;">🍒</td><td>Череша</td><td class="paytable-points" id="ppCherry">30</td></tr>
+                <tr><td class="paytable-symbol" style="color:#a87fff;">🍇</td><td>Грозде</td><td class="paytable-points" id="ppGrape">40</td></tr>
+                <tr><td class="paytable-symbol" style="color:#00e676;">🍀</td><td>Детелина</td><td class="paytable-points" id="ppClover">50</td></tr>
+                <tr><td class="paytable-symbol" style="color:#42e1fe;">🍉</td><td>Диня</td><td class="paytable-points" id="ppWatermelon">60</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- Spin, win, lose: три различни звука -->
+    <audio id="audio-spin" src="https://cdn.pixabay.com/audio/2022/08/20/audio_128bfa0b4c.mp3" preload="auto"></audio>
+    <audio id="audio-win" src="https://cdn.pixabay.com/audio/2023/02/24/audio_126bdb7e5c.mp3" preload="auto"></audio>
+    <audio id="audio-lose" src="https://cdn.pixabay.com/audio/2022/07/26/audio_124b8d6929.mp3" preload="auto"></audio>
+    <audio id="audio-music" src="https://cdn.pixabay.com/audio/2022/08/20/audio_128c6fcd23.mp3" preload="auto" loop></audio>
+    <script>
+(function() {
+    // Всички променливи са локални за IIFE
+
+    let selectedBet=20, coins=500, lastWin=0, totalWin=0, grid=[];
+    let spinning=false, autoSpin=false, autoSpinTimer=null, spinHoldTimeout=null;
+    let animating=false, animationType="", animationProgress=0, animationGrid=[], animFrameId=null;
+    let pointerDownTime=0, pointerIsDown=false;
+    let winLines=[], winEffectActive=false, winEffectFrame=0, winAnimFrameId=null;
+    let loseEffectActive=false, loseEffectFrame=0, loseAnimFrameId=null;
+    let gamesPlayed=0, totalSpins=0, maxWin=0;
+    let debounceTimer=null;
+    let todayGames=0, todayDate='';
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const spinBtn = document.getElementById('spinBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const winLabel = document.getElementById('winLabel');
+    const loseLabel = document.getElementById('loseLabel');
+    const currentBetBox = document.getElementById('currentBet');
+    const coinContainer = document.getElementById('coinContainer');
+    const startScreen = document.getElementById('startScreen');
+    const gamesPlayedBox = document.getElementById('gamesPlayed');
+    const totalSpinsBox = document.getElementById('totalSpins');
+    const maxWinBox = document.getElementById('maxWin');
+    const paytableBet = document.getElementById('paytableBet');
+    const paytablePoints = [
+        document.getElementById('ppApple'),
+        document.getElementById('ppCherry'),
+        document.getElementById('ppGrape'),
+        document.getElementById('ppClover'),
+        document.getElementById('ppWatermelon')
+    ];
+    const betBtns = [
+        document.getElementById('betBtn20'),
+        document.getElementById('betBtn40'),
+        document.getElementById('betBtn60'),
+        document.getElementById('betBtn100'),
+        document.getElementById('betBtn200')
+    ];
+    const autoSpinIndicator = document.getElementById('autoSpinIndicator');
+    const noCoinsMsg = document.getElementById('noCoinsMsg');
+    const spinTooltip = document.getElementById('spinTooltip');
+    const musicBtn = document.getElementById('musicBtn');
+    const audioMusic = document.getElementById('audio-music');
+    const todayStats = document.getElementById('todayStats');
+    const bigWinEffect = document.getElementById('bigWinEffect');
+    const VALID_BETS = [20,40,60,100,200];
+    const FRUITS = [
+        {char:'🍎',name:'Ябълка', points:20, color:"#ff4040"},
+        {char:'🍒',name:'Череша',points:30, color:"#ff5bcd"},
+        {char:'🍇',name:'Грозде', points:40, color:"#a87fff"},
+        {char:'🍀',name:'Детелина',points:50, color:"#00e676"},
+        {char:'🍉',name:'Диня',points:60, color:"#42e1fe"}
+    ];
+    const FRUIT_CHARS = FRUITS.map(f=>f.char);
+    const FRUIT_POINTS = {}; FRUITS.forEach(f=>FRUIT_POINTS[f.char]=f.points);
+    const GRID_SIZE = 5;
+    const soundSpin = document.getElementById('audio-spin');
+    const soundWin = document.getElementById('audio-win');
+    const soundLose = document.getElementById('audio-lose');
+
+    function saveProgress(immediate) {
+        try {
+            if (debounceTimer) clearTimeout(debounceTimer);
+            const write = () => {
+                let d = new Date(), y = d.getFullYear(), m = d.getMonth(), day = d.getDate();
+                const data = {coins,lastWin,totalWin,selectedBet,gamesPlayed,totalSpins,maxWin,todayGames,todayDate:[y,m,day]};
+                try { localStorage.setItem("svetlyo_slot_progress", JSON.stringify(data)); } catch(e){}
+            };
+            if(immediate) write();
+            else debounceTimer = setTimeout(write, 500);
+        } catch(e){}
+    }
+    function loadProgress() {
+        try {
+            const data = localStorage.getItem("svetlyo_slot_progress");
+            if (data) {
+                try {
+                    const obj = JSON.parse(data);
+                    if (typeof obj.coins==='number') coins=obj.coins;
+                    if (typeof obj.lastWin==='number') lastWin=obj.lastWin;
+                    if (typeof obj.totalWin==='number') totalWin=obj.totalWin;
+                    if (VALID_BETS.includes(obj.selectedBet)) selectedBet=obj.selectedBet;
+                    if (typeof obj.gamesPlayed==='number') gamesPlayed=obj.gamesPlayed;
+                    if (typeof obj.totalSpins==='number') totalSpins=obj.totalSpins;
+                    if (typeof obj.maxWin==='number') maxWin=obj.maxWin;
+                    let d = new Date(), y = d.getFullYear(), m = d.getMonth(), day = d.getDate();
+                    if (!Array.isArray(obj.todayDate) || obj.todayDate.length !== 3) obj.todayDate = [y, m, day];
+                    todayGames = obj.todayGames||0;
+                    todayDate = (obj.todayDate||[]).join(',');
+                    let nowdate=[y,m,day].join(',');
+                    if(todayDate!==nowdate){ todayGames=0; todayDate=nowdate;}
+                } catch(e){}
+            }
+        } catch(e){}
+    }
+
+    function resizeCanvas() {
+        let s=Math.min(window.innerWidth*0.95,400,window.innerHeight*0.65);
+        s=Math.max(s,240);
+        canvas.width=s;
+        canvas.height=s;
+        drawGrid();
+    }
+    window.addEventListener("resize",resizeCanvas);
+
+    function setBet(bet){
+        bet=Number(bet);
+        if(!VALID_BETS.includes(bet))return;
+        selectedBet=bet;
+        betBtns.forEach(btn => {
+            const val = Number(btn.innerText);
+            btn.classList.toggle('selected-bet', val === bet);
+            if(val === bet) { btn.style.animation="betpulse 0.31s"; setTimeout(()=>btn.style.animation="",350);}
+        });
+        updatePaytable();
+        updateInfo();
+        saveProgress();
+        if (coins < selectedBet && autoSpin) stopAutoSpin();
+    }
+
+    function updatePaytable() {
+        paytableBet.innerText = selectedBet;
+        for (let i = 0; i < FRUITS.length; ++i) {
+            paytablePoints[i].innerText = FRUITS[i].points * (selectedBet/20);
+        }
+    }
+
+    function randomFruit() {
+        let chance=Math.random();
+        if(chance<0.28) return FRUITS[0].char;
+        if(chance<0.53) return FRUITS[1].char;
+        if(chance<0.73) return FRUITS[2].char;
+        if(chance<0.89) return FRUITS[3].char;
+        return FRUITS[4].char;
+    }
+    function generateGrid() {
+        let arr=[];
+        for(let r=0;r<GRID_SIZE;r++){
+            let row=[];
+            for(let c=0;c<GRID_SIZE;c++) row.push(randomFruit());
+            arr.push(row);
+        }
+        if(Math.random()<0.40) generateWinningRow(arr);
+        if(Math.random()<0.25) generateWinningCol(arr);
+        if(Math.random()<0.15) generateWinningDiag(arr);
+        if(Math.random()<0.12) generateWinningDiag2(arr);
+        return arr;
+    }
+    function generateWinningRow(arr) {
+        let winRow=Math.floor(Math.random()*GRID_SIZE);
+        let winFruit=FRUIT_CHARS[Math.floor(Math.random()*FRUIT_CHARS.length)];
+        for(let c=0;c<GRID_SIZE;c++)arr[winRow][c]=winFruit;
+    }
+    function generateWinningCol(arr) {
+        let winCol=Math.floor(Math.random()*GRID_SIZE);
+        let winFruit=FRUIT_CHARS[Math.floor(Math.random()*FRUIT_CHARS.length)];
+        for(let r=0;r<GRID_SIZE;r++)arr[r][winCol]=winFruit;
+    }
+    function generateWinningDiag(arr) {
+        let winFruit=FRUIT_CHARS[Math.floor(Math.random()*FRUIT_CHARS.length)];
+        for(let i=0;i<GRID_SIZE;i++)arr[i][i]=winFruit;
+    }
+    function generateWinningDiag2(arr) {
+        let winFruit=FRUIT_CHARS[Math.floor(Math.random()*FRUIT_CHARS.length)];
+        for(let i=0;i<GRID_SIZE;i++)arr[i][GRID_SIZE-1-i]=winFruit;
+    }
+
+    function drawGrid() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        if(loseEffectActive){
+            let t=Math.abs(Math.sin(loseEffectFrame*0.18));
+            ctx.save();
+            ctx.globalAlpha=0.23+0.12*t;
+            ctx.fillStyle="#FFD700";
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.globalAlpha=1;
+            ctx.restore();
+        }
+        const c=canvas.width/(GRID_SIZE+.14),m=c*.125;
+        const o=(canvas.width-(GRID_SIZE*c+(GRID_SIZE-1)*m))/2;
+        const y=(canvas.height-(GRID_SIZE*c+(GRID_SIZE-1)*m))/2;
+        for(let r=0;r<GRID_SIZE;r++) for(let col=0;col<GRID_SIZE;col++){
+            const x=o+col*(c+m), y0=y+r*(c+m);
+            ctx.save();
+            ctx.fillStyle='#141418';
+            ctx.globalAlpha=.98;
+            ctx.fillRect(x,y0,c,c);
+            ctx.restore();
+
+            ctx.save();
+            ctx.font=`bold ${Math.floor(c*.54)}px 'Luckiest Guy',cursive,serif`;
+            ctx.textAlign='center';
+            ctx.textBaseline='middle';
+            let fruit=grid[r][col];
+            let highlight=false, lineIndex=-1;
+            if(winEffectActive && winLines.length){
+                for(let i=0;i<winLines.length;i++){
+                    let line=winLines[i];
+                    for(let j=0;j<line.coords.length;j++){
+                        if(line.coords[j][0]===r && line.coords[j][1]===col){
+                            highlight=true;lineIndex=i;
+                        }
+                    }
+                }
+            }
+            if(highlight && winEffectActive){
+                let phase=(winEffectFrame/9+lineIndex)%1;
+                const colors=['#FFD700','#fff','#FF5BCD','#42e1fe','#00e676','#ff4040','#a87fff'];
+                let color=colors[lineIndex%colors.length];
+                if(phase>0.5) color="#fff";
+                ctx.shadowColor=color;
+                ctx.shadowBlur=35+14*Math.abs(Math.sin(winEffectFrame/7));
+                ctx.globalAlpha=0.88+0.12*Math.abs(Math.sin(winEffectFrame/3));
+                ctx.fillStyle=color;
+                ctx.fillText(fruit,x+c/2,y0+c/2);
+            }else{
+                ctx.shadowColor='#FFD700';
+                ctx.shadowBlur=10;
+                ctx.fillStyle='#fff';
+                ctx.globalAlpha=1;
+                ctx.fillText(fruit,x+c/2,y0+c/2);
+            }
+            ctx.restore();
+        }
+        updateInfo();
+    }
+
+    function updateInfo() {
+        document.getElementById('coins').innerText=`Монети: ${coins}`;
+        document.getElementById('lastWin').innerText=`Последна печалба: ${lastWin}`;
+        document.getElementById('totalWin').innerText=`Обща печалба: ${totalWin}`;
+        currentBetBox.innerText=`Залог: ${selectedBet}`;
+        spinBtn.style.display=coins>0?'block':'none';
+        noCoinsMsg.style.display = coins <= 0 ? 'block' : 'none';
+        showLose(coins===0);
+        updateStats();
+        if (coins < selectedBet && autoSpin) stopAutoSpin();
+        for(let i=0;i<betBtns.length;++i){
+            betBtns[i].disabled = (coins <= 0);
+        }
+        if(autoSpin) autoSpinIndicator.style.display="inline-block";
+        else autoSpinIndicator.style.display="none";
+    }
+    function updateStats() {
+        gamesPlayedBox.innerText=gamesPlayed;
+        totalSpinsBox.innerText=totalSpins;
+        maxWinBox.innerText=maxWin;
+        let d = new Date(), nowdate=[d.getFullYear(),d.getMonth(),d.getDate()].join(',');
+        todayStats.innerText = " | Днес: "+todayGames;
+    }
+
+    function showLose(show) {
+        loseLabel.classList.toggle("show",!!show);
+    }
+
+    function startWinEffect() {
+        winEffectActive=true;winEffectFrame=0;
+        function winAnimLoop(){
+            if(!winEffectActive)return;
+            winEffectFrame++;
+            drawGrid();
+            winAnimFrameId = requestAnimationFrame(winAnimLoop);
+        }
+        winAnimLoop();
+    }
+    function stopWinEffect(){
+        winEffectActive=false;winLines=[];
+        if(winAnimFrameId) { cancelAnimationFrame(winAnimFrameId); winAnimFrameId=null; }
+    }
+    function startLoseEffect(){
+        loseEffectActive=true;loseEffectFrame=0;
+        function loseAnimLoop(){
+            if(!loseEffectActive)return;
+            loseEffectFrame++;
+            drawGrid();
+            loseAnimFrameId = requestAnimationFrame(() => {
+                if(loseEffectFrame<20) loseAnimLoop();
+                else{loseEffectActive=false;drawGrid();}
+            });
+        }
+        loseAnimLoop();
+    }
+
+    function animate(type,cb){
+        if(animFrameId) cancelAnimationFrame(animFrameId);
+        animFrameId = null;
+        animating=true;animationType=type;animationGrid=JSON.parse(JSON.stringify(grid));
+        let duration=type==="shake"?450:1150;
+        animationProgress=0;let start=null;
+        function step(ts){
+            if(!start)start=ts;
+            let el=ts-start;
+            animationProgress=Math.min(el/duration,1);
+            drawGrid(true);
+            if(animationProgress<1)animFrameId=requestAnimationFrame(step);
+            else{animating=false;animationGrid=[];cb&&cb();}
+        }
+        animFrameId=requestAnimationFrame(step);
+    }
+    function animateSpin(newGrid,cb){
+        animationGrid = JSON.parse(JSON.stringify(grid));
+        animate("spin", () => {
+            grid = newGrid;
+            cb&&cb();
+        });
+    }
+    function animateShake(cb){animate("shake",cb);}
+
+    function spin(isAuto){
+        if (spinning || (autoSpin && !isAuto)) return;
+        if (coins < selectedBet) { stopAutoSpin(); updateInfo(); return; }
+        spinning=true;
+        stopWinEffect();
+        soundSpin.currentTime=0;
+        soundSpin.play();
+        animateShake(()=>{
+            coins-=selectedBet;
+            if (coins < 0) coins = 0;
+            if (coins < selectedBet && autoSpin) stopAutoSpin();
+            totalSpins++;
+            let newGrid=generateGrid();
+            animateSpin(newGrid,()=>{
+                let {win,lines}=calcWins();
+                lastWin=win;
+                totalWin+=win;
+                if(win>0){
+                    coins+=win;
+                    if(win>maxWin){maxWin=win;}
+                    showCoinFall(win);
+                }
+                drawGrid();
+                if(win>0&&lines.length){
+                    winLines=lines;
+                    startWinEffect();
+                    winLabel.textContent=`ПЕЧАЛБА +${win}`;
+                    winLabel.classList.add("active");
+                    soundWin.currentTime=0;setTimeout(()=>soundWin.play(),150);
+                    if(win > 100){
+                        bigWinEffect.style.display="block";
+                        bigWinEffect.style.animation="bigpulse 1.2s 3";
+                        setTimeout(()=>{bigWinEffect.style.display="none";},3100);
+                    }
+                }else{
+                    startLoseEffect();soundLose.currentTime=0;soundLose.play();
+                }
+                setTimeout(()=>winLabel.classList.remove("active"),1700);
+                spinning=false;
+                if(isAuto){} else {gamesPlayed++; todayGames++;}
+                saveProgress();
+                updateStats();
+                if(autoSpin&&coins<selectedBet)stopAutoSpin();
+                if(autoSpin&&!isAuto)doAutoSpin();
+            });
+        });
+    }
+
+    function showCoinFall(amount){
+        let n=Math.min(10,Math.max(3,Math.floor(amount/40)));
+        for(let i=0;i<n;i++){
+            let coin=document.createElement('div');
+            coin.className="coin-fall";
+            coin.style.left=`${45+Math.random()*10}%`;
+            coin.innerHTML="🪙";
+            coinContainer.appendChild(coin);
+            setTimeout(()=>{coin.remove();},900);
+        }
+    }
+
+    function calcWins() {
+        let win=0,lines=[];
+        for(let r=0;r<GRID_SIZE;r++){
+            let f=grid[r][0];
+            if(grid[r].every(ff=>ff===f)){
+                let points=FRUIT_POINTS[f]*selectedBet/20;
+                win+=points;
+                lines.push({type:"row",coords:Array.from({length:GRID_SIZE},(_,i)=>[r,i]),fruit:f});
+            }
+        }
+        for(let c=0;c<GRID_SIZE;c++){
+            let f=grid[0][c],all=true;
+            for(let r=0;r<GRID_SIZE;r++)if(grid[r][c]!==f)all=false;
+            if(all){
+                let points=FRUIT_POINTS[f]*selectedBet/20;
+                win+=points;
+                lines.push({type:"col",coords:Array.from({length:GRID_SIZE},(_,i)=>[i,c]),fruit:f});
+            }
+        }
+        let f1=grid[0][0],all1=true;
+        for(let i=0;i<GRID_SIZE;i++) if(grid[i][i]!==f1) all1=false;
+        if(all1){
+            let points=FRUIT_POINTS[f1]*selectedBet/20;
+            win+=points;
+            lines.push({type:"diag",coords:Array.from({length:GRID_SIZE},(_,i)=>[i,i]),fruit:f1});
+        }
+        let f2=grid[0][GRID_SIZE-1],all2=true;
+        for(let i=0;i<GRID_SIZE;i++) if(grid[i][GRID_SIZE-1-i]!==f2) all2=false;
+        if(all2){
+            let points=FRUIT_POINTS[f2]*selectedBet/20;
+            win+=points;
+            lines.push({type:"diag2",coords:Array.from({length:GRID_SIZE},(_,i)=>[i,GRID_SIZE-1-i]),fruit:f2});
+        }
+        return {win:Math.round(win),lines};
+    }
+
+    function restartGame(){
+        if(!confirm("Сигурен ли си, че искаш да рестартираш играта? Целият прогрес ще бъде изгубен.")) return;
+        stopWinEffect();
+        if(winAnimFrameId) { cancelAnimationFrame(winAnimFrameId); winAnimFrameId=null; }
+        if(loseAnimFrameId) { cancelAnimationFrame(loseAnimFrameId); loseAnimFrameId=null; }
+        coins=500;lastWin=0;totalWin=0;grid=generateGrid();
+        gamesPlayed++;todayGames++;
+        saveProgress(true);showLose(false);drawGrid();updateStats();
+        updatePaytable();
+        // Защита: спри музиката при рестарт
+        audioMusic.pause();
+        musicBtn.classList.remove("on");
+    }
+
+    // --- AUTO-SPIN TOGGLE LOGIC ---
+    function startSpinHold(e){
+        if(spinHoldTimeout)clearTimeout(spinHoldTimeout);
+        pointerIsDown=true;pointerDownTime=Date.now();
+        spinTooltip.style.display="block";
+        spinHoldTimeout=setTimeout(()=>{
+            if(pointerIsDown&&!autoSpin){
+                autoSpin=true;
+                spinBtn.classList.add('auto');
+                autoSpinIndicator.style.display="inline-block";
+                doAutoSpin();
             }
         },1500);
     }
     function stopSpinHold(e){
         pointerIsDown=false;
+        spinTooltip.style.display="none";
         if(spinHoldTimeout){clearTimeout(spinHoldTimeout);spinHoldTimeout=null;}
     }
     function doAutoSpin(){
-        if(!autoSpin){spinBtn.classList.remove('auto');return;}
+        if (autoSpinTimer) clearTimeout(autoSpinTimer); // Защита срещу двойно стартиране
+        if(!autoSpin || spinning) {spinBtn.classList.remove('auto');autoSpinIndicator.style.display="none";return;}
         if(coins<selectedBet){stopAutoSpin();return;}
-        if(!spinning)spin(true);
-        let nextSpin=1800+Math.random()*1000;
-        autoSpinTimer=setTimeout(doAutoSpin,nextSpin);
+        soundSpin.currentTime=0;
+        soundSpin.play();
+        spin(true);
+        autoSpinTimer=setTimeout(doAutoSpin,1800+Math.random()*1000);
     }
     function stopAutoSpin(){
         autoSpin=false;
         spinBtn.classList.remove('auto');
+        autoSpinIndicator.style.display="none";
         if(autoSpinTimer){clearTimeout(autoSpinTimer);autoSpinTimer=null;}
     }
 
-    spinBtn.addEventListener('mousedown',startSpinHold);
-    spinBtn.addEventListener('touchstart',startSpinHold);
-    spinBtn.addEventListener('mouseup',function(e){
-        stopSpinHold();
-        if(autoSpin)return stopAutoSpin();
-        let held=Date.now()-pointerDownTime;
-        if(held<1500&&!spinning)spin();
+    // --- Клавиши: Space=spin, 1–5=bet ---
+    document.addEventListener('keydown', function(e){
+        if(document.activeElement && /input|textarea|button/i.test(document.activeElement.tagName)) return;
+        if(e.code==="Space" && coins>0 && !spinning){
+            spin();
+            e.preventDefault();
+        }
+        if(e.key>='1' && e.key<='5' && coins>0){
+            let idx = Number(e.key)-1;
+            if(VALID_BETS[idx] && !betBtns[idx].disabled) setBet(VALID_BETS[idx]);
+        }
     });
-    spinBtn.addEventListener('mouseleave',stopSpinHold);
-    spinBtn.addEventListener('touchend',function(e){
+
+    spinBtn.addEventListener('mousedown', startSpinHold);
+    spinBtn.addEventListener('touchstart', startSpinHold);
+    spinBtn.addEventListener('mouseenter',()=>{spinTooltip.style.display="block";});
+    spinBtn.addEventListener('mouseleave',()=>{spinTooltip.style.display="none";});
+    spinBtn.addEventListener('mouseup', function (e) {
         stopSpinHold();
-        if(autoSpin)return stopAutoSpin();
-        let held=Date.now()-pointerDownTime;
-        if(held<1500&&!spinning)spin();
+        let held = Date.now() - pointerDownTime;
+        if (held < 1500 && !spinning) {
+            if (autoSpin) {
+                stopAutoSpin();
+            } else {
+                spin();
+            }
+        }
     });
-    spinBtn.addEventListener('click',function(e){
-        if(autoSpin){stopAutoSpin();}
+    spinBtn.addEventListener('touchend', function (e) {
+        stopSpinHold();
+        let held = Date.now() - pointerDownTime;
+        if (held < 1500 && !spinning) {
+            if (autoSpin) {
+                stopAutoSpin();
+            } else {
+                spin();
+            }
+        }
+    });
+    spinBtn.addEventListener('click', function (e) {
         stopWinEffect();
     });
 
     restartBtn.addEventListener('click',restartGame);
-    document.querySelectorAll('#bets .btn').forEach(btn=>{
+
+    betBtns.forEach(btn=>{
         btn.addEventListener('click',()=>{
             const val=Number(btn.innerText);
-            window.setBet(val);
+            setBet(val);
         });
     });
 
-    // Начален екран
     document.getElementById('startBtn').onclick=function(){
         startScreen.style.display='none';
+        if (coins <= 0) restartGame();
         resizeCanvas();
         drawGrid();
         updateStats();
     };
 
-    // Инициализация
-    grid=generateGrid();
+    // --- Музика и ON/OFF ---
+    musicBtn.onclick = function() {
+        if(audioMusic.paused){
+            audioMusic.play();
+            musicBtn.classList.add("on");
+        } else {
+            audioMusic.pause();
+            musicBtn.classList.remove("on");
+        }
+    };
+
+    // Защита: при затваряне/refresh - незабавен запис на прогреса
+    window.addEventListener("beforeunload", function(e){
+        saveProgress(true);
+    });
+
+    // --- Инициализация: първо зареди прогреса, после grid ---
     loadProgress();
-    window.setBet(selectedBet);
+    grid=generateGrid();
+    setBet(selectedBet);
     resizeCanvas();
     drawGrid();
     updateStats();
+    updatePaytable();
+
+})();
     </script>
 </body>
 </html>
