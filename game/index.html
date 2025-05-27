@@ -7,7 +7,6 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
-        /* ... (оставям CSS-а непроменен от предишния перфектен вид) ... */
         html,body{margin:0;padding:0;min-height:100vh;background:linear-gradient(to bottom,#232526,#414345 100%);}
         body{color:#fff;font-family:'Segoe UI',Arial,sans-serif;text-align:center;user-select:none;}
         .small-title{font-size:28px;font-weight:700;margin:28px auto 0 auto;letter-spacing:2px;max-width:99vw;text-shadow:0 2px 14px #000, 0 0 4px #F2C811;}
@@ -50,7 +49,6 @@
         #lastWin{background-color:#e74c3c;}
         #totalWin{background-color:#2980b9;}
         #currentBet{background-color:#ff9900;min-width:70px;}
-        #stats{background:#232526;border:2px solid #FFD700;color:#FFD700;border-radius:13px;font-size:14px;min-width:80px;padding:6px 12px;display:inline-block;margin:8px 2px;}
         #autoSpinIndicator{
             background:rgba(255,223,0,0.15);
             color:#FFD700;
@@ -171,12 +169,6 @@
         <div class="info-box" id="totalWin">Обща печалба: 0</div>
         <div class="info-box" id="currentBet">Залог: 20</div>
     </div>
-    <div id="stats">
-        Изиграни игри: <span id="gamesPlayed">0</span> |
-        Общи спинове: <span id="totalSpins">0</span> |
-        Най-голяма печалба: <span id="maxWin">0</span>
-        <span id="todayStats"></span>
-    </div>
     <div id="bets">
         <button class="btn" tabindex="1" id="betBtn20">20</button>
         <button class="btn" tabindex="2" id="betBtn40">40</button>
@@ -199,22 +191,30 @@
                 </tr>
             </thead>
             <tbody>
-                <tr><td class="paytable-symbol" style="color:#ff4040;">🍎</td><td>Ябълка</td><td class="paytable-points" id="ppApple">20</td></tr>
-                <tr><td class="paytable-symbol" style="color:#ff5bcd;">🍒</td><td>Череша</td><td class="paytable-points" id="ppCherry">30</td></tr>
-                <tr><td class="paytable-symbol" style="color:#a87fff;">🍇</td><td>Грозде</td><td class="paytable-points" id="ppGrape">40</td></tr>
-                <tr><td class="paytable-symbol" style="color:#00e676;">🍀</td><td>Детелина</td><td class="paytable-points" id="ppClover">50</td></tr>
-                <tr><td class="paytable-symbol" style="color:#42e1fe;">🍉</td><td>Диня</td><td class="paytable-points" id="ppWatermelon">60</td></tr>
+                <tr><td class="paytable-symbol" style="color:#ff5bcd;">🍒</td><td>Череша</td><td class="paytable-points" id="ppCherry">20</td></tr>
+                <tr><td class="paytable-symbol" style="color:#42e1fe;">🍉</td><td>Диня</td><td class="paytable-points" id="ppWatermelon">40</td></tr>
+                <tr><td class="paytable-symbol" style="color:#a87fff;">🍇</td><td>Грозде</td><td class="paytable-points" id="ppGrape">60</td></tr>
+                <tr><td class="paytable-symbol" style="color:#ff4040;">🍎</td><td>Ябълка</td><td class="paytable-points" id="ppApple">80</td></tr>
+                <tr><td class="paytable-symbol" style="color:#00e676;">🍀</td><td>Детелина</td><td class="paytable-points" id="ppClover">100</td></tr>
             </tbody>
         </table>
     </div>
-    <!-- Spin, win, lose: три различни звука -->
     <audio id="audio-spin" src="https://cdn.pixabay.com/audio/2022/08/20/audio_128bfa0b4c.mp3" preload="auto"></audio>
     <audio id="audio-win" src="https://cdn.pixabay.com/audio/2023/02/24/audio_126bdb7e5c.mp3" preload="auto"></audio>
     <audio id="audio-lose" src="https://cdn.pixabay.com/audio/2022/07/26/audio_124b8d6929.mp3" preload="auto"></audio>
     <audio id="audio-music" src="https://cdn.pixabay.com/audio/2022/08/20/audio_128c6fcd23.mp3" preload="auto" loop></audio>
     <script>
 (function() {
-    // Всички променливи са локални за IIFE
+    // Нови точки и ред на плодовете!
+    const FRUITS = [
+        {char:'🍒', name:'Череша',   points:20,  color:"#ff5bcd"},
+        {char:'🍉', name:'Диня',     points:40,  color:"#42e1fe"},
+        {char:'🍇', name:'Грозде',   points:60,  color:"#a87fff"},
+        {char:'🍎', name:'Ябълка',   points:80,  color:"#ff4040"},
+        {char:'🍀', name:'Детелина', points:100, color:"#00e676"}
+    ];
+    const FRUIT_CHARS = FRUITS.map(f=>f.char);
+    const FRUIT_POINTS = {}; FRUITS.forEach(f=>FRUIT_POINTS[f.char]=f.points);
 
     let selectedBet=20, coins=500, lastWin=0, totalWin=0, grid=[];
     let spinning=false, autoSpin=false, autoSpinTimer=null, spinHoldTimeout=null;
@@ -222,9 +222,7 @@
     let pointerDownTime=0, pointerIsDown=false;
     let winLines=[], winEffectActive=false, winEffectFrame=0, winAnimFrameId=null;
     let loseEffectActive=false, loseEffectFrame=0, loseAnimFrameId=null;
-    let gamesPlayed=0, totalSpins=0, maxWin=0;
     let debounceTimer=null;
-    let todayGames=0, todayDate='';
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const spinBtn = document.getElementById('spinBtn');
@@ -234,17 +232,7 @@
     const currentBetBox = document.getElementById('currentBet');
     const coinContainer = document.getElementById('coinContainer');
     const startScreen = document.getElementById('startScreen');
-    const gamesPlayedBox = document.getElementById('gamesPlayed');
-    const totalSpinsBox = document.getElementById('totalSpins');
-    const maxWinBox = document.getElementById('maxWin');
     const paytableBet = document.getElementById('paytableBet');
-    const paytablePoints = [
-        document.getElementById('ppApple'),
-        document.getElementById('ppCherry'),
-        document.getElementById('ppGrape'),
-        document.getElementById('ppClover'),
-        document.getElementById('ppWatermelon')
-    ];
     const betBtns = [
         document.getElementById('betBtn20'),
         document.getElementById('betBtn40'),
@@ -257,18 +245,8 @@
     const spinTooltip = document.getElementById('spinTooltip');
     const musicBtn = document.getElementById('musicBtn');
     const audioMusic = document.getElementById('audio-music');
-    const todayStats = document.getElementById('todayStats');
     const bigWinEffect = document.getElementById('bigWinEffect');
     const VALID_BETS = [20,40,60,100,200];
-    const FRUITS = [
-        {char:'🍎',name:'Ябълка', points:20, color:"#ff4040"},
-        {char:'🍒',name:'Череша',points:30, color:"#ff5bcd"},
-        {char:'🍇',name:'Грозде', points:40, color:"#a87fff"},
-        {char:'🍀',name:'Детелина',points:50, color:"#00e676"},
-        {char:'🍉',name:'Диня',points:60, color:"#42e1fe"}
-    ];
-    const FRUIT_CHARS = FRUITS.map(f=>f.char);
-    const FRUIT_POINTS = {}; FRUITS.forEach(f=>FRUIT_POINTS[f.char]=f.points);
     const GRID_SIZE = 5;
     const soundSpin = document.getElementById('audio-spin');
     const soundWin = document.getElementById('audio-win');
@@ -278,8 +256,7 @@
         try {
             if (debounceTimer) clearTimeout(debounceTimer);
             const write = () => {
-                let d = new Date(), y = d.getFullYear(), m = d.getMonth(), day = d.getDate();
-                const data = {coins,lastWin,totalWin,selectedBet,gamesPlayed,totalSpins,maxWin,todayGames,todayDate:[y,m,day]};
+                const data = {coins,lastWin,totalWin,selectedBet};
                 try { localStorage.setItem("svetlyo_slot_progress", JSON.stringify(data)); } catch(e){}
             };
             if(immediate) write();
@@ -296,15 +273,6 @@
                     if (typeof obj.lastWin==='number') lastWin=obj.lastWin;
                     if (typeof obj.totalWin==='number') totalWin=obj.totalWin;
                     if (VALID_BETS.includes(obj.selectedBet)) selectedBet=obj.selectedBet;
-                    if (typeof obj.gamesPlayed==='number') gamesPlayed=obj.gamesPlayed;
-                    if (typeof obj.totalSpins==='number') totalSpins=obj.totalSpins;
-                    if (typeof obj.maxWin==='number') maxWin=obj.maxWin;
-                    let d = new Date(), y = d.getFullYear(), m = d.getMonth(), day = d.getDate();
-                    if (!Array.isArray(obj.todayDate) || obj.todayDate.length !== 3) obj.todayDate = [y, m, day];
-                    todayGames = obj.todayGames||0;
-                    todayDate = (obj.todayDate||[]).join(',');
-                    let nowdate=[y,m,day].join(',');
-                    if(todayDate!==nowdate){ todayGames=0; todayDate=nowdate;}
                 } catch(e){}
             }
         } catch(e){}
@@ -336,9 +304,11 @@
 
     function updatePaytable() {
         paytableBet.innerText = selectedBet;
-        for (let i = 0; i < FRUITS.length; ++i) {
-            paytablePoints[i].innerText = FRUITS[i].points * (selectedBet/20);
-        }
+        document.getElementById('ppCherry').innerText = FRUITS[0].points * (selectedBet/20);
+        document.getElementById('ppWatermelon').innerText = FRUITS[1].points * (selectedBet/20);
+        document.getElementById('ppGrape').innerText = FRUITS[2].points * (selectedBet/20);
+        document.getElementById('ppApple').innerText = FRUITS[3].points * (selectedBet/20);
+        document.getElementById('ppClover').innerText = FRUITS[4].points * (selectedBet/20);
     }
 
     function randomFruit() {
@@ -449,20 +419,11 @@
         spinBtn.style.display=coins>0?'block':'none';
         noCoinsMsg.style.display = coins <= 0 ? 'block' : 'none';
         showLose(coins===0);
-        updateStats();
-        if (coins < selectedBet && autoSpin) stopAutoSpin();
         for(let i=0;i<betBtns.length;++i){
             betBtns[i].disabled = (coins <= 0);
         }
         if(autoSpin) autoSpinIndicator.style.display="inline-block";
         else autoSpinIndicator.style.display="none";
-    }
-    function updateStats() {
-        gamesPlayedBox.innerText=gamesPlayed;
-        totalSpinsBox.innerText=totalSpins;
-        maxWinBox.innerText=maxWin;
-        let d = new Date(), nowdate=[d.getFullYear(),d.getMonth(),d.getDate()].join(',');
-        todayStats.innerText = " | Днес: "+todayGames;
     }
 
     function showLose(show) {
@@ -533,7 +494,6 @@
             coins-=selectedBet;
             if (coins < 0) coins = 0;
             if (coins < selectedBet && autoSpin) stopAutoSpin();
-            totalSpins++;
             let newGrid=generateGrid();
             animateSpin(newGrid,()=>{
                 let {win,lines}=calcWins();
@@ -541,7 +501,6 @@
                 totalWin+=win;
                 if(win>0){
                     coins+=win;
-                    if(win>maxWin){maxWin=win;}
                     showCoinFall(win);
                 }
                 drawGrid();
@@ -561,9 +520,7 @@
                 }
                 setTimeout(()=>winLabel.classList.remove("active"),1700);
                 spinning=false;
-                if(isAuto){} else {gamesPlayed++; todayGames++;}
                 saveProgress();
-                updateStats();
                 if(autoSpin&&coins<selectedBet)stopAutoSpin();
                 if(autoSpin&&!isAuto)doAutoSpin();
             });
@@ -624,10 +581,8 @@
         if(winAnimFrameId) { cancelAnimationFrame(winAnimFrameId); winAnimFrameId=null; }
         if(loseAnimFrameId) { cancelAnimationFrame(loseAnimFrameId); loseAnimFrameId=null; }
         coins=500;lastWin=0;totalWin=0;grid=generateGrid();
-        gamesPlayed++;todayGames++;
-        saveProgress(true);showLose(false);drawGrid();updateStats();
+        saveProgress(true);showLose(false);drawGrid();
         updatePaytable();
-        // Защита: спри музиката при рестарт
         audioMusic.pause();
         musicBtn.classList.remove("on");
     }
@@ -652,7 +607,7 @@
         if(spinHoldTimeout){clearTimeout(spinHoldTimeout);spinHoldTimeout=null;}
     }
     function doAutoSpin(){
-        if (autoSpinTimer) clearTimeout(autoSpinTimer); // Защита срещу двойно стартиране
+        if (autoSpinTimer) clearTimeout(autoSpinTimer);
         if(!autoSpin || spinning) {spinBtn.classList.remove('auto');autoSpinIndicator.style.display="none";return;}
         if(coins<selectedBet){stopAutoSpin();return;}
         soundSpin.currentTime=0;
@@ -724,10 +679,8 @@
         if (coins <= 0) restartGame();
         resizeCanvas();
         drawGrid();
-        updateStats();
     };
 
-    // --- Музика и ON/OFF ---
     musicBtn.onclick = function() {
         if(audioMusic.paused){
             audioMusic.play();
@@ -738,18 +691,15 @@
         }
     };
 
-    // Защита: при затваряне/refresh - незабавен запис на прогреса
     window.addEventListener("beforeunload", function(e){
         saveProgress(true);
     });
 
-    // --- Инициализация: първо зареди прогреса, после grid ---
     loadProgress();
     grid=generateGrid();
     setBet(selectedBet);
     resizeCanvas();
     drawGrid();
-    updateStats();
     updatePaytable();
 
 })();
