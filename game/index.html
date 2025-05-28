@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
-        /* ... CSS остава перфектен, както досега ... */
         html,body{margin:0;padding:0;min-height:100vh;background:linear-gradient(to bottom,#232526,#414345 100%);}
         body{color:#fff;font-family:'Segoe UI',Arial,sans-serif;text-align:center;user-select:none;}
         #startScreen{
@@ -102,10 +101,33 @@
             50%{box-shadow:0 0 18px #FFD700,0 0 10px #fff;}
             100%{box-shadow:0 0 0 #00cc00;}
         }
-        #spinBtn{background:linear-gradient(145deg,#e74c3c,#e67e22 80%);border-radius:50%;width:110px;height:110px;font-size:32px;font-weight:bold;color:#fff;margin:28px auto 12px auto;display:block;transition:background 0.3s,transform 0.2s;box-shadow:0 0 26px #e67e22,0 0 48px #fff0;border:none;outline:none;animation:pulseSpinBtn 1.3s infinite alternate;position:relative;}
-        @keyframes pulseSpinBtn{0%{box-shadow:0 0 24px #e67e22,0 0 10px #fff0;}100%{box-shadow:0 0 44px #FFD700,0 0 44px #fff4;transform:scale(1.08);}}
-        #spinBtn:hover,#spinBtn:focus-visible{background:linear-gradient(145deg,#e67e22,#FFD700 80%);transform:scale(1.12);}
-        #spinBtn.auto{background:linear-gradient(145deg,#00cc00,#26df26 80%)!important;box-shadow:0 0 28px #00cc00,0 0 48px #fff;animation:none!important;transform:scale(1.10);}
+        #spinBtn {
+            background: #ff2222;
+            border-radius:50%;
+            width:80px;
+            height:80px;
+            font-size:22px;
+            font-weight:bold;
+            color:#fff;
+            margin:28px auto 12px auto;
+            display:block;
+            transition:background 0.3s,transform 0.2s;
+            box-shadow:0 0 26px #e67e22,0 0 48px #fff0;
+            border:none;outline:none;
+            animation:pulseSpinBtn 1.3s infinite alternate;
+            position:relative;
+            padding:0;
+            white-space:normal;
+            line-height:1.1;
+        }
+        #spinBtn.auto{
+            background:#00d300 !important;
+            box-shadow:0 0 28px #00cc00,0 0 48px #fff;
+            animation:none!important;
+            transform:scale(1.10);
+        }
+        @keyframes pulseSpinBtn{0%{box-shadow:0 0 24px #ff2222,0 0 10px #fff0;}100%{box-shadow:0 0 44px #FFD700,0 0 44px #fff4;transform:scale(1.08);}}
+        #spinBtn:hover,#spinBtn:focus-visible{background:#ff4444;transform:scale(1.12);}
         #spinTooltip {
             display:none;
             position:absolute;
@@ -151,11 +173,12 @@
             .info-box{font-size:12px;min-width:38px;min-height:13px;padding:3px 7px;}
             #bets{gap:3px;}
             .btn{font-size:13px;min-height:24px;padding:6px 10px;}
-            #spinBtn{width:60px;height:60px;font-size:20px;}
+            #spinBtn{width:44px;height:44px;font-size:13px;}
             #startScreen h1{font-size:1.5em;}
         }
         .coin-fall{position:absolute;left:50%;top:-40px;font-size:2em;pointer-events:none;animation:coin-fall-anim 0.9s cubic-bezier(.42,.25,.58,.94) forwards;}
-        @keyframes coin-fall-anim{0%{top:-40px;opacity:0.7;transform:scale(0.9);}80%{opacity:1;transform:scale(1.15);}100%{top:80%;opacity:0;transform:scale(1.07);}}
+        @keyframes coin-fall-anim{0%{top:-40px;opacity:0.7;transform:scale(0.9);}80%{opacity:1;transform:scale(1.15);}100%{top:80%;opacity:0;transform:scale(1.07);}
+        }
     </style>
 </head>
 <body>
@@ -216,7 +239,30 @@
     <audio id="audio-lose" src="https://cdn.pixabay.com/audio/2022/07/26/audio_124b8d6929.mp3" preload="auto"></audio>
     <audio id="audio-music" src="https://cdn.pixabay.com/audio/2022/08/20/audio_128c6fcd23.mp3" preload="auto" loop></audio>
     <script>
+/* ======= Централизиран JS код с всички подобрения, auto-spin, ефекти, debounce, applyWin и стабилност ======= */
 (function() {
+    const state = {
+        selectedBet: 20,
+        coins: 500,
+        lastWin: 0,
+        totalWin: 0,
+        grid: [],
+        spinning: false,
+        autoSpin: false,
+        autoSpinRAF: null,
+        autoSpinNext: null,
+        pointerDownTime: 0,
+        pointerIsDown: false,
+        winLines: [],
+        winEffectActive: false,
+        winEffectFrame: 0,
+        winAnimFrameId: null,
+        loseEffectActive: false,
+        loseEffectFrame: 0,
+        loseAnimFrameId: null,
+        spinHoldTimeout: null
+    };
+
     const FRUITS = [
         {char:'🍒', name:'Череша',   points:20,  color:"#ff5bcd"},
         {char:'🍉', name:'Диня',     points:40,  color:"#42e1fe"},
@@ -227,14 +273,10 @@
     const FRUIT_CHARS = FRUITS.map(f=>f.char);
     const FRUIT_POINTS = {}; FRUITS.forEach(f=>FRUIT_POINTS[f.char]=f.points);
     const FRUIT_WEIGHTS = [0.33, 0.25, 0.18, 0.14, 0.10];
+    const VALID_BETS = [20,40,60,100,200];
+    const GRID_SIZE = 5;
 
-    let selectedBet=20, coins=500, lastWin=0, totalWin=0, grid=[];
-    let spinning=false, autoSpin=false, autoSpinTimer=null, spinHoldTimeout=null;
-    let animating=false, animationType="", animationProgress=0, animationGrid=[], animFrameId=null;
-    let pointerDownTime=0, pointerIsDown=false;
-    let winLines=[], winEffectActive=false, winEffectFrame=0, winAnimFrameId=null;
-    let loseEffectActive=false, loseEffectFrame=0, loseAnimFrameId=null;
-    let debounceTimer=null;
+    // DOM
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const spinBtn = document.getElementById('spinBtn');
@@ -258,51 +300,50 @@
     const musicBtn = document.getElementById('musicBtn');
     const audioMusic = document.getElementById('audio-music');
     const bigWinEffect = document.getElementById('bigWinEffect');
-    const VALID_BETS = [20,40,60,100,200];
-    const GRID_SIZE = 5;
     const soundSpin = document.getElementById('audio-spin');
     const soundWin = document.getElementById('audio-win');
     const soundLose = document.getElementById('audio-lose');
 
+    // --- Debounce ---
+    function debounce(fn, delay) {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn(...args), delay);
+        };
+    }
+    function saveProgressReal() {
+        const data = {
+            coins: state.coins,
+            lastWin: state.lastWin,
+            totalWin: state.totalWin,
+            selectedBet: state.selectedBet
+        };
+        try { localStorage.setItem("svetlyo_slot_progress", JSON.stringify(data)); } catch(e){}
+    }
+    const saveProgressDebounced = debounce(saveProgressReal, 500);
+
     function saveProgress(immediate) {
-        try {
-            if (debounceTimer) clearTimeout(debounceTimer);
-            const write = () => {
-                const data = {coins,lastWin,totalWin,selectedBet};
-                try { localStorage.setItem("svetlyo_slot_progress", JSON.stringify(data)); } catch(e){}
-            };
-            if(immediate) write();
-            else debounceTimer = setTimeout(write, 500);
-        } catch(e){}
+        if(immediate) saveProgressReal();
+        else saveProgressDebounced();
     }
     function loadProgress() {
         try {
             const data = localStorage.getItem("svetlyo_slot_progress");
             if (data) {
-                try {
-                    const obj = JSON.parse(data);
-                    if (typeof obj.coins==='number') coins=obj.coins;
-                    if (typeof obj.lastWin==='number') lastWin=obj.lastWin;
-                    if (typeof obj.totalWin==='number') totalWin=obj.totalWin;
-                    if (VALID_BETS.includes(obj.selectedBet)) selectedBet=obj.selectedBet;
-                } catch(e){}
+                const obj = JSON.parse(data);
+                if (typeof obj.coins==='number') state.coins=obj.coins;
+                if (typeof obj.lastWin==='number') state.lastWin=obj.lastWin;
+                if (typeof obj.totalWin==='number') state.totalWin=obj.totalWin;
+                if (VALID_BETS.includes(obj.selectedBet)) state.selectedBet=obj.selectedBet;
             }
         } catch(e){}
     }
 
-    function resizeCanvas() {
-        let s=Math.min(window.innerWidth*0.95,400,window.innerHeight*0.65);
-        s=Math.max(s,240);
-        canvas.width=s;
-        canvas.height=s;
-        drawGrid();
-    }
-    window.addEventListener("resize",resizeCanvas);
-
     function setBet(bet){
         bet=Number(bet);
         if(!VALID_BETS.includes(bet))return;
-        selectedBet=bet;
+        state.selectedBet=bet;
         betBtns.forEach(btn => {
             const val = Number(btn.innerText);
             btn.classList.toggle('selected-bet', val === bet);
@@ -311,20 +352,17 @@
         updatePaytable();
         updateInfo();
         saveProgress();
-        if (coins < selectedBet && autoSpin) stopAutoSpin();
+        if (state.coins < state.selectedBet && state.autoSpin) stopAutoSpin();
     }
 
-    function updatePaytable() {
-        paytableBet.innerText = selectedBet;
-        document.getElementById('ppCherry').innerText = FRUITS[0].points * (selectedBet/20);
-        document.getElementById('ppWatermelon').innerText = FRUITS[1].points * (selectedBet/20);
-        document.getElementById('ppGrape').innerText = FRUITS[2].points * (selectedBet/20);
-        document.getElementById('ppApple').innerText = FRUITS[3].points * (selectedBet/20);
-        document.getElementById('ppClover').innerText = FRUITS[4].points * (selectedBet/20);
+    // --- Grid Management ---
+    function setGrid(newGrid) {
+        state.grid = newGrid;
+        drawGrid();
+        saveProgress();
     }
 
     function randomFruit() {
-        // Динамична вероятност
         const weights = FRUIT_WEIGHTS;
         const rnd = Math.random();
         let sum = 0;
@@ -366,10 +404,98 @@
         for(let i=0;i<GRID_SIZE;i++)arr[i][GRID_SIZE-1-i]=winFruit;
     }
 
+    // --- Ефекти ---
+    function startBigWinEffect() {
+        bigWinEffect.style.display = "block";
+        bigWinEffect.style.animation = "bigpulse 1.2s 3";
+        setTimeout(() => bigWinEffect.style.display = "none", 3100);
+    }
+    function startWinLabelEffect(winAmount) {
+        winLabel.textContent = `ПЕЧАЛБА +${winAmount}`;
+        winLabel.classList.add("active");
+        setTimeout(() => winLabel.classList.remove("active"), 1700);
+    }
+    function startCoinAnimation(amount) {
+        let n=Math.min(10,Math.max(3,Math.floor(amount/40)));
+        for(let i=0;i<n;i++){
+            let coin=document.createElement('div');
+            coin.className="coin-fall";
+            coin.style.left=`${45+Math.random()*10}%`;
+            coin.innerHTML="🪙";
+            coinContainer.appendChild(coin);
+            setTimeout(()=>{coin.remove();},900);
+        }
+    }
+
+    // --- Централна логика за печалба ---
+    function applyWin(winAmount) {
+        if (winAmount > 0) {
+            state.coins += winAmount;
+            state.totalWin += winAmount;
+            startCoinAnimation(winAmount);
+            startWinLabelEffect(winAmount);
+            soundWin.currentTime = 0;
+            setTimeout(() => soundWin.play(), 150);
+            if (winAmount > 100) startBigWinEffect();
+        }
+    }
+
+    // --- Spin Logic with Event Dispatching ---
+    function spin(isAuto) {
+        if (state.spinning || state.autoSpin) return;
+        state.spinning = true;
+        stopWinEffect();
+        soundSpin.currentTime=0;
+        soundSpin.play();
+        animateShake(()=>{
+            state.coins-=state.selectedBet;
+            if (state.coins < 0) state.coins = 0;
+            if (state.coins < state.selectedBet && state.autoSpin) stopAutoSpin();
+            let newGrid=generateGrid();
+            animateSpin(newGrid,()=>{
+                let {win,lines}=calcWins();
+                state.lastWin=win;
+                applyWin(win);
+                if(win>0&&lines.length){
+                    state.winLines=lines;
+                    startWinEffect();
+                }else{
+                    startLoseEffect();soundLose.currentTime=0;soundLose.play();
+                }
+                state.spinning=false;
+                saveProgress();
+                if(state.autoSpin && state.coins < state.selectedBet) stopAutoSpin();
+                if(state.autoSpin && !isAuto) document.dispatchEvent(new CustomEvent("autoSpinTick"));
+                else drawGrid();
+            });
+        });
+    }
+    // --- Събития за auto-spin ---
+    function startAutoSpinLoop() {
+        if (state.autoSpinRAF) cancelAnimationFrame(state.autoSpinRAF);
+        function tick(now) {
+            if (!state.autoSpin || state.coins < state.selectedBet) return stopAutoSpin();
+            if (!state.spinning && now > (state.autoSpinNext || 0)) {
+                document.dispatchEvent(new CustomEvent("spinRequested", { detail: { isAuto: true } }));
+                state.autoSpinNext = now + 1800 + Math.random()*1000;
+            }
+            state.autoSpinRAF = requestAnimationFrame(tick);
+        }
+        state.autoSpinNext = performance.now();
+        state.autoSpinRAF = requestAnimationFrame(tick);
+    }
+    function stopAutoSpin() {
+        state.autoSpin = false;
+        spinBtn.classList.remove('auto');
+        autoSpinIndicator.style.display="none";
+        if(state.autoSpinRAF) cancelAnimationFrame(state.autoSpinRAF);
+        state.autoSpinRAF = null;
+    }
+
     function drawGrid() {
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        if(loseEffectActive){
-            let t=Math.abs(Math.sin(loseEffectFrame*0.18));
+        if(state.loseEffectActive){
+            let t=Math.abs(Math.sin(state.loseEffectFrame*0.18));
             ctx.save();
             ctx.globalAlpha=0.23+0.12*t;
             ctx.fillStyle="#FFD700";
@@ -392,11 +518,11 @@
             ctx.font=`bold ${Math.floor(c*.54)}px 'Luckiest Guy',cursive,serif`;
             ctx.textAlign='center';
             ctx.textBaseline='middle';
-            let fruit=grid[r][col];
+            let fruit=state.grid[r][col];
             let highlight=false, lineIndex=-1;
-            if(winEffectActive && winLines.length){
-                for(let i=0;i<winLines.length;i++){
-                    let line=winLines[i];
+            if(state.winEffectActive && state.winLines.length){
+                for(let i=0;i<state.winLines.length;i++){
+                    let line=state.winLines[i];
                     for(let j=0;j<line.coords.length;j++){
                         if(line.coords[j][0]===r && line.coords[j][1]===col){
                             highlight=true;lineIndex=i;
@@ -404,14 +530,14 @@
                     }
                 }
             }
-            if(highlight && winEffectActive){
-                let phase=(winEffectFrame/9+lineIndex)%1;
+            if(highlight && state.winEffectActive){
+                let phase=(state.winEffectFrame/9+lineIndex)%1;
                 const colors=['#FFD700','#fff','#FF5BCD','#42e1fe','#00e676','#ff4040','#a87fff'];
                 let color=colors[lineIndex%colors.length];
                 if(phase>0.5) color="#fff";
                 ctx.shadowColor=color;
-                ctx.shadowBlur=35+14*Math.abs(Math.sin(winEffectFrame/7));
-                ctx.globalAlpha=0.88+0.12*Math.abs(Math.sin(winEffectFrame/3));
+                ctx.shadowBlur=35+14*Math.abs(Math.sin(state.winEffectFrame/7));
+                ctx.globalAlpha=0.88+0.12*Math.abs(Math.sin(state.winEffectFrame/3));
                 ctx.fillStyle=color;
                 ctx.fillText(fruit,x+c/2,y0+c/2);
             }else{
@@ -427,23 +553,32 @@
     }
 
     function updateInfo() {
-        document.getElementById('coins').innerText=`Монети: ${coins}`;
-        document.getElementById('lastWin').innerText=`Последна печалба: ${lastWin}`;
-        document.getElementById('totalWin').innerText=`Обща печалба: ${totalWin}`;
-        currentBetBox.innerText=`Залог: ${selectedBet}`;
-        spinBtn.style.display=coins>0?'block':'none';
-        noCoinsMsg.style.display = coins <= 0 ? 'block' : 'none';
-        showLose(coins===0);
-        let lowest = VALID_BETS.find(b=>coins>=b) || VALID_BETS[0];
+        document.getElementById('coins').innerText=`Монети: ${state.coins}`;
+        document.getElementById('lastWin').innerText=`Последна печалба: ${state.lastWin}`;
+        document.getElementById('totalWin').innerText=`Обща печалба: ${state.totalWin}`;
+        currentBetBox.innerText=`Залог: ${state.selectedBet}`;
+        spinBtn.style.display=state.coins>0?'block':'none';
+        noCoinsMsg.style.display = state.coins <= 0 ? 'block' : 'none';
+        showLose(state.coins===0);
+        let lowest = VALID_BETS.find(b=>state.coins>=b) || VALID_BETS[0];
         betBtns.forEach(btn=>{
             const val = Number(btn.innerText);
-            btn.disabled = coins < val;
+            btn.disabled = state.coins < val;
         });
-        if(coins < selectedBet){
+        if(state.coins < state.selectedBet){
             setBet(lowest);
         }
-        if(autoSpin) autoSpinIndicator.style.display="inline-block";
+        if(state.autoSpin) autoSpinIndicator.style.display="inline-block";
         else autoSpinIndicator.style.display="none";
+    }
+
+    function updatePaytable() {
+        paytableBet.innerText = state.selectedBet;
+        document.getElementById('ppCherry').innerText = FRUITS[0].points * (state.selectedBet/20);
+        document.getElementById('ppWatermelon').innerText = FRUITS[1].points * (state.selectedBet/20);
+        document.getElementById('ppGrape').innerText = FRUITS[2].points * (state.selectedBet/20);
+        document.getElementById('ppApple').innerText = FRUITS[3].points * (state.selectedBet/20);
+        document.getElementById('ppClover').innerText = FRUITS[4].points * (state.selectedBet/20);
     }
 
     function showLose(show) {
@@ -451,209 +586,132 @@
     }
 
     function startWinEffect() {
-        winEffectActive=true;winEffectFrame=0;
+        state.winEffectActive=true;state.winEffectFrame=0;
         function winAnimLoop(){
-            if(!winEffectActive)return;
-            winEffectFrame++;
+            if(!state.winEffectActive)return;
+            state.winEffectFrame++;
             drawGrid();
-            winAnimFrameId = requestAnimationFrame(winAnimLoop);
+            state.winAnimFrameId = requestAnimationFrame(winAnimLoop);
         }
         winAnimLoop();
     }
     function stopWinEffect(){
-        winEffectActive=false;winLines=[];
-        if(winAnimFrameId) { cancelAnimationFrame(winAnimFrameId); winAnimFrameId=null; }
+        state.winEffectActive=false;state.winLines=[];
+        if(state.winAnimFrameId) { cancelAnimationFrame(state.winAnimFrameId); state.winAnimFrameId=null; }
     }
     function startLoseEffect(){
-        loseEffectActive=true;loseEffectFrame=0;
+        state.loseEffectActive=true;state.loseEffectFrame=0;
         function loseAnimLoop(){
-            if(!loseEffectActive)return;
-            loseEffectFrame++;
+            if(!state.loseEffectActive)return;
+            state.loseEffectFrame++;
             drawGrid();
-            loseAnimFrameId = requestAnimationFrame(() => {
-                if(loseEffectFrame<20) loseAnimLoop();
-                else{loseEffectActive=false;drawGrid();}
+            state.loseAnimFrameId = requestAnimationFrame(() => {
+                if(state.loseEffectFrame<20) loseAnimLoop();
+                else{state.loseEffectActive=false;drawGrid();}
             });
         }
         loseAnimLoop();
     }
-
     function animate(type,cb){
-        if(animFrameId) cancelAnimationFrame(animFrameId);
-        animFrameId = null;
-        animating=true;animationType=type;animationGrid=JSON.parse(JSON.stringify(grid));
+        if(state.animFrameId) cancelAnimationFrame(state.animFrameId);
+        state.animFrameId = null;
+        state.animating=true;state.animationType=type;state.animationGrid=JSON.parse(JSON.stringify(state.grid));
         let duration=type==="shake"?450:1150;
-        animationProgress=0;let start=null;
+        state.animationProgress=0;let start=null;
         function step(ts){
             if(!start)start=ts;
             let el=ts-start;
-            animationProgress=Math.min(el/duration,1);
+            state.animationProgress=Math.min(el/duration,1);
             if(type==="shake"||type==="spin")drawGrid(true);
-            if(animationProgress<1)animFrameId=requestAnimationFrame(step);
-            else{animating=false;animationGrid=[];cb&&cb();}
+            if(state.animationProgress<1)state.animFrameId=requestAnimationFrame(step);
+            else{state.animating=false;state.animationGrid=[];cb&&cb();}
         }
-        animFrameId=requestAnimationFrame(step);
+        state.animFrameId=requestAnimationFrame(step);
     }
     function animateSpin(newGrid,cb){
-        animationGrid = JSON.parse(JSON.stringify(grid));
+        state.animationGrid = JSON.parse(JSON.stringify(state.grid));
         animate("spin", () => {
-            grid = newGrid;
+            setGrid(newGrid);
             cb&&cb();
         });
     }
     function animateShake(cb){animate("shake",cb);}
-
-    function spin(isAuto){
-        if (spinning || autoSpin) return;
-        spinning=true;
-        stopWinEffect();
-        soundSpin.currentTime=0;
-        soundSpin.play();
-        animateShake(()=>{
-            coins-=selectedBet;
-            if (coins < 0) coins = 0;
-            if (coins < selectedBet && autoSpin) stopAutoSpin();
-            let newGrid=generateGrid();
-            animateSpin(newGrid,()=>{
-                let {win,lines}=calcWins();
-                lastWin=win;
-                totalWin+=win;
-                if(win>0){
-                    coins+=win;
-                    showCoinFall(win);
-                }
-                if(win>0&&lines.length){
-                    winLines=lines;
-                    startWinEffect();
-                    winLabel.textContent=`ПЕЧАЛБА +${win}`;
-                    winLabel.classList.add("active");
-                    soundWin.currentTime=0;setTimeout(()=>soundWin.play(),150);
-                    if(win > 100){
-                        bigWinEffect.style.display="block";
-                        bigWinEffect.style.animation="bigpulse 1.2s 3";
-                        setTimeout(()=>{bigWinEffect.style.display="none";},3100);
-                    }
-                }else{
-                    startLoseEffect();soundLose.currentTime=0;soundLose.play();
-                }
-                setTimeout(()=>winLabel.classList.remove("active"),1700);
-                spinning=false;
-                saveProgress();
-                if(autoSpin&&coins<selectedBet)stopAutoSpin();
-                if(autoSpin&&!isAuto) doAutoSpin();
-                else drawGrid();
-            });
-        });
-    }
-
-    function showCoinFall(amount){
-        let n=Math.min(10,Math.max(3,Math.floor(amount/40)));
-        for(let i=0;i<n;i++){
-            let coin=document.createElement('div');
-            coin.className="coin-fall";
-            coin.style.left=`${45+Math.random()*10}%`;
-            coin.innerHTML="🪙";
-            coinContainer.appendChild(coin);
-            setTimeout(()=>{coin.remove();},900);
-        }
-    }
-
     function calcWins() {
         let win=0,lines=[];
         for(let r=0;r<GRID_SIZE;r++){
-            let f=grid[r][0];
-            if(grid[r].every(ff=>ff===f)){
-                let points=FRUIT_POINTS[f]*selectedBet/20;
+            let f=state.grid[r][0];
+            if(state.grid[r].every(ff=>ff===f)){
+                let points=FRUIT_POINTS[f]*state.selectedBet/20;
                 win+=points;
                 lines.push({type:"row",coords:Array.from({length:GRID_SIZE},(_,i)=>[r,i]),fruit:f});
             }
         }
         for(let c=0;c<GRID_SIZE;c++){
-            let f=grid[0][c],all=true;
-            for(let r=0;r<GRID_SIZE;r++)if(grid[r][c]!==f)all=false;
+            let f=state.grid[0][c],all=true;
+            for(let r=0;r<GRID_SIZE;r++)if(state.grid[r][c]!==f)all=false;
             if(all){
-                let points=FRUIT_POINTS[f]*selectedBet/20;
+                let points=FRUIT_POINTS[f]*state.selectedBet/20;
                 win+=points;
                 lines.push({type:"col",coords:Array.from({length:GRID_SIZE},(_,i)=>[i,c]),fruit:f});
             }
         }
-        let f1=grid[0][0],all1=true;
-        for(let i=0;i<GRID_SIZE;i++) if(grid[i][i]!==f1) all1=false;
+        let f1=state.grid[0][0],all1=true;
+        for(let i=0;i<GRID_SIZE;i++) if(state.grid[i][i]!==f1) all1=false;
         if(all1){
-            let points=FRUIT_POINTS[f1]*selectedBet/20;
+            let points=FRUIT_POINTS[f1]*state.selectedBet/20;
             win+=points;
             lines.push({type:"diag",coords:Array.from({length:GRID_SIZE},(_,i)=>[i,i]),fruit:f1});
         }
-        let f2=grid[0][GRID_SIZE-1],all2=true;
-        for(let i=0;i<GRID_SIZE;i++) if(grid[i][GRID_SIZE-1-i]!==f2) all2=false;
+        let f2=state.grid[0][GRID_SIZE-1],all2=true;
+        for(let i=0;i<GRID_SIZE;i++) if(state.grid[i][GRID_SIZE-1-i]!==f2) all2=false;
         if(all2){
-            let points=FRUIT_POINTS[f2]*selectedBet/20;
+            let points=FRUIT_POINTS[f2]*state.selectedBet/20;
             win+=points;
             lines.push({type:"diag2",coords:Array.from({length:GRID_SIZE},(_,i)=>[i,GRID_SIZE-1-i]),fruit:f2});
         }
         return {win:Math.round(win),lines};
     }
-
     function restartGame(){
         stopAutoSpin();
         stopWinEffect();
-        if(winAnimFrameId) { cancelAnimationFrame(winAnimFrameId); winAnimFrameId=null; }
-        if(loseAnimFrameId) { cancelAnimationFrame(loseAnimFrameId); loseAnimFrameId=null; }
-        coins=500;lastWin=0;totalWin=0;
-        grid=generateGrid();
-        saveProgress(true);showLose(false);drawGrid();
+        if(state.winAnimFrameId) { cancelAnimationFrame(state.winAnimFrameId); state.winAnimFrameId=null; }
+        if(state.loseAnimFrameId) { cancelAnimationFrame(state.loseAnimFrameId); state.loseAnimFrameId=null; }
+        state.coins=500;state.lastWin=0;state.totalWin=0;
+        setGrid(generateGrid());
+        saveProgress(true);showLose(false);
         updatePaytable();
         audioMusic.pause();
         musicBtn.classList.remove("on");
     }
-
-    function stopAutoSpin(){
-        autoSpin=false;
-        spinBtn.classList.remove('auto');
-        autoSpinIndicator.style.display="none";
-        if(autoSpinTimer){clearTimeout(autoSpinTimer);autoSpinTimer=null;}
-    }
+    // --- Events ---
+    document.addEventListener("spinRequested", e => spin(e.detail && e.detail.isAuto));
+    document.addEventListener("autoSpinTick", () => startAutoSpinLoop());
 
     function startSpinHold(e){
-        if(spinHoldTimeout)clearTimeout(spinHoldTimeout);
-        pointerIsDown=true;pointerDownTime=Date.now();
+        state.pointerIsDown=true;state.pointerDownTime=Date.now();
         spinTooltip.style.display="block";
-        spinHoldTimeout=setTimeout(()=>{
-            if(pointerIsDown&&!autoSpin){
-                autoSpin=true;
+        state.spinHoldTimeout = setTimeout(()=>{
+            if(state.pointerIsDown&&!state.autoSpin){
+                state.autoSpin=true;
                 spinBtn.classList.add('auto');
                 autoSpinIndicator.style.display="inline-block";
-                doAutoSpin();
+                document.dispatchEvent(new CustomEvent("autoSpinTick"));
             }
         },1500);
     }
     function stopSpinHold(e){
-        pointerIsDown=false;
+        state.pointerIsDown=false;
         spinTooltip.style.display="none";
-        if(spinHoldTimeout){clearTimeout(spinHoldTimeout);spinHoldTimeout=null;}
-    }
-    function doAutoSpin(){
-        if (autoSpinTimer) clearTimeout(autoSpinTimer);
-        if(!autoSpin || spinning) {spinBtn.classList.remove('auto');autoSpinIndicator.style.display="none";return;}
-        if(coins<selectedBet){stopAutoSpin();return;}
-        if(!spinning){
-            soundSpin.currentTime=0;
-            soundSpin.play();
-            spin(true);
-        }
-        autoSpinTimer=setTimeout(() => {
-            if (coins >= selectedBet && !spinning) doAutoSpin();
-            else stopAutoSpin();
-        },1800+Math.random()*1000);
+        if(state.spinHoldTimeout){clearTimeout(state.spinHoldTimeout);state.spinHoldTimeout=null;}
     }
 
     document.addEventListener('keydown', function(e){
         if(document.activeElement && /input|textarea|button/i.test(document.activeElement.tagName)) return;
-        if(e.code==="Space" && coins>0 && !spinning){
+        if(e.code==="Space" && state.coins>0 && !state.spinning){
             spin();
             e.preventDefault();
         }
-        if(e.key>='1' && e.key<='5' && coins>0){
+        if(e.key>='1' && e.key<='5' && state.coins>0){
             let idx = Number(e.key)-1;
             if(VALID_BETS[idx] && !betBtns[idx].disabled) setBet(VALID_BETS[idx]);
         }
@@ -665,20 +723,20 @@
     spinBtn.addEventListener('mouseleave',()=>{spinTooltip.style.display="none";});
     spinBtn.addEventListener('mouseup', function (e) {
         stopSpinHold();
-        let held = Date.now() - pointerDownTime;
-        if (held < 1500 && !spinning && !autoSpin) {
+        let held = Date.now() - state.pointerDownTime;
+        if (held < 1500 && !state.spinning && !state.autoSpin) {
             spin();
         }
     });
     spinBtn.addEventListener('touchend', function (e) {
         stopSpinHold();
-        let held = Date.now() - pointerDownTime;
-        if (held < 1500 && !spinning && !autoSpin) {
+        let held = Date.now() - state.pointerDownTime;
+        if (held < 1500 && !state.spinning && !state.autoSpin) {
             spin();
         }
     });
     spinBtn.addEventListener('click', function (e) {
-        if (spinning || autoSpin) return;
+        if (state.spinning || state.autoSpin) return;
         stopWinEffect();
         spin();
     });
@@ -694,8 +752,8 @@
 
     document.getElementById('startBtn').onclick=function(){
         startScreen.style.display='none';
-        if (coins <= 0) restartGame();
-        grid=generateGrid();
+        if (state.coins <= 0) restartGame();
+        setGrid(generateGrid());
         resizeCanvas();
     };
     musicBtn.onclick = function() {
@@ -712,10 +770,31 @@
         saveProgress(true);
     });
 
+    function resizeCanvas() {
+        let s=Math.min(window.innerWidth*0.95,400,window.innerHeight*0.65);
+        s=Math.max(s,240);
+        canvas.width=s;
+        canvas.height=s;
+        drawGrid();
+    }
+    window.addEventListener("resize",resizeCanvas);
+
+    function updatePaytable() {
+        paytableBet.innerText = state.selectedBet;
+        document.getElementById('ppCherry').innerText = FRUITS[0].points * (state.selectedBet/20);
+        document.getElementById('ppWatermelon').innerText = FRUITS[1].points * (state.selectedBet/20);
+        document.getElementById('ppGrape').innerText = FRUITS[2].points * (state.selectedBet/20);
+        document.getElementById('ppApple').innerText = FRUITS[3].points * (state.selectedBet/20);
+        document.getElementById('ppClover').innerText = FRUITS[4].points * (state.selectedBet/20);
+    }
+
+    // --- ИНИЦИАЛИЗАЦИЯ ---
     loadProgress();
-    setBet(selectedBet);
+    setBet(state.selectedBet);
+    setGrid(generateGrid());
     resizeCanvas();
     updatePaytable();
+
 })();
     </script>
 </body>
