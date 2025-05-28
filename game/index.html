@@ -61,10 +61,8 @@ body{color:#fff;font-family:'Segoe UI',Arial,sans-serif;text-align:center;user-s
 #spinBtn{
     background:linear-gradient(145deg,#ffd700 40%,#b94ce7 90%);
     border-radius:50%;width:104px;height:104px;font-size:2.1em;font-weight:bold;
-    color:#b94ce7;margin:28px auto 12px auto;display:block;transition:background 0.3s,transform 0.7s;box-shadow:0 0 36px #ffd700,0 0 48px #fff0;border:none;outline:none;
-    animation:pulseSpinBtn 1.5s infinite alternate;
-    position:relative;overflow:hidden;
-    display:flex;align-items:center;justify-content:center;
+    color:#b94ce7;margin:28px auto 12px auto;display:flex;align-items:center;justify-content:center;transition:background 0.3s,transform 0.7s;box-shadow:0 0 36px #ffd700,0 0 48px #fff0;border:none;outline:none;
+    animation:pulseSpinBtn 1.5s infinite alternate;position:relative;overflow:hidden;
 }
 #spinBtn span{
     display:inline-block;font-size:1.05em;line-height:1.15;letter-spacing:2px;vertical-align:middle;
@@ -158,8 +156,6 @@ const audioLose = document.getElementById('audio-lose');
 const audioMusic = document.getElementById('audio-music');
 audioMusic.volume = 0.22;
 
-// -------------------------------------
-// Аудио фон
 let musicStarted = false;
 function playMusic() {
     if (!musicStarted) {
@@ -173,8 +169,6 @@ document.addEventListener('visibilitychange',()=>{
     if (!document.hidden) playMusic();
 });
 
-// -------------------------------------
-// Центриране и Responsive
 function resizeCanvas() {
     let s=Math.min(window.innerWidth*0.96,400,window.innerHeight*0.65);
     s=Math.max(s,240);
@@ -184,9 +178,7 @@ function resizeCanvas() {
 }
 window.addEventListener("resize",resizeCanvas);
 
-// -------------------------------------
-// Центрирани символи, box-shadow и outline
-function drawGrid(animSpin) {
+function drawGrid() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
     const c=canvas.width/(GRID_SIZE+.16),m=c*.13;
     const o=(canvas.width-(GRID_SIZE*c+(GRID_SIZE-1)*m))/2;
@@ -213,8 +205,6 @@ function drawGrid(animSpin) {
         ctx.fillText(fruit,x+c/2,y0+c/2+2);
         ctx.restore();
     }
-    // win анимация: конфети или монети
-    if (winEffectActive) showConfetti();
 }
 
 function randomFruit() {
@@ -225,9 +215,8 @@ function randomFruit() {
     return FRUITS[FRUITS.length-1].char;
 }
 
-// Истински spin-анимация
 function animateSpin(newGrid,cb) {
-    let animFrames = 20;
+    let animFrames = 18;
     let spinRows = [];
     for(let c=0;c<GRID_SIZE;c++){
         let arr=[];for(let i=0;i<animFrames;i++)arr.push(randomFruit());
@@ -246,7 +235,7 @@ function animateSpin(newGrid,cb) {
         drawGrid();
         if(frame<animFrames) {
             frame++;
-            setTimeout(spinStep,42+col*2);
+            setTimeout(spinStep,44);
         } else {
             cb&&cb();
         }
@@ -320,7 +309,6 @@ function spin(isAuto){
         if(win>0){
             coins+=win;
             winLines=lines;
-            winEffectActive=true;
             winLabel.textContent=`ПЕЧАЛБА +${win}`;
             winLabel.classList.add("active");
             if(win >= selectedBet * 5){
@@ -332,7 +320,7 @@ function spin(isAuto){
         } else {
             audioLose.currentTime=0;audioLose.play();
         }
-        setTimeout(()=>{winLabel.classList.remove("active");winEffectActive=false;confettiDiv.style.display='none';},1700);
+        setTimeout(()=>{winLabel.classList.remove("active");confettiDiv.style.display='none';},1700);
         spinning=false;
         updateInfo();
         if(autoSpin&&coins<selectedBet)stopAutoSpin();
