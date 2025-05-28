@@ -8,6 +8,28 @@
     <style>
         html,body{margin:0;padding:0;min-height:100vh;background:linear-gradient(to bottom,#232526,#414345 100%);}
         body{color:#fff;font-family:'Segoe UI',Arial,sans-serif;text-align:center;user-select:none;}
+        #musicBar {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 2002;
+        }
+        #musicBtn {
+            background:#232526;
+            color:#FFD700;
+            border:none;
+            border-radius:20px;
+            font-size:1.3em;
+            font-weight:600;
+            padding:9px 23px;
+            cursor:pointer;
+            transition:background 0.2s,color 0.2s;
+            box-shadow:0 2px 7px #0004;
+        }
+        #musicBtn.on {
+            background:linear-gradient(145deg,#FFD700,#e67e22 70%);
+            color:#232526;
+        }
         #startScreen{
             position:fixed;z-index:1001;left:0;top:0;width:100vw;height:100vh;
             background:rgba(20,30,40,0.92);display:flex;flex-direction:column;
@@ -22,23 +44,6 @@
             background:linear-gradient(145deg,#FFD700,#e67e22 70%);
             color:#202020;font-weight:900;border-radius:20px;outline:none;border:none;
             cursor:pointer;
-        }
-        #musicBtn {
-            margin: 15px auto 0 auto;
-            display: block;
-            background:#232526;
-            color:#FFD700;
-            border:none;
-            border-radius:20px;
-            font-size:1.25em;
-            font-weight:600;
-            padding:9px 23px;
-            cursor:pointer;
-            transition:background 0.2s,color 0.2s;
-        }
-        #musicBtn.on {
-            background:linear-gradient(145deg,#FFD700,#e67e22 70%);
-            color:#232526;
         }
         #container{position:relative;width:100vw;max-width:430px;margin:0 auto;}
         #gameCanvas{display:block;margin:25px auto 5px auto;background:#17181C;border:8px solid #2ecc71;border-radius:24px;
@@ -145,6 +150,20 @@
             pointer-events:none;
             box-shadow:0 0 12px #FFD70055;
         }
+        #restartBtn {
+            background: #017bff;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: bold;
+            width:80px;height:80px;
+            margin:28px auto 12px auto;
+            display:none;
+            transition:background 0.2s,transform 0.15s;
+            box-shadow:0 0 12px #017bff88;
+        }
+        #restartBtn:active, #restartBtn:focus-visible {background: #00ccff;}
         #paytable{margin:15px auto 0 auto;max-width:440px;}
         .paytable-table{width:100%;border-collapse:separate;border-spacing:0 4px;}
         .paytable-table th,.paytable-table td{padding:7px 9px;font-size:1.15em;text-align:center;}
@@ -173,7 +192,7 @@
             .info-box{font-size:12px;min-width:38px;min-height:13px;padding:3px 7px;}
             #bets{gap:3px;}
             .btn{font-size:13px;min-height:24px;padding:6px 10px;}
-            #spinBtn{width:44px;height:44px;font-size:13px;}
+            #spinBtn, #restartBtn {width:44px;height:44px;font-size:13px;}
             #startScreen h1{font-size:1.5em;}
         }
         .coin-fall{position:absolute;left:50%;top:-40px;font-size:2em;pointer-events:none;animation:coin-fall-anim 0.9s cubic-bezier(.42,.25,.58,.94) forwards;}
@@ -182,10 +201,12 @@
     </style>
 </head>
 <body>
+    <div id="musicBar">
+        <button id="musicBtn">Музика</button>
+    </div>
     <div id="startScreen">
         <h1>Добре дошъл!</h1>
         <button class="btn" id="startBtn">Почни игра</button>
-        <button id="musicBtn">Музика</button>
     </div>
     <div id="bigWinEffect"></div>
     <div id="container">
@@ -213,6 +234,7 @@
     </div>
     <div style="position:relative;">
         <button id="spinBtn" tabindex="6">СПИН</button>
+        <button id="restartBtn" style="display:none;" tabindex="8">Нова игра</button>
         <div id="spinTooltip">Задръж за авто-спин</div>
     </div>
     <div id="paytable">
@@ -239,7 +261,7 @@
     <audio id="audio-lose" src="https://cdn.pixabay.com/audio/2022/07/26/audio_124b8d6929.mp3" preload="auto"></audio>
     <audio id="audio-music" src="https://cdn.pixabay.com/audio/2022/08/20/audio_128c6fcd23.mp3" preload="auto" loop></audio>
     <script>
-/* ======= Централизиран JS код с всички подобрения, auto-spin, ефекти, debounce, applyWin и стабилност ======= */
+    // === Централизиран JS код ===
 (function() {
     const state = {
         selectedBet: 20,
@@ -262,7 +284,6 @@
         loseAnimFrameId: null,
         spinHoldTimeout: null
     };
-
     const FRUITS = [
         {char:'🍒', name:'Череша',   points:20,  color:"#ff5bcd"},
         {char:'🍉', name:'Диня',     points:40,  color:"#42e1fe"},
@@ -276,11 +297,11 @@
     const VALID_BETS = [20,40,60,100,200];
     const GRID_SIZE = 5;
 
-    // DOM
+    // DOM refs
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const spinBtn = document.getElementById('spinBtn');
-    const restartBtn = document.getElementById('restartBtn');
+    const restartBtn = document.querySelectorAll("#restartBtn")[0];
     const winLabel = document.getElementById('winLabel');
     const loseLabel = document.getElementById('loseLabel');
     const currentBetBox = document.getElementById('currentBet');
@@ -322,7 +343,6 @@
         try { localStorage.setItem("svetlyo_slot_progress", JSON.stringify(data)); } catch(e){}
     }
     const saveProgressDebounced = debounce(saveProgressReal, 500);
-
     function saveProgress(immediate) {
         if(immediate) saveProgressReal();
         else saveProgressDebounced();
@@ -339,7 +359,6 @@
             }
         } catch(e){}
     }
-
     function setBet(bet){
         bet=Number(bet);
         if(!VALID_BETS.includes(bet))return;
@@ -354,14 +373,11 @@
         saveProgress();
         if (state.coins < state.selectedBet && state.autoSpin) stopAutoSpin();
     }
-
-    // --- Grid Management ---
     function setGrid(newGrid) {
         state.grid = newGrid;
         drawGrid();
         saveProgress();
     }
-
     function randomFruit() {
         const weights = FRUIT_WEIGHTS;
         const rnd = Math.random();
@@ -403,8 +419,6 @@
         let winFruit=FRUIT_CHARS[Math.floor(Math.random()*FRUIT_CHARS.length)];
         for(let i=0;i<GRID_SIZE;i++)arr[i][GRID_SIZE-1-i]=winFruit;
     }
-
-    // --- Ефекти ---
     function startBigWinEffect() {
         bigWinEffect.style.display = "block";
         bigWinEffect.style.animation = "bigpulse 1.2s 3";
@@ -426,8 +440,6 @@
             setTimeout(()=>{coin.remove();},900);
         }
     }
-
-    // --- Централна логика за печалба ---
     function applyWin(winAmount) {
         if (winAmount > 0) {
             state.coins += winAmount;
@@ -439,8 +451,6 @@
             if (winAmount > 100) startBigWinEffect();
         }
     }
-
-    // --- Spin Logic with Event Dispatching ---
     function spin(isAuto) {
         if (state.spinning || state.autoSpin) return;
         state.spinning = true;
@@ -470,7 +480,6 @@
             });
         });
     }
-    // --- Събития за auto-spin ---
     function startAutoSpinLoop() {
         if (state.autoSpinRAF) cancelAnimationFrame(state.autoSpinRAF);
         function tick(now) {
@@ -491,7 +500,6 @@
         if(state.autoSpinRAF) cancelAnimationFrame(state.autoSpinRAF);
         state.autoSpinRAF = null;
     }
-
     function drawGrid() {
         ctx.clearRect(0,0,canvas.width,canvas.height);
         if(state.loseEffectActive){
@@ -513,7 +521,6 @@
             ctx.globalAlpha=.98;
             ctx.fillRect(x,y0,c,c);
             ctx.restore();
-
             ctx.save();
             ctx.font=`bold ${Math.floor(c*.54)}px 'Luckiest Guy',cursive,serif`;
             ctx.textAlign='center';
@@ -551,16 +558,22 @@
         }
         updateInfo();
     }
-
     function updateInfo() {
         document.getElementById('coins').innerText=`Монети: ${state.coins}`;
         document.getElementById('lastWin').innerText=`Последна печалба: ${state.lastWin}`;
         document.getElementById('totalWin').innerText=`Обща печалба: ${state.totalWin}`;
         currentBetBox.innerText=`Залог: ${state.selectedBet}`;
-        spinBtn.style.display=state.coins>0?'block':'none';
+        // СПИН и НОВА ИГРА бутони - авто-смяна:
+        if (state.coins < 20) {
+            spinBtn.style.display = "none";
+            restartBtn.style.display = "block";
+        } else {
+            spinBtn.style.display = "block";
+            restartBtn.style.display = "none";
+        }
         noCoinsMsg.style.display = state.coins <= 0 ? 'block' : 'none';
         showLose(state.coins===0);
-        let lowest = VALID_BETS.find(b=>state.coins>=b) || VALID_BETS[0];
+        let lowest = [20,40,60,100,200].find(b=>state.coins>=b) || 20;
         betBtns.forEach(btn=>{
             const val = Number(btn.innerText);
             btn.disabled = state.coins < val;
@@ -571,7 +584,6 @@
         if(state.autoSpin) autoSpinIndicator.style.display="inline-block";
         else autoSpinIndicator.style.display="none";
     }
-
     function updatePaytable() {
         paytableBet.innerText = state.selectedBet;
         document.getElementById('ppCherry').innerText = FRUITS[0].points * (state.selectedBet/20);
@@ -580,11 +592,9 @@
         document.getElementById('ppApple').innerText = FRUITS[3].points * (state.selectedBet/20);
         document.getElementById('ppClover').innerText = FRUITS[4].points * (state.selectedBet/20);
     }
-
     function showLose(show) {
         loseLabel.classList.toggle("show",!!show);
     }
-
     function startWinEffect() {
         state.winEffectActive=true;state.winEffectFrame=0;
         function winAnimLoop(){
@@ -683,10 +693,8 @@
         audioMusic.pause();
         musicBtn.classList.remove("on");
     }
-    // --- Events ---
     document.addEventListener("spinRequested", e => spin(e.detail && e.detail.isAuto));
     document.addEventListener("autoSpinTick", () => startAutoSpinLoop());
-
     function startSpinHold(e){
         state.pointerIsDown=true;state.pointerDownTime=Date.now();
         spinTooltip.style.display="block";
@@ -704,10 +712,9 @@
         spinTooltip.style.display="none";
         if(state.spinHoldTimeout){clearTimeout(state.spinHoldTimeout);state.spinHoldTimeout=null;}
     }
-
     document.addEventListener('keydown', function(e){
         if(document.activeElement && /input|textarea|button/i.test(document.activeElement.tagName)) return;
-        if(e.code==="Space" && state.coins>0 && !state.spinning){
+        if(e.code==="Space" && state.coins>=20 && !state.spinning && spinBtn.style.display!=="none"){
             spin();
             e.preventDefault();
         }
@@ -716,7 +723,6 @@
             if(VALID_BETS[idx] && !betBtns[idx].disabled) setBet(VALID_BETS[idx]);
         }
     });
-
     spinBtn.addEventListener('mousedown', startSpinHold);
     spinBtn.addEventListener('touchstart', startSpinHold);
     spinBtn.addEventListener('mouseenter',()=>{spinTooltip.style.display="block";});
@@ -724,32 +730,25 @@
     spinBtn.addEventListener('mouseup', function (e) {
         stopSpinHold();
         let held = Date.now() - state.pointerDownTime;
-        if (held < 1500 && !state.spinning && !state.autoSpin) {
-            spin();
-        }
+        if (held < 1500 && !state.spinning && !state.autoSpin) spin();
     });
     spinBtn.addEventListener('touchend', function (e) {
         stopSpinHold();
         let held = Date.now() - state.pointerDownTime;
-        if (held < 1500 && !state.spinning && !state.autoSpin) {
-            spin();
-        }
+        if (held < 1500 && !state.spinning && !state.autoSpin) spin();
     });
     spinBtn.addEventListener('click', function (e) {
         if (state.spinning || state.autoSpin) return;
         stopWinEffect();
         spin();
     });
-
     restartBtn.addEventListener('click',restartGame);
-
     betBtns.forEach(btn=>{
         btn.addEventListener('click',()=>{
             const val=Number(btn.innerText);
             setBet(val);
         });
     });
-
     document.getElementById('startBtn').onclick=function(){
         startScreen.style.display='none';
         if (state.coins <= 0) restartGame();
@@ -765,11 +764,9 @@
             musicBtn.classList.remove("on");
         }
     };
-
     window.addEventListener("beforeunload", function(e){
         saveProgress(true);
     });
-
     function resizeCanvas() {
         let s=Math.min(window.innerWidth*0.95,400,window.innerHeight*0.65);
         s=Math.max(s,240);
@@ -778,23 +775,11 @@
         drawGrid();
     }
     window.addEventListener("resize",resizeCanvas);
-
-    function updatePaytable() {
-        paytableBet.innerText = state.selectedBet;
-        document.getElementById('ppCherry').innerText = FRUITS[0].points * (state.selectedBet/20);
-        document.getElementById('ppWatermelon').innerText = FRUITS[1].points * (state.selectedBet/20);
-        document.getElementById('ppGrape').innerText = FRUITS[2].points * (state.selectedBet/20);
-        document.getElementById('ppApple').innerText = FRUITS[3].points * (state.selectedBet/20);
-        document.getElementById('ppClover').innerText = FRUITS[4].points * (state.selectedBet/20);
-    }
-
-    // --- ИНИЦИАЛИЗАЦИЯ ---
     loadProgress();
     setBet(state.selectedBet);
     setGrid(generateGrid());
     resizeCanvas();
     updatePaytable();
-
 })();
     </script>
 </body>
