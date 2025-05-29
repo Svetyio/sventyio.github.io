@@ -3,41 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <title>ELITE SWORD GAME - Casino Slot</title>
-  <!-- Google Fonts за казино стил -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Казино шрифтове -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Roboto:wght@400;900&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --gold: #FFD700;
+      --deep-red: #880000;
+      --black: #111;
+      --btn-green: #32cd32;
+      --btn-inactive: #222;
+      --white: #fff;
+      --shadow-glow: 0 0 30px 8px #FFD70055, 0 0 0 7px #FFD70033;
+      --ornament-gold: #FFD700cc;
+      --ornament-red: #a80000cc;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
     body {
-      background: linear-gradient(135deg, #000 60%, #880000 100%);
+      background: linear-gradient(140deg, #000 60%, #880000 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0;
       font-family: 'Roboto', Arial, sans-serif;
+      overflow-x: hidden;
     }
-
     .casino-container {
-      background: rgba(20, 10, 5, 0.98);
-      border: 6px solid #FFD700;
-      border-radius: 24px;
-      box-shadow: 0 0 60px 10px #FFD70077, 0 0 0 12px #88000099 inset;
-      padding: 36px 44px 44px 44px;
+      background: rgba(20, 10, 5, 0.99);
+      border: 5px solid var(--gold);
+      border-radius: 26px;
+      box-shadow: 0 0 80px 12px var(--gold), 0 0 0 10px var(--deep-red) inset;
+      padding: 18px 10px 30px 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
       max-width: 480px;
-      width: 90vw;
+      width: 98vw;
       position: relative;
-      overflow: hidden;
+      overflow: visible;
     }
-
+    /* Орнаменти */
+    .ornament {
+      pointer-events: none;
+      position: absolute;
+      opacity: 0.75;
+      z-index: 10;
+    }
+    .ornament.top {
+      top: -30px; left: 50%; transform: translateX(-50%) scale(1.25);
+    }
+    .ornament.bottom {
+      bottom: -25px; left: 50%; transform: translateX(-50%) scale(1.15) rotate(180deg);
+    }
+    .ornament.left {
+      top: 48%; left: -24px; transform: translateY(-50%) scaleX(-1) rotate(-70deg) scale(0.92);
+    }
+    .ornament.right {
+      top: 48%; right: -24px; transform: translateY(-50%) rotate(-70deg) scale(0.92);
+    }
+    .gold-glow {
+      position: absolute;
+      left: 0; right: 0; top: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 1;
+      background: radial-gradient(circle at 50% 40%, #FFD70033 0%, transparent 70%);
+      opacity: 0.85;
+      animation: gold-glow-anim 3.5s infinite alternate;
+    }
+    @keyframes gold-glow-anim {
+      from { opacity: 0.7; }
+      to   { opacity: 0.95; }
+    }
     .casino-title {
       font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
-      font-size: 2.3rem;
+      font-size: 2.2rem;
       letter-spacing: 0.13em;
-      color: #FFD700;
-      text-shadow: 0 0 12px #880000, 0 0 24px #FFD700;
-      margin-bottom: 18px;
+      color: var(--gold);
+      text-shadow: 0 0 12px var(--deep-red), 0 0 24px var(--gold);
+      margin-bottom: 12px;
       font-weight: 900;
       text-align: center;
       text-transform: uppercase;
@@ -45,45 +92,128 @@
       padding-bottom: 8px;
       width: 100%;
       user-select: none;
+      z-index: 2;
+      background: rgba(0,0,0,0.20);
     }
-
-    .slot-machine {
-      background: linear-gradient(160deg, #222 90%, #FFD70022 100%);
-      border: 5px solid #FFD700;
+    /* Баланс и статистика */
+    .balance-bar {
+      width: 100%;
+      justify-content: space-between;
+      display: flex;
+      align-items: center;
+      margin: 8px 0 8px 0;
+      padding: 4px 6px 2px 6px;
+      font-size: 1.05rem;
+      background: rgba(0,0,0,0.23);
       border-radius: 12px;
-      padding: 18px;
-      display: grid;
-      grid-template-columns: repeat(3, 70px);
-      grid-template-rows: repeat(3, 70px);
-      gap: 10px;
-      box-shadow: 0 0 24px 3px #FFD70055, 0 0 0 5px #88000099 inset;
-      margin-bottom: 30px;
+      color: var(--gold);
+      font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
+      font-weight: 900;
+      box-shadow: 0 2px 9px 0 #FFD70033;
+      border: 2px solid #FFD70044;
+      z-index: 2;
       position: relative;
-      z-index: 1;
+      gap: 4px;
     }
-
+    .balance-bar span {
+      margin: 0 5px;
+      text-shadow: 0 0 4px #FFD700, 0 0 6px #88000077;
+      font-size: 1.1em;
+    }
+    .balance-bar .stat-label {
+      color: #FFD700cc;
+      font-size: 1em;
+      font-weight: 400;
+      margin-right: 2px;
+    }
+    /* Залог бутони */
+    .bet-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 11px;
+      margin: 8px 0 8px 0;
+      width: 100%;
+      z-index: 2;
+    }
+    .bet-btn {
+      background: var(--btn-inactive);
+      color: var(--white);
+      border: 2.5px solid var(--gold);
+      border-radius: 12px;
+      font-size: 1.3rem;
+      font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
+      font-weight: 900;
+      width: 44px; height: 44px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 0 3px 12px 0 #FFD70033, 0 0 0 4px #FFD70022 inset;
+      transition: background 0.13s, color 0.13s, box-shadow 0.13s;
+      outline: none;
+      user-select: none;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .bet-btn.selected {
+      background: var(--btn-green);
+      color: #000;
+      border: 2.5px solid #fff;
+      box-shadow: 0 0 16px 2px #32cd32aa,0 0 0 4px #FFD70044 inset;
+    }
+    .bet-btn:active:not(.selected) {
+      background: #444;
+      color: #FFD700;
+    }
+    /* Игрално поле */
+    .slot-outer {
+      background: linear-gradient(160deg, #222 90%, #FFD70022 100%);
+      border: 5px solid var(--gold);
+      border-radius: 15px;
+      padding: 18px 10px;
+      box-shadow: 0 0 28px 7px #FFD70044, 0 0 0 7px #88000099 inset;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 220px;
+      width: 100%;
+      max-width: 99vw;
+    }
+    .slot-machine {
+      display: grid;
+      grid-template-columns: repeat(3, 60px);
+      grid-template-rows: repeat(3, 60px);
+      gap: 9px;
+      z-index: 2;
+      margin: 0 auto;
+      justify-content: center;
+      align-items: center;
+    }
     .slot-cell {
       background: linear-gradient(135deg, #111 70%, #880000 100%);
-      border: 3px solid #FFD700;
+      border: 3px solid var(--gold);
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.6rem;
+      font-size: 2.3rem;
       font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
       font-weight: 900;
-      color: #FFD700;
-      text-shadow: 0 0 16px #880000, 0 0 8px #FFD700;
-      transition: transform 0.25s cubic-bezier(.32,.72,.43,1.33), box-shadow 0.2s;
+      color: var(--gold);
+      text-shadow: 0 0 12px var(--deep-red), 0 0 8px var(--gold);
+      transition: transform 0.22s cubic-bezier(.32,.72,.43,1.33), box-shadow 0.2s;
       box-shadow: 0 0 8px 0 #FFD70044;
       user-select: none;
+      width: 60px; height: 60px;
     }
-
     .slot-cell.winner {
-      background: linear-gradient(135deg, #FFD700 80%, #e10000 100%);
+      background: linear-gradient(135deg, var(--gold) 80%, #e10000 100%);
       color: #880000;
-      transform: scale(1.15) rotate(-2deg);
-      box-shadow: 0 0 16px 7px #FFD700AA,0 0 0 4px #88000055 inset;
+      transform: scale(1.16) rotate(-2deg);
+      box-shadow: 0 0 16px 7px var(--gold),0 0 0 4px #88000088 inset;
       border-color: #e10000;
       z-index: 2;
       animation: winner-flash 0.6s alternate infinite;
@@ -92,104 +222,168 @@
       0%   { filter: brightness(1.1) }
       100% { filter: brightness(1.64) }
     }
-
     /* Spin Button */
     .spin-btn {
-      margin-top: 10px;
-      background: linear-gradient(180deg, #FFD700 80%, #8B0000 100%);
-      border: 3px solid #FFD700;
+      margin-top: 8px;
+      background: linear-gradient(180deg, var(--gold) 80%, #8B0000 100%);
+      border: 3px solid var(--gold);
       border-radius: 30px;
       font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
-      font-size: 1.6rem;
+      font-size: 1.4rem;
       font-weight: 900;
       color: #880000;
-      padding: 15px 90px;
+      padding: 14px 68px;
       box-shadow: 0 8px 30px 0 #FFD70055, 0 0 0 6px #88000088 inset;
       cursor: pointer;
       letter-spacing: 0.12em;
       transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
-      text-shadow: 0 0 6px #FFD700;
+      text-shadow: 0 0 6px var(--gold);
       outline: none;
       user-select: none;
+      z-index: 2;
+      min-width: 170px;
     }
     .spin-btn:hover, .spin-btn:active {
-      background: linear-gradient(180deg, #FFD700 100%, #e10000 100%);
+      background: linear-gradient(180deg, var(--gold) 100%, #e10000 100%);
       color: #000;
       transform: scale(1.04);
-      box-shadow: 0 0 24px 6px #FFD70088, 0 0 0 7px #FFD70033 inset;
+      box-shadow: 0 0 24px 7px var(--gold), 0 0 0 7px #FFD70033 inset;
     }
-
-    /* Visual FX */
-    .gold-glow {
-      position: absolute;
-      left: 0; right: 0; top: 0; bottom: 0;
-      pointer-events: none;
-      z-index: 0;
-      background: radial-gradient(circle at 50% 50%, #FFD70033 0%, transparent 65%);
-      opacity: 0.7;
-      animation: gold-glow-anim 3.5s infinite alternate;
+    /* Таблица със символи */
+    .payout-table {
+      width: 100%;
+      margin-top: 24px;
+      background: rgba(0,0,0,0.18);
+      border-radius: 13px;
+      border: 2.5px solid var(--gold);
+      box-shadow: 0 2px 9px 0 #FFD70033, 0 0 0 2px #88000033 inset;
+      font-family: 'Roboto', Arial, sans-serif;
+      color: var(--gold);
+      font-size: 1.05rem;
+      overflow: hidden;
+      z-index: 2;
     }
-    @keyframes gold-glow-anim {
-      from { opacity: 0.6; }
-      to   { opacity: 0.92; }
+    .payout-table table { width: 100%; border-collapse: collapse; }
+    .payout-table th, .payout-table td {
+      padding: 7px 0;
+      text-align: center;
+      border-bottom: 1.5px solid #FFD70022;
+      font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
+      font-size: 1.09em;
     }
-
-    .casino-shadow {
-      position: absolute;
-      left: 0; right: 0; top: 0; bottom: 0;
-      pointer-events: none;
-      z-index: -1;
-      background: radial-gradient(ellipse at 50% 90%, #FFD70011 0%, #111 90%);
+    .payout-table th {
+      background: #FFD70022;
+      color: #fff;
+      font-weight: 900;
+      font-size: 1.08em;
+      letter-spacing: 1px;
+      border-bottom: 2.5px solid #FFD70055;
     }
-
+    .payout-table tr:last-child td { border-bottom: none; }
+    .payout-table .icon { font-size: 1.5em; }
     /* Responsive */
     @media (max-width: 600px) {
-      .casino-container {
-        padding: 16px 3vw 24px 3vw;
-      }
+      .casino-container { padding: 6px 1vw 16px 1vw; }
+      .casino-title { font-size: 1.08rem; }
+      .balance-bar { font-size: 0.97rem; }
+      .bet-btn { font-size: 1.05rem; width: 34px; height: 34px; }
+      .slot-outer { padding: 7px 1vw; }
       .slot-machine {
-        grid-template-columns: repeat(3, 19vw);
-        grid-template-rows: repeat(3, 19vw);
-        min-width: unset;
-        max-width: 98vw;
-        padding: 7px;
+        grid-template-columns: repeat(3, 18vw);
+        grid-template-rows: repeat(3, 18vw);
       }
-      .spin-btn {
-        padding: 11px 8vw;
-        font-size: 1.2rem;
-      }
-      .casino-title {
-        font-size: 1.2rem;
-      }
+      .slot-cell { font-size: 1.3rem; width: 18vw; height: 18vw; }
+      .spin-btn { padding: 10px 10vw; font-size: 1.02rem; min-width: 82px; }
+      .payout-table { font-size: 0.93rem; }
+      .payout-table .icon { font-size: 1.1em; }
+    }
+    @media (max-width: 350px) {
+      .casino-title { font-size: 0.9rem; }
+      .balance-bar { font-size: 0.89rem; }
     }
   </style>
 </head>
 <body>
-  <div class="casino-shadow"></div>
   <div class="casino-container">
+    <!-- Орнаменти SVG -->
+    <svg class="ornament top" width="120" height="36" viewBox="0 0 120 36"><path d="M60 10 Q70 25 120 30 Q85 5 60 35 Q35 5 0 30 Q50 25 60 10 Z" fill="none" stroke="gold" stroke-width="3" /><circle cx="60" cy="12" r="6" fill="gold" stroke="#a80000" stroke-width="2"/></svg>
+    <svg class="ornament bottom" width="120" height="36" viewBox="0 0 120 36"><path d="M60 10 Q70 25 120 30 Q85 5 60 35 Q35 5 0 30 Q50 25 60 10 Z" fill="none" stroke="gold" stroke-width="3" /><circle cx="60" cy="12" r="6" fill="gold" stroke="#a80000" stroke-width="2"/></svg>
+    <svg class="ornament left" width="30" height="80" viewBox="0 0 30 80"><ellipse cx="15" cy="40" rx="12" ry="32" fill="none" stroke="gold" stroke-width="4"/><ellipse cx="15" cy="40" rx="4" ry="13" fill="none" stroke="#a80000" stroke-width="2"/></svg>
+    <svg class="ornament right" width="30" height="80" viewBox="0 0 30 80"><ellipse cx="15" cy="40" rx="12" ry="32" fill="none" stroke="gold" stroke-width="4"/><ellipse cx="15" cy="40" rx="4" ry="13" fill="none" stroke="#a80000" stroke-width="2"/></svg>
     <div class="gold-glow"></div>
-    <span class="casino-title">ELITE SWORD GAME</span>
-    <div class="slot-machine" id="slot">
-      <!-- 9 клетки, попълват се с JS -->
+    <div class="casino-title">ELITE SWORD GAME</div>
+    <div class="balance-bar">
+      <span class="stat-label">Баланс:</span> <span id="balance">1000</span> <span>💰</span>
+      <span class="stat-label">Залог:</span> <span id="bet">20</span>
+      <span class="stat-label">Печалба:</span> <span id="lastWin">0</span>
+    </div>
+    <div class="bet-buttons" id="betButtons">
+      <button class="bet-btn selected" data-bet="20">20</button>
+      <button class="bet-btn" data-bet="40">40</button>
+      <button class="bet-btn" data-bet="60">60</button>
+      <button class="bet-btn" data-bet="100">100</button>
+      <button class="bet-btn" data-bet="200">200</button>
+    </div>
+    <div class="slot-outer">
+      <div class="slot-machine" id="slot">
+        <!-- 9 клетки, попълват се с JS -->
+      </div>
     </div>
     <button class="spin-btn" id="spinBtn">SPIN</button>
+    <div class="payout-table" id="payoutTable"></div>
   </div>
   <script>
-    // Символи: Меч, Злато, 7-ца, Диамант, Корона, Късметлийска подкова
+    // Символи: икона, цвят, име, точки за 3 в линия
     const SYMBOLS = [
-      {icon: "🗡️", color: "#FFD700"}, // Меч
-      {icon: "💰", color: "#FFD700"}, // Злато
-      {icon: "7",   color: "#FF2222"},
-      {icon: "💎", color: "#00ccff"},
-      {icon: "👑", color: "#FFD700"},
-      {icon: "🦄", color: "#e100ff"},
-      {icon: "🍀", color: "#3ecf30"},
+      {icon:"🗡️", color:"#FFD700", name:"Меч", payout:15},
+      {icon:"💰", color:"#FFD700", name:"Злато", payout:30},
+      {icon:"7", color:"#FF2222", name:"Седмица", payout:60},
+      {icon:"💎", color:"#00ccff", name:"Диамант", payout:40},
+      {icon:"👑", color:"#FFD700", name:"Корона", payout:80},
+      {icon:"🍀", color:"#3ecf30", name:"Детелина", payout:100},
+      {icon:"🦄", color:"#e100ff", name:"Еднорог", payout:250}
     ];
+    // Параметри:
+    let balance = 1000;
+    let bet = 20;
+    let lastWin = 0;
+    const bets = [20,40,60,100,200];
 
+    // DOM
     const slot = document.getElementById('slot');
     const spinBtn = document.getElementById('spinBtn');
+    const balanceEl = document.getElementById('balance');
+    const betEl = document.getElementById('bet');
+    const lastWinEl = document.getElementById('lastWin');
+    const betBtnsWrap = document.getElementById('betButtons');
+    const payoutTable = document.getElementById('payoutTable');
 
-    // Създаваме 9 клетки
+    // Създай payout таблицата
+    function renderPayoutTable() {
+      payoutTable.innerHTML = `
+        <table>
+          <tr><th>Символ</th><th>Име</th><th>3 в линия</th></tr>
+          ${SYMBOLS.map(s=>`<tr>
+            <td class="icon" style="color:${s.color}">${s.icon}</td>
+            <td>${s.name}</td>
+            <td style="color:${s.color};font-weight:900;">${s.payout} x залога</td>
+          </tr>`).join("")}
+        </table>
+      `;
+    }
+    renderPayoutTable();
+
+    // Залог бутони
+    betBtnsWrap.querySelectorAll('.bet-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        betBtnsWrap.querySelectorAll('.bet-btn').forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+        bet = parseInt(btn.dataset.bet);
+        betEl.textContent = bet;
+      });
+    });
+
+    // Създай 9 клетки
     let cells = [];
     function createGrid() {
       slot.innerHTML = "";
@@ -197,24 +391,24 @@
       for (let i = 0; i < 9; i++) {
         const cell = document.createElement('div');
         cell.className = 'slot-cell';
-        cell.textContent = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)].icon;
+        const symbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+        cell.textContent = symbol.icon;
+        cell.style.color = symbol.color;
         slot.appendChild(cell);
         cells.push(cell);
       }
     }
 
     // Завъртане анимация
-    function spinAnimation(duration = 1200, fps = 60) {
+    function spinAnimation(duration = 1100, fps = 60) {
       return new Promise(resolve => {
-        let elapsed = 0;
-        let interval = 1000 / fps;
-        let spinTicks = 0;
+        let elapsed = 0, interval = 1000 / fps, spinTicks = 0;
         let spin = setInterval(() => {
           for (let i = 0; i < 9; i++) {
             const symbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
             cells[i].textContent = symbol.icon;
             cells[i].style.color = symbol.color;
-            cells[i].style.transform = `scale(${1 + 0.05*Math.sin(spinTicks+i)}) rotate(${(spinTicks*8+i*20)%360}deg)`;
+            cells[i].style.transform = `scale(${1 + 0.07*Math.sin(spinTicks+i)}) rotate(${(spinTicks*12+i*28)%360}deg)`;
           }
           spinTicks++;
           elapsed += interval;
@@ -228,20 +422,21 @@
 
     // Проверка за печеливши линии (редове, колони, диагонали)
     function checkWinner() {
-      // Връща масив с индексите на печелившите клетки
-      let wins = [];
-      let get = i => cells[i].textContent;
+      // Връща масив с линии и символа-победител
       let lines = [
-        // Редове
-        [0,1,2],[3,4,5],[6,7,8],
-        // Колони
-        [0,3,6],[1,4,7],[2,5,8],
-        // Диагонали
-        [0,4,8],[2,4,6]
+        [0,1,2],[3,4,5],[6,7,8], // редове
+        [0,3,6],[1,4,7],[2,5,8], // колони
+        [0,4,8],[2,4,6] // диагонали
       ];
+      let wins = [];
       for (const line of lines) {
-        if (get(line[0]) === get(line[1]) && get(line[1]) === get(line[2])) {
-          wins.push(line);
+        let [a,b,c] = line;
+        if (
+          cells[a].textContent === cells[b].textContent &&
+          cells[a].textContent === cells[c].textContent
+        ) {
+          let sym = SYMBOLS.find(s=>s.icon===cells[a].textContent);
+          wins.push({line, symbol:sym});
         }
       }
       return wins;
@@ -249,11 +444,18 @@
 
     // Главна логика за завъртане
     async function spin() {
+      if(bet > balance) {
+        alert("Недостатъчен баланс!");
+        return;
+      }
       spinBtn.disabled = true;
       spinBtn.textContent = "SPINNING...";
-      // Премахни стари win ефекти
       cells.forEach(cell => cell.classList.remove('winner'));
-      await spinAnimation(1200, 75);
+      lastWin = 0;
+      lastWinEl.textContent = 0;
+      balance -= bet;
+      balanceEl.textContent = balance;
+      await spinAnimation(1150, 80);
       // Генерирай финален резултат
       for (let i = 0; i < 9; i++) {
         const symbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
@@ -263,8 +465,16 @@
       }
       // Проверка за печалба
       let wins = checkWinner();
+      let totalWin = 0;
       if (wins.length > 0) {
-        wins.flat().forEach(idx => cells[idx].classList.add('winner'));
+        wins.forEach(win=>{
+          win.line.forEach(idx => cells[idx].classList.add('winner'));
+          totalWin += bet * win.symbol.payout;
+        });
+        lastWin = totalWin;
+        lastWinEl.textContent = totalWin;
+        balance += totalWin;
+        balanceEl.textContent = balance;
         spinBtn.textContent = "JACKPOT! 🎉";
         setTimeout(()=>{spinBtn.textContent="SPIN"},1800);
       } else {
@@ -276,7 +486,30 @@
 
     // Инициализация
     createGrid();
+    balanceEl.textContent = balance;
+    betEl.textContent = bet;
+    lastWinEl.textContent = lastWin;
     spinBtn.addEventListener('click', spin);
+
+    // Преоразмеряване на слот-а за мобилни устройства
+    function resizeSlots() {
+      let w = window.innerWidth;
+      let grid = slot;
+      if(w < 600) {
+        // Мобилен - квадратни клетки
+        let cellSize = Math.max(Math.floor((w-44)/3), 60);
+        grid.style.gridTemplateColumns = `repeat(3, ${cellSize}px)`;
+        grid.style.gridTemplateRows = `repeat(3, ${cellSize}px)`;
+      } else {
+        grid.style.gridTemplateColumns = `repeat(3, 60px)`;
+        grid.style.gridTemplateRows = `repeat(3, 60px)`;
+      }
+    }
+    window.addEventListener('resize',resizeSlots);
+    resizeSlots();
+
+    // Touch scroll prevention (по-добро UX)
+    slot.addEventListener('touchmove', e => e.preventDefault(), {passive:false});
   </script>
 </body>
 </html>
