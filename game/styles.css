@@ -1,218 +1,395 @@
-html, body {
-  margin: 0; padding: 0; min-height: 100vh;
-  background: radial-gradient(ellipse at center, #2b115a 0%, #23013b 100%);
-}
+/* Основни стилове и фон */
 body {
+  background: linear-gradient(135deg, #181832 60%, #36369C 100%);
   color: #fff;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  text-align: center; user-select: none;
+  font-family: 'Luckiest Guy', cursive, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
 }
-header, main, section { display: block; }
+
+header {
+  text-align: center;
+  padding: 24px 0 0 0;
+}
+
 .casino-title {
-  font-family: 'Luckiest Guy', cursive, fantasy, sans-serif;
-  font-size: 2.5em;
-  color: #FFD700;
-  text-shadow: 0 2px 16px #fff6, 0 1px 0 #fff, 0 0 12px #F700FF, 0 0 8px #FFD700, 0 0 30px #ff0055aa;
-  -webkit-text-stroke: 2px #000;
-  margin: 22px 0 8px 0;
+  font-size: 2.6em;
   letter-spacing: 2px;
-  animation: casino-glow 2.2s infinite alternate;
+  font-weight: bold;
+  margin-bottom: 0.2em;
+  text-shadow: 2px 2px 12px #000, 0px 0px 2px #fff;
 }
-@keyframes casino-glow {
-  0% { color: #FFD700; filter: drop-shadow(0 0 8px #FFD700);}
-  40% { color: #fff; filter: drop-shadow(0 0 22px #F700FF);}
-  60% { color: #FFD700; filter: drop-shadow(0 0 14px #FFD700);}
-  100% { color: #FFD700; filter: drop-shadow(0 0 8px #FFD700);}
-}
+
 .casino-welcome {
-  font-family: 'Luckiest Guy', cursive, fantasy, sans-serif;
-  font-size: 1.7em;
-  margin: 6px 0 0 0; color: #00e676;
-  letter-spacing: 1px;
-  text-shadow: 0 2px 10px #000, 0 0 8px #FFD700, 0 0 24px #42e1fe;
-  -webkit-text-stroke: 1.5px #232526;
-  animation: casino-welcome-glow 2s infinite alternate;
+  font-size: 1.3em;
+  opacity: 0.87;
+  margin-bottom: 12px;
 }
-@keyframes casino-welcome-glow {
-  0% { color: #00e676; text-shadow: 0 0 12px #FFD700, 0 0 16px #00e676;}
-  100% { color: #FFD700; text-shadow: 0 0 24px #00e676, 0 0 16px #FFD700;}
-}
-main { width:100vw; max-width:430px; margin:0 auto; position:relative; }
+
+/* Основна рамка на играта */
 #gameFrame {
-  background: linear-gradient(135deg, #3d1e6e 60%, #50223d 100%);
-  border-radius: 30px;
-  box-shadow: 0 6px 32px 5px #2c0a4099, 0 0 0 8px #FFD70044 inset;
-  border: 5px solid #FFD700;
-  padding: 14px 3px 12px 3px;
-  margin: 0 auto 10px auto;
-  max-width: 408px;
-  width: 97vw; min-width: 250px; position:relative;
+  margin: 24px auto 10px auto;
+  padding: 18px 16px 10px 16px;
+  background: rgba(30, 30, 50, 0.94);
+  border-radius: 16px;
+  box-shadow: 0 8px 36px #000a, 0 2px 8px #0007;
+  max-width: 480px;
+  position: relative;
+  text-align: center;
 }
+
 #gameCanvas {
-  display: block; margin: 0 auto;
-  background: #17181C; border-radius: 18px;
-  box-shadow: 0 0 28px #FFD70055, 0 0 15px #000;
-  width: 100%; height: auto; aspect-ratio: 1/1;
-  max-width: 400px; min-width: 220px; min-height: 220px; max-height: 400px;
-  touch-action: none;
+  background: #222;
+  border-radius: 12px;
+  box-shadow: 0 2px 24px #000b, 0 1px 4px #0008;
+  display: block;
+  margin: 0 auto 8px auto;
+  max-width: 100%;
+  transition: box-shadow .3s;
 }
-.spin-casino-btn {
-  width: 120px; height: 120px; border-radius: 50%;
-  background: radial-gradient(ellipse at 60% 20%, #FFD700 80%, #e67e22 100%);
-  border: 5px solid #ff0055;
-  box-shadow: 0 0 32px #FFD700cc, 0 0 34px #ff005588, 0 0 0 8px #fff3 inset;
-  color: #23013b; display: flex; align-items: center; justify-content: center;
-  margin: 22px 0 12px 0; cursor: pointer; outline: none; position: relative;
-  transition: background 0.22s, transform 0.11s, box-shadow 0.18s;
-  overflow: hidden;
-  font-family: 'Luckiest Guy', cursive, 'Segoe UI', Arial, sans-serif; font-size: 2em; letter-spacing: 2px; user-select: none;
+
+.frame-win-anim {
+  box-shadow: 0 0 40px 8px #ffe85b, 0 2px 36px #fff5;
 }
-.spin-casino-btn:hover, .spin-casino-btn:focus-visible {
-  background: radial-gradient(ellipse at 60% 30%, #ff0055 70%, #FFD700 100%);
-  color: #fff; box-shadow: 0 0 60px #FFD700ff, 0 0 34px #ff0055cc, 0 0 0 8px #fff8 inset; transform: scale(1.08);
+
+#coinContainer {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 2;
 }
-.spin-casino-text {
-  width: 100%; text-align: center; font-size: 1.25em; font-weight: bold;
-  color: inherit; text-shadow: 0 2px 8px #fff, 0 0 4px #ff0055, 0 0 14px #FFD700;
-  pointer-events: none; letter-spacing: 3px; line-height: 1.1; padding: 0; margin: 0; display: block;
+
+.coin-fall {
+  position: absolute;
+  top: 0;
+  font-size: 2.1em;
+  pointer-events: none;
+  animation: coinfall 0.9s cubic-bezier(.3,.7,.7,1) forwards;
+  filter: drop-shadow(0 3px 2px #e7b900);
 }
-#spinTooltip {
-  display: none; position: absolute; left: 50%; top: -40px; transform: translateX(-50%);
-  background: rgba(20,20,20,0.93); color: #FFD700; font-size: 1.04em;
-  font-weight: 700; border-radius: 10px; padding: 7px 16px; white-space: nowrap;
-  z-index: 3000; pointer-events: none; box-shadow: 0 0 12px #FFD70055;
+@keyframes coinfall {
+  0% { transform: translateY(-30px) scale(1); opacity: 0; }
+  15% { opacity: 1;}
+  90% { transform: translateY(250px) scale(1.07); }
+  100% { transform: translateY(320px) scale(0.95); opacity: 0;}
 }
-#autoSpinIndicator {
-  background: rgba(255,223,0,0.15); color: #FFD700; font-weight: bold;
-  display: none; padding: 3px 10px; border-radius: 12px; margin: 5px auto 0 auto;
-  font-size: 1.1em; animation: autosign 1.1s infinite alternate;
-}
-@keyframes autosign{0%{box-shadow:0 0 0 #FFD700;}100%{box-shadow:0 0 12px #FFD700;}}
-#info-row, #bets {
-  display: flex; flex-direction: row; justify-content: center; align-items: center;
-  gap: 14px; margin: 9px auto 10px auto; width: 100%; max-width: 600px; flex-wrap: wrap;
+
+/* Инфо ред */
+#info-row {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin: 0 0 10px 0;
+  flex-wrap: wrap;
 }
 .info-box {
-  background: #232526; border: 2px solid #888; border-radius: 13px;
-  font-size: 18px; min-width: 90px; min-height: 38px; padding: 8px 18px;
-  color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600;
+  background: #2a2a53;
+  padding: 5px 17px;
+  border-radius: 8px;
+  margin: 2px 0;
+  box-shadow: 0 2px 8px #0005;
+  font-size: 1.08em;
 }
-#coins {background-color:#2ecc71;}
-#lastWin {background-color:#e74c3c;}
-#totalWin {background-color:#2980b9;}
-#currentBet {background-color:#ff9900;min-width:70px;}
+
+#currentBet {
+  background: #35358a;
+  color: #fff8b8;
+  font-weight: bold;
+}
+
+/* Залози */
+#bets {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
 .btn {
-  padding: 10px 18px; font-size: 18px; color: #fff; background-color: #232526;
-  border: none; border-radius: 13px; cursor: pointer; min-width: 54px; min-height: 38px;
-  outline: none; box-shadow: 0 1px 4px #0006; font-weight: 600; letter-spacing: 1px;
-  transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s; user-select: none;
+  background: #29296a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-size: 1.15em;
+  font-family: inherit;
+  cursor: pointer;
+  margin: 0 2px;
+  transition: background .18s, transform .12s, box-shadow .18s;
+  box-shadow: 0 1px 5px #0005;
+  outline: none;
 }
-.btn.selected-bet, .btn:active.selected-bet {
-  background-color: #00cc00!important; color: #fff!important; box-shadow: 0 0 10px 2px #00cc00;
-  font-weight: bold; animation: betpulse 0.31s;
+
+.btn:active, .btn.selected-bet {
+  background: #ff5bcd;
+  color: #fff;
+  transform: scale(1.06);
+  box-shadow: 0 0 12px #ff5bcd88;
 }
-.btn:focus-visible:not(.selected-bet){background-color:#444;color:#fff;}
-.btn:disabled{background:#444!important;color:#888!important;cursor:not-allowed;box-shadow:none;}
-@keyframes betpulse {0%{box-shadow:0 0 0 #FFD700;}50%{box-shadow:0 0 18px #FFD700,0 0 10px #fff;}100%{box-shadow:0 0 0 #00cc00;}}
-#paytable { margin: 15px auto 0 auto; max-width: 440px;}
+.btn.selected-bet {
+  border: 2px solid #fff8b8;
+}
+
+.btn:disabled {
+  background: #444;
+  color: #bbb;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+#spinBtn {
+  margin: 16px auto 10px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ff5bcd 70%, #ffe85b 100%);
+  color: #312a2a;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 0 32px #ffe85b54, 0 2px 8px #0007;
+  width: 92px;
+  height: 92px;
+  font-size: 2.1em;
+  font-weight: bold;
+  cursor: pointer;
+  position: relative;
+  transition: box-shadow .2s, background .15s;
+  z-index: 2;
+}
+
+#spinBtn.auto {
+  animation: spinpulse 1.1s infinite alternate;
+}
+@keyframes spinpulse {
+  0% { box-shadow: 0 0 10px #ffe85b99; }
+  100% { box-shadow: 0 0 32px #ff5bcd, 0 0 80px #ffe85b99; }
+}
+
+.spin-casino-text {
+  font-family: 'Luckiest Guy', cursive, Arial, sans-serif;
+  letter-spacing: 2px;
+  font-size: 0.93em;
+}
+
+#spinTooltip {
+  position: absolute;
+  left: 50%;
+  top: 92px;
+  transform: translateX(-50%);
+  color: #ffe85b;
+  background: #222b;
+  padding: 2px 10px;
+  border-radius: 8px;
+  font-size: 1em;
+  display: none;
+  pointer-events: none;
+  user-select: none;
+  z-index: 10;
+}
+
+#autoSpinIndicator {
+  color: #ffe85b;
+  background: #222b;
+  border-radius: 8px;
+  padding: 5px 15px;
+  font-size: 1.1em;
+  display: none;
+  margin: 0 auto 4px auto;
+  text-align: center;
+}
+
+/* История на печалбите */
+#winHistory {
+  background: #222a;
+  color: #ffe85b;
+  border-radius: 10px;
+  padding: 6px 10px;
+  margin: 18px auto 0 auto;
+  max-width: 230px;
+  font-size: 1em;
+  min-height: 28px;
+  box-shadow: 0 2px 8px #0005;
+  text-align: left;
+}
+#winHistory div {
+  margin-bottom: 2px;
+  font-family: monospace;
+  font-size: .96em;
+}
+#winHistory span {
+  float: right;
+  color: #aaa;
+  font-size: .92em;
+}
+
+/* Голям уин ефект */
+#bigWinEffect {
+  display: none;
+  position: absolute;
+  left: 50%; top: 32%;
+  transform: translate(-50%,0);
+  font-size: 3em;
+  color: #ffe85b;
+  text-shadow: 0 0 20px #fff, 0 0 10px #ff5bcd;
+  pointer-events: none;
+  z-index: 10;
+  font-family: 'Luckiest Guy', cursive, Arial, sans-serif;
+}
+@keyframes bigpulse {
+  0% { transform: translate(-50%,0) scale(1);}
+  50% { transform: translate(-50%,0) scale(1.25);}
+  100% { transform: translate(-50%,0) scale(1);}
+}
+
+/* Win/Lose надписи */
+#winLabel, #loseLabel {
+  position: absolute;
+  left: 50%;
+  top: 14%;
+  transform: translate(-50%,0);
+  font-size: 2em;
+  text-shadow: 1px 2px 10px #000, 0 0 10px #fff5;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9;
+  font-family: 'Luckiest Guy', cursive, Arial, sans-serif;
+  transition: opacity .22s;
+}
+#winLabel.active {
+  opacity: 1;
+}
+
+#loseLabel {
+  top: 40%;
+  color: #fff;
+  background: #ff4040cc;
+  padding: 16px 28px;
+  border-radius: 20px;
+  font-size: 2.2em;
+  box-shadow: 0 0 20px #ff4040cc;
+  opacity: 0;
+  display: none;
+  z-index: 11;
+}
+#loseLabel.show {
+  display: block;
+  opacity: 1;
+  animation: loseshake 0.5s;
+}
+@keyframes loseshake {
+  0%,100%{transform:translate(-50%,0);}
+  10%{transform:translate(-50%,-6px);}
+  20%{transform:translate(-50%,7px);}
+  30%{transform:translate(-50%,-7px);}
+  40%{transform:translate(-50%,5px);}
+  50%{transform:translate(-50%,0);}
+}
+
+/* Таблица с печалбите */
+#paytable {
+  background: #29296a;
+  color: #ffe85b;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 18px auto 10px auto;
+  max-width: 350px;
+  box-shadow: 0 2px 8px #0005;
+  font-size: 1.1em;
+}
 .paytable-table {
-  width: 100%; border-collapse: separate; border-spacing: 0 4px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 7px;
 }
 .paytable-table th, .paytable-table td {
-  padding: 7px 9px; font-size: 1.15em; text-align: center;
+  padding: 3px 8px;
+  text-align: center;
 }
-.paytable-table th { color: #FFD700; background: #232526; border-radius: 7px;}
-.paytable-table td { background: #14181C;}
-.paytable-symbol { font-family: 'Luckiest Guy', cursive; font-size: 1.5em; vertical-align: middle; }
-.paytable-points {font-weight:700;}
-#bigWinEffect {display:none;position:fixed;left:0; top:0; width:100vw; height:100vh;background:rgba(255,215,0,0.07);z-index:1002;animation:bigpulse 1.2s 3;pointer-events:none;}
-@keyframes bigpulse {0%{background:rgba(255,215,0,0.07);}50%{background:rgba(255,215,0,0.23);}100%{background:rgba(255,215,0,0.07);}}
-.coin-fall{position:absolute;left:50%;top:-40px;font-size:2em;pointer-events:none;animation:coin-fall-anim 0.9s cubic-bezier(.42,.25,.58,.94) forwards;}
-@keyframes coin-fall-anim {
-  0%   { opacity: 0.7; transform: scale(0.9);}
-  80%  { opacity: 1; transform: scale(1.15);}
-  100% { top: 80%; opacity: 0; transform: scale(1.07);}
+.paytable-symbol {
+  font-size: 1.4em;
 }
-#winHistory {
-  max-width: 410px;
-  max-height: 80px;
-  overflow-y: auto;
-  margin: 0 auto 6px auto;
-  background: rgba(20,20,40,0.20);
-  border-radius: 12px;
-  font-size: 1em;
-  color: #FFD700;
-}
-#winHistory div { padding: 2px 8px; }
-#winHistory span { color: #aaa; font-size: 0.9em; margin-left: 13px;}
-@media (max-width: 600px){
-  main{max-width:98vw;} #gameFrame{max-width:98vw; min-width:160px;}
-  #gameCanvas{max-width:98vw;max-height:240px;}
-  #winLabel{font-size:16px;padding:4px 10px;}
-  .casino-title{font-size:1.6em;}
-  .casino-welcome{font-size:1.1em;}
-  .info-box{font-size:12px;min-width:38px;min-height:13px;padding:3px 7px;}
-  #bets{gap:3px;}
-  .btn{font-size:13px;min-height:24px;padding:6px 10px;}
-  .spin-casino-btn{width:60px;height:60px;font-size:1em;border-width:3px;}
-  .spin-casino-text{font-size:1em;}
-  #winHistory {font-size:0.8em;}
-}
-#audio-controls {margin: 8px 0 0 0;}
-.volume-slider {width:80px;}
-.btn:focus-visible, .spin-casino-btn:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
-#noCoinsMsg {display:none;color:#FFD700;font-weight:bold;margin-top:10px;font-size:1.25em;}
-#winLabel {
-  position: absolute; left: 50%; transform: translateX(-50%);
-  top: 15px; font-size: 30px; font-weight: 900; color: #FFD700;
-  text-shadow: 0 0 12px #FFD700, 0 2px 17px #fff;
-  background: rgba(40,40,0,0.44); padding: 8px 22px; border-radius: 30px;
-  opacity: 0; pointer-events: none; z-index: 100; transition: opacity 0.4s; white-space: nowrap;
-}
-#winLabel.active { opacity: 1!important; pointer-events: auto; transition: none; }
-#loseLabel {
-  display: none; position: fixed; left: 0; right: 0; top: 0; bottom: 0;
-  background: rgba(20,20,20,0.65); color: #FFD700; font-size: 2.3em;
-  font-weight: bold; align-items: center; justify-content: center;
-  z-index: 400; flex-direction: column;
-}
-#loseLabel.show { display: flex; }
-#loseLabel button {
-  margin-top: 32px; background: #1e90ff; color: #fff; border: none; border-radius: 17px;
-  font-size: 1.1em; font-weight: bold; padding: 16px 42px; box-shadow: 0 0 14px #1e90ff99;
-  cursor: pointer; transition: background 0.3s, transform 0.2s;
-}
-#loseLabel button:hover, #loseLabel button:focus-visible {
-  background: #00ccff; transform: scale(1.07);
-}
-/* Ефект за win-рамка */
-@keyframes frame-win {
-  0% { box-shadow: 0 0 32px #FFD700cc, 0 0 34px #ff005588, 0 0 0 8px #fff3 inset; }
-  20% { box-shadow: 0 0 60px #FFD700ff, 0 0 44px #ff0055cc, 0 0 0 14px #fff8 inset; }
-  100% { box-shadow: 0 0 32px #FFD700cc, 0 0 34px #ff005588, 0 0 0 8px #fff3 inset; }
-}
-.frame-win-anim { animation: frame-win 1s; }
-#loadingOverlay {
-  position:fixed;left:0;top:0;width:100vw;height:100vh;
-  background:#23013b;color:#FFD700;z-index:2000;
-  display:flex;align-items:center;justify-content:center;
-  font-size:2em;
+.paytable-points {
+  color: #fff8b8;
+  font-weight: bold;
 }
 #helpOverlay {
-  display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;
-  background:rgba(30,30,40,0.93);color:#FFD700;z-index:3000;
-  align-items:center;justify-content:center;font-size:1.2em;flex-direction:column;
-  text-align:left;padding:30px;
+  position: fixed;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(30,30,50,.93);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-#helpOverlay button {
-  margin-top:18px;padding:10px 26px;font-size:1.1em;
-  background:#2980b9;color:#fff;border:none;border-radius:10px;cursor:pointer;
+#helpOverlay > div {
+  background: #272750;
+  color: #ffe85b;
+  padding: 24px 40px;
+  border-radius: 24px;
+  box-shadow: 0 2px 18px #000c;
+  font-size: 1.1em;
+  text-align: center;
 }
 #helpBtn {
-  position:fixed;right:17px;bottom:17px;
-  background:#FFD700;color:#23013b;border:none;
-  border-radius:50%;width:52px;height:52px;box-shadow:0 0 12px #FFD700;
-  font-size:2em;font-weight:bold;z-index:2100;cursor:pointer;
-  transition:background 0.2s,transform 0.1s;
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  background: #ff5bcd;
+  color: #fff;
+  font-size: 2em;
+  width: 54px; height: 54px;
+  border-radius: 50%;
+  box-shadow: 0 4px 18px #0007;
+  z-index: 6000;
+  border: none;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
 }
-#helpBtn:hover { background:#ff0055; color:#fff; transform:scale(1.08);}
+#helpBtn:active {
+  background: #ffe85b;
+  color: #ff5bcd;
+  transform: scale(1.11);
+}
+
+/* Аудио контроли */
+#audio-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 12px 0 6px 0;
+}
+.volume-slider {
+  width: 64px;
+  accent-color: #ff5bcd;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  #gameFrame {
+    max-width: 98vw;
+    padding: 7px 2vw 7px 2vw;
+  }
+  #paytable {
+    max-width: 99vw;
+    font-size: 1em;
+    padding: 10px 1vw;
+  }
+  #helpOverlay > div {
+    padding: 14px 3vw;
+    font-size: 1em;
+  }
+  #helpBtn {
+    bottom: 12px;
+    right: 12px;
+  }
+}
+
+/* Скрий стрелките на input[type=number] в Chrome */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
