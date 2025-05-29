@@ -46,6 +46,7 @@
   const totalWinBox = document.getElementById('totalWin');
 
   // --- Аудио елементи и контрол ---
+  // Пътищата са вече зададени в HTML като src="audio/..."
   const audioSpin = document.getElementById('audio-spin');
   const audioWin = document.getElementById('audio-win');
   const audioLose = document.getElementById('audio-lose');
@@ -322,7 +323,53 @@
       animationFrameId = requestAnimationFrame(animationLoop);
     }
   }
-      // --- Win/Lose ефекти и монети ---
+    // --- Генерирай нова решетка за играта ---
+  function generateGridSafe() {
+    let arr = [];
+    for (let r = 0; r < GRID_SIZE; r++) {
+      arr[r] = [];
+      for (let c = 0; c < GRID_SIZE; c++) {
+        let rnd = Math.random();
+        let idx = ACCUM_PROBS.findIndex(p => rnd < p);
+        if (idx < 0) idx = FRUITS.length - 1;
+        arr[r][c] = FRUITS[idx].char;
+      }
+    }
+    return arr;
+  }
+
+  // --- Откриване на печеливши линии ---
+  function calcWins() {
+    let lines = [];
+    // Хоризонтални
+    for (let r = 0; r < GRID_SIZE; r++) {
+      let fruit = grid[r][0];
+      if (grid[r].every(f => f === fruit)) {
+        lines.push({ type: 'row', row: r, fruit, points: FRUIT_POINTS[fruit] * (selectedBet / 20), coords: grid[r].map((_, c) => [r, c]) });
+      }
+    }
+    // Вертикални
+    for (let c = 0; c < GRID_SIZE; c++) {
+      let fruit = grid[0][c];
+      let win = true;
+      for (let r = 0; r < GRID_SIZE; r++) if (grid[r][c] !== fruit) win = false;
+      if (win) {
+        lines.push({ type: 'col', col: c, fruit, points: FRUIT_POINTS[fruit] * (selectedBet / 20), coords: grid.map((_, r) => [r, c]) });
+      }
+    }
+    // Диагонали
+    let fruit1 = grid[0][0], win1 = true;
+    for (let i = 0; i < GRID_SIZE; i++) if (grid[i][i] !== fruit1) win1 = false;
+    if (win1) lines.push({ type: 'diag', diag: 1, fruit: fruit1, points: FRUIT_POINTS[fruit1] * (selectedBet / 20), coords: grid.map((_, i) => [i, i]) });
+
+    let fruit2 = grid[0][GRID_SIZE-1], win2 = true;
+    for (let i = 0; i < GRID_SIZE; i++) if (grid[i][GRID_SIZE-1-i] !== fruit2) win2 = false;
+    if (win2) lines.push({ type: 'diag', diag: 2, fruit: fruit2, points: FRUIT_POINTS[fruit2] * (selectedBet / 20), coords: grid.map((_, i) => [i, GRID_SIZE-1-i]) });
+
+    return { lines };
+  }
+
+  // --- Win/Lose ефекти и монети ---
   function showCoinFall(amount) {
     const n = Math.min(10, Math.max(3, Math.floor(amount / 40)));
     for (let i = 0; i < n; i++) {
