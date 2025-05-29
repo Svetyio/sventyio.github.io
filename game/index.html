@@ -5,7 +5,6 @@
   <title>🍀 Svetlyo Casino Game</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
-  <!-- Google Fonts за 'Luckiest Guy' -->
   <link href="https://fonts.googleapis.com/css?family=Luckiest+Guy&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -19,6 +18,7 @@
       <div id="winLabel"></div>
       <div id="bigWinEffect"></div>
       <div id="coinContainer"></div>
+      <div id="loseLabel" style="display:none;"><div>Загуби всичко!<br>Рестартирай играта!</div></div>
     </div>
     <div id="info-row">
       <div id="coins" class="info-box">Монети: 0</div>
@@ -36,11 +36,11 @@
     <button id="spinBtn" class="spin-casino-btn">
       <span class="spin-casino-text">SPIN</span>
     </button>
-    <div id="spinTooltip">Задръж бутона за авто-спин</div>
+    <div id="spinTooltip" style="display:none;">Задръж бутона за авто-спин</div>
     <div id="autoSpinIndicator"></div>
     <div id="noCoinsMsg" style="display:none;">Недостатъчно монети!</div>
     <div id="winHistory"></div>
-    <button id="restartBtn" class="btn">Рестарт</button>
+    <button id="restartBtn" class="btn" style="display:none;">Рестарт</button>
     <div id="audio-controls">
       <button id="musicBtn" class="btn">🎵</button>
       <input type="range" id="musicVol" class="volume-slider" min="0" max="1" step="0.01" value="0.33">
@@ -71,7 +71,6 @@
       </div>
     </div>
     <button id="helpBtn" onclick="document.getElementById('helpOverlay').style.display='flex';">?</button>
-    <div id="loseLabel"><div>Загуби всичко!<br>Рестартирай играта!</div></div>
   </main>
 
   <!-- Аудио файловете са в поддиректория audio/ -->
