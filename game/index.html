@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>ELITE SWORD GAME - Casino Slot</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Roboto:wght@400;900&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
   <style>
     :root {
       --gold: #FFD700;
       --deep-red: #880000;
       --red-gradient: linear-gradient(180deg, #e10000 60%, #880000 100%);
-      --black: #111;
       --btn-green: #32cd32;
-      --btn-inactive: #222;
+      --btn-inactive: #262626;
+      --btn-outline: #FFD700;
       --white: #fff;
       --shadow-glow: 0 0 30px 8px #FFD70055, 0 0 0 7px #FFD70033;
     }
@@ -27,31 +27,31 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Roboto', Arial, sans-serif;
+      font-family: 'Orbitron', Arial, sans-serif;
       overflow-x: hidden;
     }
     .casino-container {
       background: rgba(20, 10, 5, 0.99);
       border: 5px solid var(--gold);
       border-radius: 26px;
-      box-shadow: 0 0 80px 12px var(--gold), 0 0 0 10px var(--deep-red) inset;
-      padding: 12px 6px 18px 6px;
+      box-shadow: 0 0 60px 8px var(--gold), 0 0 0 10px var(--deep-red) inset;
+      padding: 14px 8px 18px 8px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      max-width: 370px;
-      min-width: 250px;
+      max-width: 390px;
+      min-width: 260px;
       width: 96vw;
       position: relative;
       margin: 0 auto;
     }
     .casino-title {
-      font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
+      font-family: 'Orbitron', Arial, sans-serif;
       font-size: 2rem;
       letter-spacing: 0.13em;
       color: var(--gold);
       text-shadow: 0 0 12px var(--deep-red), 0 0 24px var(--gold);
-      margin-bottom: 7px;
+      margin-bottom: 8px;
       font-weight: 900;
       text-align: center;
       text-transform: uppercase;
@@ -67,13 +67,13 @@
       justify-content: space-between;
       display: flex;
       align-items: center;
-      margin: 8px 0 7px 0;
-      padding: 2px 6px 1px 6px;
-      font-size: 1.06rem;
+      margin: 10px 0 11px 0;
+      padding: 3px 8px 2px 8px;
+      font-size: 1.09rem;
       background: rgba(0,0,0,0.22);
       border-radius: 10px;
       color: var(--gold);
-      font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
+      font-family: 'Orbitron', Arial, sans-serif;
       font-weight: 900;
       box-shadow: 0 2px 9px 0 #FFD70033;
       border: 2px solid #FFD70044;
@@ -82,64 +82,15 @@
     }
     .balance-bar .stat-label {
       color: #FFD700cc;
-      font-size: 0.97em;
+      font-size: 1em;
       font-weight: 400;
       margin-right: 2px;
-    }
-    .bet-label {
-      color: #fff;
-      text-align: center;
-      font-family: 'Orbitron', Arial, sans-serif;
-      font-size: 1.09rem;
-      font-weight: 900;
-      margin: 10px 0 6px 0;
-      letter-spacing: 0.04em;
-      text-shadow: 0 2px 8px #88000033, 0 0 5px #FFD70044;
-      width: 100%;
-      user-select: none;
-    }
-    .bet-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin: 0 0 12px 0;
-      width: 100%;
-      z-index: 2;
-    }
-    .bet-btn {
-      background: var(--btn-inactive);
-      color: var(--white);
-      border: 2px solid var(--gold);
-      border-radius: 10px;
-      font-size: 1.2rem;
-      font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
-      font-weight: 900;
-      width: 42px; height: 38px;
-      cursor: pointer;
-      box-shadow: 0 2px 7px 0 #FFD70033, 0 0 0 3px #FFD70022 inset;
-      transition: background 0.15s, color 0.15s, box-shadow 0.13s;
-      outline: none;
-      user-select: none;
-      letter-spacing: 1px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .bet-btn.selected {
-      background: var(--btn-green);
-      color: #000;
-      border: 2.5px solid #fff;
-      box-shadow: 0 0 12px 2px #32cd32aa,0 0 0 2px #FFD70044 inset;
-    }
-    .bet-btn:active:not(.selected) {
-      background: #444;
-      color: #FFD700;
     }
     .slot-outer {
       background: linear-gradient(160deg, #222 90%, #FFD70022 100%);
       border: 4px solid var(--gold);
       border-radius: 13px;
-      padding: 13px 6px;
+      padding: 14px 8px 14px 8px;
       box-shadow: 0 0 22px 5px #FFD70044, 0 0 0 5px #88000088 inset;
       margin-bottom: 12px;
       position: relative;
@@ -153,9 +104,9 @@
     }
     .slot-machine {
       display: grid;
-      grid-template-columns: repeat(3, 56px);
-      grid-template-rows: repeat(3, 56px);
-      gap: 7px;
+      grid-template-columns: repeat(3, 58px);
+      grid-template-rows: repeat(3, 58px);
+      gap: 9px;
       z-index: 2;
       margin: 0 auto;
       justify-content: center;
@@ -164,19 +115,19 @@
     .slot-cell {
       background: linear-gradient(135deg, #111 70%, #880000 100%);
       border: 2.5px solid var(--gold);
-      border-radius: 7px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2rem;
-      font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
+      font-size: 2.1rem;
+      font-family: 'Orbitron', Arial, sans-serif;
       font-weight: 900;
       color: var(--gold);
       text-shadow: 0 0 12px var(--deep-red), 0 0 8px var(--gold);
       transition: transform 0.21s cubic-bezier(.32,.72,.43,1.33), box-shadow 0.19s;
       box-shadow: 0 0 7px 0 #FFD70033;
       user-select: none;
-      width: 56px; height: 56px;
+      width: 58px; height: 58px;
     }
     .slot-cell.winner {
       background: linear-gradient(135deg, var(--gold) 80%, #e10000 100%);
@@ -191,18 +142,72 @@
       0%   { filter: brightness(1.1) }
       100% { filter: brightness(1.64) }
     }
-    /* Нов дизайн за Spin бутона */
+    /* Надпис над залозите */
+    .bet-label {
+      color: #fff;
+      text-align: center;
+      font-family: 'Orbitron', Arial, sans-serif;
+      font-size: 1.11rem;
+      font-weight: 900;
+      margin: 15px 0 7px 0;
+      letter-spacing: 0.04em;
+      text-shadow: 0 2px 8px #88000033, 0 0 5px #FFD70044;
+      width: 100%;
+      user-select: none;
+    }
+    /* Дизайн на бутоните за залог */
+    .bet-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin: 0 0 13px 0;
+      width: 100%;
+      z-index: 2;
+    }
+    .bet-btn {
+      background: var(--btn-inactive);
+      color: var(--gold);
+      border: 2.5px solid var(--gold);
+      border-radius: 16px;
+      font-size: 1.35rem;
+      font-family: 'Orbitron', Arial, sans-serif;
+      font-weight: 900;
+      width: 62px; height: 52px;
+      cursor: pointer;
+      box-shadow: 0 2px 9px 0 #FFD70033, 0 0 0 4px #FFD70022 inset;
+      transition: background 0.15s, color 0.15s, box-shadow 0.13s, border 0.13s;
+      outline: none;
+      user-select: none;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      text-align: center;
+      line-height: 1;
+    }
+    .bet-btn.selected {
+      background: var(--gold);
+      color: #880000;
+      border: 2.5px solid #fff;
+      box-shadow: 0 0 16px 4px #FFD700cc,0 0 0 3px #FFD70044 inset;
+    }
+    .bet-btn:active:not(.selected) {
+      background: #444;
+      color: #FFD700;
+    }
+    /* Spin button */
     .spin-btn {
       margin-top: 5px;
       background: var(--red-gradient);
       border: 3px solid var(--gold);
       border-radius: 40px;
-      font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
-      font-size: 1.45rem;
+      font-family: 'Orbitron', Arial, sans-serif;
+      font-size: 1.5rem;
       font-weight: 900;
       color: #fff;
-      padding: 15px 62px;
-      box-shadow: 0 8px 30px 0 #FFD70088, 0 0 0 8px #FFD70033 inset, 0 0 30px 6px #88000055;
+      padding: 18px 65px;
+      box-shadow: 0 8px 30px 0 #FFD70088, 0 0 0 8px #FFD70022 inset, 0 0 30px 6px #88000055;
       cursor: pointer;
       letter-spacing: 0.12em;
       transition: background 0.17s, transform 0.13s, box-shadow 0.17s, color 0.13s;
@@ -215,6 +220,7 @@
       border-top-width: 2px;
       border-left-width: 3px;
       border-right-width: 3px;
+      margin-bottom: 10px;
     }
     .spin-btn:hover, .spin-btn:active {
       background: linear-gradient(180deg, #ff2222 80%, #e10000 100%);
@@ -230,7 +236,7 @@
       border-radius: 10px;
       border: 2px solid var(--gold);
       box-shadow: 0 2px 7px 0 #FFD70033, 0 0 0 2px #88000033 inset;
-      font-family: 'Roboto', Arial, sans-serif;
+      font-family: 'Orbitron', Arial, sans-serif;
       color: var(--gold);
       font-size: 1.02rem;
       overflow: hidden;
@@ -241,8 +247,8 @@
       padding: 5px 0;
       text-align: center;
       border-bottom: 1.5px solid #FFD70022;
-      font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
-      font-size: 1.04em;
+      font-family: 'Orbitron', Arial, sans-serif;
+      font-size: 1.06em;
     }
     .payout-table th {
       background: #FFD70022;
@@ -253,15 +259,15 @@
       border-bottom: 2px solid #FFD70055;
     }
     .payout-table tr:last-child td { border-bottom: none; }
-    .payout-table .icon { font-size: 1.35em; }
+    .payout-table .icon { font-size: 1.32em; }
     /* Responsive */
     @media (max-width: 600px) {
       .casino-container { padding: 2vw 0 6vw 0; max-width: 99vw; min-width: unset; }
       .casino-title { font-size: 1.09rem; }
       .balance-bar { font-size: 0.97rem; }
-      .bet-label { font-size: 0.99rem; }
-      .bet-btn { font-size: 1.01rem; width: 28px; height: 27px; }
-      .slot-outer { padding: 5px 2vw; }
+      .bet-label { font-size: 1.01rem; }
+      .bet-btn { font-size: 1.01rem; width: 17vw; height: 12vw; min-width: 48px; min-height: 38px; max-width: 79px; max-height: 55px; }
+      .slot-outer { padding: 7px 2vw; }
       .slot-machine {
         grid-template-columns: repeat(3, 16vw);
         grid-template-rows: repeat(3, 16vw);
@@ -285,18 +291,16 @@
       <span class="stat-label">Залог:</span> <span id="bet">20</span>
       <span class="stat-label">Печалба:</span> <span id="lastWin">0</span>
     </div>
-    <div class="bet-label">Изберете залог:</div>
+    <div class="slot-outer">
+      <div class="slot-machine" id="slot"></div>
+    </div>
+    <div class="bet-label">Изберете залог</div>
     <div class="bet-buttons" id="betButtons">
       <button class="bet-btn selected" data-bet="20">20</button>
       <button class="bet-btn" data-bet="40">40</button>
       <button class="bet-btn" data-bet="60">60</button>
       <button class="bet-btn" data-bet="100">100</button>
       <button class="bet-btn" data-bet="200">200</button>
-    </div>
-    <div class="slot-outer">
-      <div class="slot-machine" id="slot">
-        <!-- 9 клетки, попълват се с JS -->
-      </div>
     </div>
     <button class="spin-btn" id="spinBtn">SPIN</button>
     <div class="payout-table" id="payoutTable"></div>
@@ -454,8 +458,8 @@
         grid.style.gridTemplateColumns = `repeat(3, ${cellSize}px)`;
         grid.style.gridTemplateRows = `repeat(3, ${cellSize}px)`;
       } else {
-        grid.style.gridTemplateColumns = `repeat(3, 56px)`;
-        grid.style.gridTemplateRows = `repeat(3, 56px)`;
+        grid.style.gridTemplateColumns = `repeat(3, 58px)`;
+        grid.style.gridTemplateRows = `repeat(3, 58px)`;
       }
     }
     window.addEventListener('resize',resizeSlots);
