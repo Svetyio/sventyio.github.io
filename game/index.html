@@ -2,469 +2,271 @@
 <html lang="bg">
 <head>
   <meta charset="UTF-8">
-  <title>ELITE SWORD GAME - Casino Slot</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
+  <title>Mini Royale</title>
   <style>
-    :root {
-      --gold: #FFD700;
-      --deep-red: #880000;
-      --red-gradient: linear-gradient(180deg, #e10000 60%, #880000 100%);
-      --btn-green: #32cd32;
-      --btn-inactive: #262626;
-      --btn-outline: #FFD700;
-      --white: #fff;
-      --shadow-glow: 0 0 30px 8px #FFD70055, 0 0 0 7px #FFD70033;
-    }
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      background: linear-gradient(140deg, #000 60%, #880000 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Orbitron', Arial, sans-serif;
-      overflow-x: hidden;
-    }
-    .casino-container {
-      background: rgba(20, 10, 5, 0.99);
-      border: 5px solid var(--gold);
-      border-radius: 26px;
-      box-shadow: 0 0 60px 8px var(--gold), 0 0 0 10px var(--deep-red) inset;
-      padding: 14px 8px 18px 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      max-width: 390px;
-      min-width: 260px;
-      width: 96vw;
-      position: relative;
-      margin: 0 auto;
-    }
-    .casino-title {
-      font-family: 'Orbitron', Arial, sans-serif;
-      font-size: 2rem;
-      letter-spacing: 0.13em;
-      color: var(--gold);
-      text-shadow: 0 0 12px var(--deep-red), 0 0 24px var(--gold);
-      margin-bottom: 8px;
-      font-weight: 900;
-      text-align: center;
-      text-transform: uppercase;
-      border-bottom: 2px solid #FFD70044;
-      padding-bottom: 6px;
-      width: 100%;
-      user-select: none;
-      z-index: 2;
-      background: rgba(0,0,0,0.12);
-    }
-    .balance-bar {
-      width: 100%;
-      justify-content: space-between;
-      display: flex;
-      align-items: center;
-      margin: 10px 0 11px 0;
-      padding: 3px 8px 2px 8px;
-      font-size: 1.09rem;
-      background: rgba(0,0,0,0.22);
-      border-radius: 10px;
-      color: var(--gold);
-      font-family: 'Orbitron', Arial, sans-serif;
-      font-weight: 900;
-      box-shadow: 0 2px 9px 0 #FFD70033;
-      border: 2px solid #FFD70044;
-      z-index: 2;
-      gap: 4px;
-    }
-    .balance-bar .stat-label {
-      color: #FFD700cc;
-      font-size: 1em;
-      font-weight: 400;
-      margin-right: 2px;
-    }
-    .slot-outer {
-      background: linear-gradient(160deg, #222 90%, #FFD70022 100%);
-      border: 4px solid var(--gold);
-      border-radius: 13px;
-      padding: 14px 8px 14px 8px;
-      box-shadow: 0 0 22px 5px #FFD70044, 0 0 0 5px #88000088 inset;
-      margin-bottom: 12px;
-      position: relative;
-      z-index: 2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 180px;
-      width: 100%;
-      max-width: 99vw;
-    }
-    .slot-machine {
-      display: grid;
-      grid-template-columns: repeat(3, 58px);
-      grid-template-rows: repeat(3, 58px);
-      gap: 9px;
-      z-index: 2;
-      margin: 0 auto;
-      justify-content: center;
-      align-items: center;
-    }
-    .slot-cell {
-      background: linear-gradient(135deg, #111 70%, #880000 100%);
-      border: 2.5px solid var(--gold);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.1rem;
-      font-family: 'Orbitron', Arial, sans-serif;
-      font-weight: 900;
-      color: var(--gold);
-      text-shadow: 0 0 12px var(--deep-red), 0 0 8px var(--gold);
-      transition: transform 0.21s cubic-bezier(.32,.72,.43,1.33), box-shadow 0.19s;
-      box-shadow: 0 0 7px 0 #FFD70033;
-      user-select: none;
-      width: 58px; height: 58px;
-    }
-    .slot-cell.winner {
-      background: linear-gradient(135deg, var(--gold) 80%, #e10000 100%);
-      color: #880000;
-      transform: scale(1.15) rotate(-2deg);
-      box-shadow: 0 0 16px 7px var(--gold),0 0 0 3px #88000088 inset;
-      border-color: #e10000;
-      z-index: 2;
-      animation: winner-flash 0.57s alternate infinite;
-    }
-    @keyframes winner-flash {
-      0%   { filter: brightness(1.1) }
-      100% { filter: brightness(1.64) }
-    }
-    /* Надпис над залозите */
-    .bet-label {
-      color: #fff;
-      text-align: center;
-      font-family: 'Orbitron', Arial, sans-serif;
-      font-size: 1.11rem;
-      font-weight: 900;
-      margin: 15px 0 7px 0;
-      letter-spacing: 0.04em;
-      text-shadow: 0 2px 8px #88000033, 0 0 5px #FFD70044;
-      width: 100%;
-      user-select: none;
-    }
-    /* Дизайн на бутоните за залог */
-    .bet-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      margin: 0 0 13px 0;
-      width: 100%;
-      z-index: 2;
-    }
-    .bet-btn {
-      background: var(--btn-inactive);
-      color: var(--gold);
-      border: 2.5px solid var(--gold);
-      border-radius: 16px;
-      font-size: 1.35rem;
-      font-family: 'Orbitron', Arial, sans-serif;
-      font-weight: 900;
-      width: 62px; height: 52px;
+    html, body { height: 100%; margin: 0; }
+    body { background: #20232a; color: #fff; font-family: sans-serif; }
+    #gameCanvas { background: #3e8e41; display: block; margin: 20px auto; border-radius: 20px;}
+    #hand { text-align: center; margin-top: 10px; }
+    .card-btn {
+      padding: 10px 18px;
+      margin: 0 5px;
+      border-radius: 12px;
+      border: 2px solid #222;
+      background: #fff;
+      color: #20232a;
+      font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 2px 9px 0 #FFD70033, 0 0 0 4px #FFD70022 inset;
-      transition: background 0.15s, color 0.15s, box-shadow 0.13s, border 0.13s;
-      outline: none;
-      user-select: none;
-      letter-spacing: 1px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0;
-      text-align: center;
-      line-height: 1;
+      font-size: 18px;
     }
-    .bet-btn.selected {
-      background: var(--gold);
-      color: #880000;
-      border: 2.5px solid #fff;
-      box-shadow: 0 0 16px 4px #FFD700cc,0 0 0 3px #FFD70044 inset;
-    }
-    .bet-btn:active:not(.selected) {
-      background: #444;
-      color: #FFD700;
-    }
-    /* Spin button */
-    .spin-btn {
-      margin-top: 5px;
-      background: var(--red-gradient);
-      border: 3px solid var(--gold);
-      border-radius: 40px;
-      font-family: 'Orbitron', Arial, sans-serif;
-      font-size: 1.5rem;
-      font-weight: 900;
-      color: #fff;
-      padding: 18px 65px;
-      box-shadow: 0 8px 30px 0 #FFD70088, 0 0 0 8px #FFD70022 inset, 0 0 30px 6px #88000055;
-      cursor: pointer;
-      letter-spacing: 0.12em;
-      transition: background 0.17s, transform 0.13s, box-shadow 0.17s, color 0.13s;
-      text-shadow: 0 0 6px var(--gold), 0 0 12px #88000055;
-      outline: none;
-      user-select: none;
-      z-index: 2;
-      min-width: 140px;
-      border-bottom-width: 4px;
-      border-top-width: 2px;
-      border-left-width: 3px;
-      border-right-width: 3px;
-      margin-bottom: 10px;
-    }
-    .spin-btn:hover, .spin-btn:active {
-      background: linear-gradient(180deg, #ff2222 80%, #e10000 100%);
-      color: var(--gold);
-      transform: scale(1.04) translateY(-2px);
-      box-shadow: 0 0 32px 8px var(--gold), 0 0 0 10px #FFD70033 inset;
-      text-shadow: 0 0 16px #fff, 0 0 12px #FFD700;
-    }
-    .payout-table {
-      width: 100%;
-      margin-top: 16px;
-      background: rgba(0,0,0,0.19);
-      border-radius: 10px;
-      border: 2px solid var(--gold);
-      box-shadow: 0 2px 7px 0 #FFD70033, 0 0 0 2px #88000033 inset;
-      font-family: 'Orbitron', Arial, sans-serif;
-      color: var(--gold);
-      font-size: 1.02rem;
-      overflow: hidden;
-      z-index: 2;
-    }
-    .payout-table table { width: 100%; border-collapse: collapse; }
-    .payout-table th, .payout-table td {
-      padding: 5px 0;
-      text-align: center;
-      border-bottom: 1.5px solid #FFD70022;
-      font-family: 'Orbitron', Arial, sans-serif;
-      font-size: 1.06em;
-    }
-    .payout-table th {
-      background: #FFD70022;
-      color: #fff;
-      font-weight: 900;
-      font-size: 1.08em;
-      letter-spacing: 1px;
-      border-bottom: 2px solid #FFD70055;
-    }
-    .payout-table tr:last-child td { border-bottom: none; }
-    .payout-table .icon { font-size: 1.32em; }
-    /* Responsive */
-    @media (max-width: 600px) {
-      .casino-container { padding: 2vw 0 6vw 0; max-width: 99vw; min-width: unset; }
-      .casino-title { font-size: 1.09rem; }
-      .balance-bar { font-size: 0.97rem; }
-      .bet-label { font-size: 1.01rem; }
-      .bet-btn { font-size: 1.01rem; width: 17vw; height: 12vw; min-width: 48px; min-height: 38px; max-width: 79px; max-height: 55px; }
-      .slot-outer { padding: 7px 2vw; }
-      .slot-machine {
-        grid-template-columns: repeat(3, 16vw);
-        grid-template-rows: repeat(3, 16vw);
-      }
-      .slot-cell { font-size: 1.1rem; width: 16vw; height: 16vw; }
-      .spin-btn { padding: 10px 7vw; font-size: 0.98rem; min-width: 72px; }
-      .payout-table { font-size: 0.91rem; }
-      .payout-table .icon { font-size: 1em; }
-    }
-    @media (max-width: 350px) {
-      .casino-title { font-size: 0.86rem; }
-      .balance-bar { font-size: 0.81rem; }
-    }
+    #elixir { text-align:center; font-size: 22px; margin-top: 5px;}
+    #winMsg { text-align:center; font-size:28px; color: gold; margin-top: 14px;}
   </style>
 </head>
 <body>
-  <div class="casino-container">
-    <div class="casino-title">ELITE SWORD GAME</div>
-    <div class="balance-bar">
-      <span class="stat-label">Баланс:</span> <span id="balance">1000</span> <span>💰</span>
-      <span class="stat-label">Залог:</span> <span id="bet">20</span>
-      <span class="stat-label">Печалба:</span> <span id="lastWin">0</span>
-    </div>
-    <div class="slot-outer">
-      <div class="slot-machine" id="slot"></div>
-    </div>
-    <div class="bet-label">Изберете залог</div>
-    <div class="bet-buttons" id="betButtons">
-      <button class="bet-btn selected" data-bet="20">20</button>
-      <button class="bet-btn" data-bet="40">40</button>
-      <button class="bet-btn" data-bet="60">60</button>
-      <button class="bet-btn" data-bet="100">100</button>
-      <button class="bet-btn" data-bet="200">200</button>
-    </div>
-    <button class="spin-btn" id="spinBtn">SPIN</button>
-    <div class="payout-table" id="payoutTable"></div>
-  </div>
-  <script>
-    const SYMBOLS = [
-      {icon:"🗡️", color:"#FFD700", name:"Меч", payout:15},
-      {icon:"💰", color:"#FFD700", name:"Злато", payout:30},
-      {icon:"7", color:"#FF2222", name:"Седмица", payout:60},
-      {icon:"💎", color:"#00ccff", name:"Диамант", payout:40},
-      {icon:"👑", color:"#FFD700", name:"Корона", payout:80},
-      {icon:"🍀", color:"#3ecf30", name:"Детелина", payout:100},
-      {icon:"🦄", color:"#e100ff", name:"Еднорог", payout:250}
-    ];
-    let balance = 1000;
-    let bet = 20;
-    let lastWin = 0;
+  <canvas id="gameCanvas" width="700" height="400"></canvas>
+  <div id="elixir"></div>
+  <div id="hand"></div>
+  <div id="winMsg"></div>
+<script>
+// --- Game constants
+const CARD_TYPES = [
+  { name: 'Воин', emoji: '🗡️', hp: 80, dmg: 25, speed: 1.5, elixir: 3, color: '#e74c3c' },
+  { name: 'Стрелец', emoji: '🏹', hp: 60, dmg: 15, speed: 2, elixir: 2, color: '#f1c40f' },
+  { name: 'Танк', emoji: '🛡️', hp: 180, dmg: 15, speed: 1, elixir: 5, color: '#2980b9' },
+  { name: 'Бързак', emoji: '⚡', hp: 40, dmg: 20, speed: 3, elixir: 1, color: '#2ecc71' }
+];
+const PLAYER_BASE = { x: 100, y: 350 }, ENEMY_BASE = { x: 600, y: 50 };
+const BASE_HP = 300, TOWER_HP = 120;
+const CANVAS_W = 700, CANVAS_H = 400;
+const MAX_ELIXIR = 10, ELIXIR_REGEN = 0.025;
+const UNIT_SIZE = 32;
 
-    const slot = document.getElementById('slot');
-    const spinBtn = document.getElementById('spinBtn');
-    const balanceEl = document.getElementById('balance');
-    const betEl = document.getElementById('bet');
-    const lastWinEl = document.getElementById('lastWin');
-    const betBtnsWrap = document.getElementById('betButtons');
-    const payoutTable = document.getElementById('payoutTable');
+let game, ctx, aiTimer = 0;
 
-    function renderPayoutTable() {
-      payoutTable.innerHTML = `
-        <table>
-          <tr><th>Символ</th><th>Име</th><th>3 в линия</th></tr>
-          ${SYMBOLS.map(s=>`<tr>
-            <td class="icon" style="color:${s.color}">${s.icon}</td>
-            <td>${s.name}</td>
-            <td style="color:${s.color};font-weight:900;">${s.payout} x залога</td>
-          </tr>`).join("")}
-        </table>
-      `;
-    }
-    renderPayoutTable();
+// --- Game state
+function newGame() {
+  return {
+    player: {
+      units: [],
+      baseHp: BASE_HP,
+      towerHp: [TOWER_HP,TOWER_HP],
+      elixir: 5
+    },
+    enemy: {
+      units: [],
+      baseHp: BASE_HP,
+      towerHp: [TOWER_HP,TOWER_HP],
+      elixir: 5
+    },
+    units: [],
+    time: 0,
+    winner: null
+  };
+}
 
-    betBtnsWrap.querySelectorAll('.bet-btn').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        betBtnsWrap.querySelectorAll('.bet-btn').forEach(b=>b.classList.remove('selected'));
-        btn.classList.add('selected');
-        bet = parseInt(btn.dataset.bet);
-        betEl.textContent = bet;
-      });
-    });
+// --- Rendering
+function drawGame(g) {
+  ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+  // Arena
+  ctx.fillStyle = "#53a653";
+  ctx.fillRect(60,80,580,240);
+  ctx.strokeStyle="#fff";
+  ctx.lineWidth=2;
+  ctx.strokeRect(60,80,580,240);
 
-    let cells = [];
-    function createGrid() {
-      slot.innerHTML = "";
-      cells = [];
-      for (let i = 0; i < 9; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'slot-cell';
-        const symbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-        cell.textContent = symbol.icon;
-        cell.style.color = symbol.color;
-        slot.appendChild(cell);
-        cells.push(cell);
+  // Towers
+  drawTower(160, 320, g.player.towerHp[0]);
+  drawTower(540, 320, g.player.towerHp[1]);
+  drawTower(160, 60, g.enemy.towerHp[0]);
+  drawTower(540, 60, g.enemy.towerHp[1]);
+
+  // Bases
+  drawBase(PLAYER_BASE.x, PLAYER_BASE.y, g.player.baseHp, true);
+  drawBase(ENEMY_BASE.x, ENEMY_BASE.y, g.enemy.baseHp, false);
+
+  // Units
+  for (let u of g.units) drawUnit(u);
+
+  // HP bars
+  drawHpBar(PLAYER_BASE.x, PLAYER_BASE.y+32, g.player.baseHp, BASE_HP);
+  drawHpBar(ENEMY_BASE.x, ENEMY_BASE.y+32, g.enemy.baseHp, BASE_HP);
+}
+
+function drawBase(x,y,hp,isPlayer) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x,y,28,0,2*Math.PI);
+  ctx.fillStyle = isPlayer ? '#4444ff' : '#ff4444';
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#fff';
+  ctx.stroke();
+  ctx.restore();
+}
+function drawTower(x,y,hp) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x-18,y-18,36,36);
+  ctx.fillStyle = "#888";
+  ctx.fill();
+  ctx.lineWidth=2;
+  ctx.strokeStyle="#fff";
+  ctx.stroke();
+  drawHpBar(x, y+20, hp, TOWER_HP);
+  ctx.restore();
+}
+function drawUnit(u) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(u.x, u.y, UNIT_SIZE/2, 0, 2*Math.PI);
+  ctx.fillStyle = u.color;
+  ctx.fill();
+  ctx.font = "22px sans-serif";
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+  ctx.fillStyle="#fff";
+  ctx.fillText(u.emoji, u.x, u.y);
+  ctx.restore();
+  drawHpBar(u.x, u.y+20, u.hp, u.maxHp);
+}
+function drawHpBar(x,y,hp,maxHp) {
+  ctx.save();
+  let pct = Math.max(0,hp)/maxHp;
+  ctx.fillStyle = "#222";
+  ctx.fillRect(x-18, y, 36, 5);
+  ctx.fillStyle = pct>0.5 ? "#2ecc71" : pct>0.2?"#f1c40f":"#e74c3c";
+  ctx.fillRect(x-18, y, 36*pct, 5);
+  ctx.restore();
+}
+
+// --- Game logic
+function gameTick(g, dt) {
+  // Regen elixir
+  g.player.elixir = Math.min(MAX_ELIXIR, g.player.elixir+ELIXIR_REGEN*dt);
+  g.enemy.elixir = Math.min(MAX_ELIXIR, g.enemy.elixir+ELIXIR_REGEN*dt);
+
+  // Units move
+  for (let u of g.units) {
+    if (u.hp<=0) continue;
+    let target = u.isPlayer ? enemyTarget(g, u) : playerTarget(g, u);
+    if (target && dist(u,target)<=u.range) {
+      // Attack
+      if (!u.lastAttack || g.time-u.lastAttack>40) {
+        target.hp -= u.dmg;
+        u.lastAttack = g.time;
       }
+    } else if (target) {
+      // Move towards
+      let angle = Math.atan2(target.y-u.y, target.x-u.x);
+      u.x += Math.cos(angle)*u.speed*dt*0.04;
+      u.y += Math.sin(angle)*u.speed*dt*0.04;
     }
+  }
+  // Remove dead units
+  g.units = g.units.filter(u=>u.hp>0);
 
-    function spinAnimation(duration = 1100, fps = 60) {
-      return new Promise(resolve => {
-        let elapsed = 0, interval = 1000 / fps, spinTicks = 0;
-        let spin = setInterval(() => {
-          for (let i = 0; i < 9; i++) {
-            const symbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-            cells[i].textContent = symbol.icon;
-            cells[i].style.color = symbol.color;
-            cells[i].style.transform = `scale(${1 + 0.07*Math.sin(spinTicks+i)}) rotate(${(spinTicks*12+i*28)%360}deg)`;
-          }
-          spinTicks++;
-          elapsed += interval;
-          if (elapsed >= duration) {
-            clearInterval(spin);
-            resolve();
-          }
-        }, interval);
-      });
-    }
+  // Check win
+  if (g.enemy.baseHp<=0) g.winner = 'ВИЕ';
+  if (g.player.baseHp<=0) g.winner = 'AI';
+}
 
-    function checkWinner() {
-      let lines = [
-        [0,1,2],[3,4,5],[6,7,8],
-        [0,3,6],[1,4,7],[2,5,8],
-        [0,4,8],[2,4,6]
-      ];
-      let wins = [];
-      for (const line of lines) {
-        let [a,b,c] = line;
-        if (
-          cells[a].textContent === cells[b].textContent &&
-          cells[a].textContent === cells[c].textContent
-        ) {
-          let sym = SYMBOLS.find(s=>s.icon===cells[a].textContent);
-          wins.push({line, symbol:sym});
-        }
-      }
-      return wins;
-    }
+function dist(a,b) {
+  let dx = a.x-b.x, dy = a.y-b.y;
+  return Math.sqrt(dx*dx+dy*dy);
+}
 
-    async function spin() {
-      if(bet > balance) {
-        alert("Недостатъчен баланс!");
-        return;
-      }
-      spinBtn.disabled = true;
-      spinBtn.textContent = "SPINNING...";
-      cells.forEach(cell => cell.classList.remove('winner'));
-      lastWin = 0;
-      lastWinEl.textContent = 0;
-      balance -= bet;
-      balanceEl.textContent = balance;
-      await spinAnimation(1150, 80);
-      for (let i = 0; i < 9; i++) {
-        const symbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-        cells[i].textContent = symbol.icon;
-        cells[i].style.color = symbol.color;
-        cells[i].style.transform = "scale(1) rotate(0deg)";
-      }
-      let wins = checkWinner();
-      let totalWin = 0;
-      if (wins.length > 0) {
-        wins.forEach(win=>{
-          win.line.forEach(idx => cells[idx].classList.add('winner'));
-          totalWin += bet * win.symbol.payout;
-        });
-        lastWin = totalWin;
-        lastWinEl.textContent = totalWin;
-        balance += totalWin;
-        balanceEl.textContent = balance;
-        spinBtn.textContent = "JACKPOT! 🎉";
-        setTimeout(()=>{spinBtn.textContent="SPIN"},1800);
-      } else {
-        spinBtn.textContent = "TRY AGAIN";
-        setTimeout(()=>{spinBtn.textContent="SPIN"},1200);
-      }
-      spinBtn.disabled = false;
-    }
+function enemyTarget(g, u) {
+  // 1. Близък играчки юнит, 2. кула, 3. база
+  let candidates = g.player.units.filter(x=>dist(u,x)<80);
+  if (candidates.length) return candidates[0];
+  for (let i=0;i<2;i++) if (g.player.towerHp[i]>0 && dist(u, tPos(i,true))<60) return {hp:g.player.towerHp[i], setHp:v=>g.player.towerHp[i]=v, x:tPos(i,true).x, y:tPos(i,true).y};
+  if (g.player.baseHp>0 && dist(u,PLAYER_BASE)<48) return {hp:g.player.baseHp, setHp:v=>g.player.baseHp=v, x:PLAYER_BASE.x, y:PLAYER_BASE.y};
+  return null;
+}
+function playerTarget(g, u) {
+  // 1. Близък враг юнит, 2. кула, 3. база
+  let candidates = g.enemy.units.filter(x=>dist(u,x)<80);
+  if (candidates.length) return candidates[0];
+  for (let i=0;i<2;i++) if (g.enemy.towerHp[i]>0 && dist(u, tPos(i,false))<60) return {hp:g.enemy.towerHp[i], setHp:v=>g.enemy.towerHp[i]=v, x:tPos(i,false).x, y:tPos(i,false).y};
+  if (g.enemy.baseHp>0 && dist(u,ENEMY_BASE)<48) return {hp:g.enemy.baseHp, setHp:v=>g.enemy.baseHp=v, x:ENEMY_BASE.x, y:ENEMY_BASE.y};
+  return null;
+}
+function tPos(idx, isPlayer) {
+  return { x: idx==0?160:540, y: isPlayer?320:60 };
+}
 
-    createGrid();
-    balanceEl.textContent = balance;
-    betEl.textContent = bet;
-    lastWinEl.textContent = lastWin;
-    spinBtn.addEventListener('click', spin);
+// --- Card UI
+function renderHand() {
+  let hand = document.getElementById('hand');
+  hand.innerHTML = '';
+  CARD_TYPES.forEach((c,i)=>{
+    let btn = document.createElement('button');
+    btn.className = 'card-btn';
+    btn.innerText = `${c.emoji} ${c.name} (${c.elixir})`;
+    btn.disabled = (game.player.elixir < c.elixir) || game.winner;
+    btn.onclick = ()=>playCard(i);
+    hand.appendChild(btn);
+  });
+  document.getElementById('elixir').innerText = `Еликсир: ${Math.floor(game.player.elixir)} / ${MAX_ELIXIR}`;
+}
+function playCard(idx) {
+  let card = CARD_TYPES[idx];
+  if (game.player.elixir < card.elixir) return;
+  game.player.elixir -= card.elixir;
+  // Постави юнит близо до базата
+  let y = 320+Math.random()*40;
+  let u = {
+    ...card,
+    x: PLAYER_BASE.x+32+Math.random()*40,
+    y, maxHp: card.hp, hp: card.hp, isPlayer: true, range: 32
+  };
+  game.units.push(u);
+  game.player.units.push(u);
+}
 
-    function resizeSlots() {
-      let w = window.innerWidth;
-      let grid = slot;
-      if(w < 600) {
-        let cellSize = Math.max(Math.floor((w-44)/3), 46);
-        grid.style.gridTemplateColumns = `repeat(3, ${cellSize}px)`;
-        grid.style.gridTemplateRows = `repeat(3, ${cellSize}px)`;
-      } else {
-        grid.style.gridTemplateColumns = `repeat(3, 58px)`;
-        grid.style.gridTemplateRows = `repeat(3, 58px)`;
-      }
-    }
-    window.addEventListener('resize',resizeSlots);
-    resizeSlots();
-    slot.addEventListener('touchmove', e => e.preventDefault(), {passive:false});
-  </script>
+// --- AI
+function aiPlay(g) {
+  if (g.winner) return;
+  let available = CARD_TYPES.filter(c=>g.enemy.elixir>=c.elixir);
+  if (!available.length) return;
+  let card = available[Math.floor(Math.random()*available.length)];
+  g.enemy.elixir -= card.elixir;
+  let y = 60+Math.random()*40;
+  let u = {
+    ...card,
+    x: ENEMY_BASE.x-32-Math.random()*40,
+    y, maxHp: card.hp, hp: card.hp, isPlayer: false, range: 32
+  };
+  g.units.push(u);
+  g.enemy.units.push(u);
+}
+
+// --- Main loop
+function loop(ts) {
+  let now = performance.now();
+  let dt = now - (game._lastTick||now);
+  game._lastTick = now;
+  if (!game.winner && dt>0) {
+    game.time += dt;
+    gameTick(game, dt);
+    aiTimer += dt;
+    if (aiTimer>1500) { aiPlay(game); aiTimer=0; }
+  }
+  drawGame(game);
+  renderHand();
+  if (game.winner) {
+    document.getElementById('winMsg').innerText = game.winner=='ВИЕ' ? 'Победа! 🎉' : 'AI Победи!';
+  } else document.getElementById('winMsg').innerText = '';
+  requestAnimationFrame(loop);
+}
+
+// --- Init
+window.onload = function() {
+  ctx = document.getElementById('gameCanvas').getContext('2d');
+  game = newGame();
+  loop();
+};
+</script>
 </body>
 </html>
