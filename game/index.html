@@ -8,6 +8,44 @@
     <style>
         html,body{margin:0;padding:0;min-height:100vh;background:linear-gradient(to bottom,#232526,#414345 100%);}
         body{color:#fff;font-family:'Segoe UI',Arial,sans-serif;text-align:center;user-select:none;}
+        .casino-title {
+            font-family: 'Luckiest Guy', cursive, fantasy, sans-serif;
+            font-size: 2.7em;
+            color: #FFD700;
+            text-shadow:
+                0 2px 16px #fff6,
+                0 1px 0 #fff,
+                0 0 12px #F700FF,
+                0 0 8px #FFD700,
+                0 0 30px #ff0055aa;
+            -webkit-text-stroke: 2px #000;
+            margin: 24px 0 0 0;
+            letter-spacing: 2px;
+            animation: casino-glow 2.2s infinite alternate;
+        }
+        @keyframes casino-glow {
+            0% { color: #FFD700; filter: drop-shadow(0 0 8px #FFD700); }
+            40% { color: #fff;   filter: drop-shadow(0 0 22px #F700FF); }
+            60% { color: #FFD700; filter: drop-shadow(0 0 14px #FFD700); }
+            100% { color: #FFD700; filter: drop-shadow(0 0 8px #FFD700); }
+        }
+        .casino-welcome {
+            font-family: 'Luckiest Guy', cursive, fantasy, sans-serif;
+            font-size: 2em;
+            margin: 6px 0 0 0;
+            color: #00e676;
+            letter-spacing: 1px;
+            text-shadow:
+                0 2px 10px #000,
+                0 0 8px #FFD700,
+                0 0 24px #42e1fe;
+            -webkit-text-stroke: 1.5px #232526;
+            animation: casino-welcome-glow 2s infinite alternate;
+        }
+        @keyframes casino-welcome-glow {
+            0% { color: #00e676; text-shadow: 0 0 12px #FFD700, 0 0 16px #00e676;}
+            100% { color: #FFD700; text-shadow: 0 0 24px #00e676, 0 0 16px #FFD700;}
+        }
         .small-title{font-size:28px;font-weight:700;margin:28px auto 0 auto;letter-spacing:2px;max-width:99vw;text-shadow:0 2px 14px #000, 0 0 4px #F2C811;}
         #container{position:relative;width:100vw;max-width:430px;margin:0 auto;}
         #gameCanvas{display:block;margin:25px auto 5px auto;background:#17181C;border:8px solid #2ecc71;border-radius:24px;
@@ -59,11 +97,10 @@
     </style>
 </head>
 <body>
-    <div id="startScreen">
-        <h1>Svetlyo Slot</h1>
-        <div style="color:#fff;font-size:1.1em;">Добре дошъл!<br> 
-        
-</div>
+    <!-- Казино стил надпис -->
+    <div class="casino-welcome">Добре дошъл!</div>
+    <div class="casino-title">Svetlyo Slot Game</div>
+
     <div class="small-title">Svetlyo Games
         <button id="musicBtn" title="Музика ON/OFF">🎵</button>
         <button id="fxBtn" title="Ефекти ON/OFF">🔊</button>
