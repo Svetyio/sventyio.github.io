@@ -2,270 +2,547 @@
 <html lang="bg">
 <head>
   <meta charset="UTF-8">
-  <title>Mini Royale</title>
+  <title>Clash Royale Mini Clone</title>
   <style>
-    html, body { height: 100%; margin: 0; }
-    body { background: #20232a; color: #fff; font-family: sans-serif; }
-    #gameCanvas { background: #3e8e41; display: block; margin: 20px auto; border-radius: 20px;}
-    #hand { text-align: center; margin-top: 10px; }
-    .card-btn {
-      padding: 10px 18px;
+    body {
+      background: #263238;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #fff;
+    }
+    #game-root {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 24px;
+    }
+    #arena-canvas {
+      background: #388e3c;
+      border: 4px solid #222;
+      border-radius: 20px;
+      margin-bottom: 14px;
+      display: block;
+    }
+    #deck {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .card {
+      background: #fff3e0;
+      border: 2px solid #c7b299;
+      border-radius: 10px;
       margin: 0 5px;
-      border-radius: 12px;
-      border: 2px solid #222;
-      background: #fff;
-      color: #20232a;
+      padding: 4px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      min-width: 60px;
+      min-height: 70px;
+      user-select: none;
+      transition: box-shadow 0.2s;
+    }
+    .card[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .card .emoji {
+      font-size: 30px;
+      margin-bottom: 3px;
+    }
+    .card .cost {
+      color: #e65100;
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 3px;
+    }
+    .card .name {
+      color: #263238;
+      font-size: 15px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 2px;
+    }
+    #ui-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 542px;
+      margin-bottom: 8px;
+    }
+    #elixir-bar {
+      height: 20px;
+      width: 180px;
+      background: #222;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      margin-right: 10px;
+    }
+    #elixir-bar-inner {
+      height: 100%;
+      background: linear-gradient(90deg, #fff176, #f06292);
+      width: 0;
+      transition: width 0.25s;
+    }
+    #elixir-label {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      color: #222;
+      font-size: 15px;
+      pointer-events: none;
+      text-shadow: 0 1px 3px #fff8;
+    }
+    #timer {
+      font-weight: bold;
+      font-size: 18px;
+      margin-left: 10px;
+      letter-spacing: 1px;
+    }
+    #status-msg {
+      margin: 10px 0 0 0;
+      text-align: center;
+      font-size: 25px;
+      min-height: 28px;
+    }
+    #restart-btn {
+      display: none;
+      margin: 10px auto 0 auto;
+      font-size: 18px;
+      padding: 8px 24px;
+      background: #ffd600;
+      border: none;
+      border-radius: 8px;
+      color: #263238;
       font-weight: bold;
       cursor: pointer;
-      font-size: 18px;
+      box-shadow: 0 2px 10px #0002;
+      transition: background 0.2s;
     }
-    #elixir { text-align:center; font-size: 22px; margin-top: 5px;}
-    #winMsg { text-align:center; font-size:28px; color: gold; margin-top: 14px;}
+    #restart-btn:hover {
+      background: #ffb300;
+    }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="700" height="400"></canvas>
-  <div id="elixir"></div>
-  <div id="hand"></div>
-  <div id="winMsg"></div>
+  <div id="game-root">
+    <div id="ui-bar">
+      <div id="elixir-bar">
+        <div id="elixir-bar-inner"></div>
+        <div id="elixir-label"></div>
+      </div>
+      <div id="timer">03:00</div>
+    </div>
+    <canvas id="arena-canvas" width="540" height="360"></canvas>
+    <div id="deck"></div>
+    <div id="status-msg"></div>
+    <button id="restart-btn">Рестарт</button>
+  </div>
 <script>
-// --- Game constants
-const CARD_TYPES = [
-  { name: 'Воин', emoji: '🗡️', hp: 80, dmg: 25, speed: 1.5, elixir: 3, color: '#e74c3c' },
-  { name: 'Стрелец', emoji: '🏹', hp: 60, dmg: 15, speed: 2, elixir: 2, color: '#f1c40f' },
-  { name: 'Танк', emoji: '🛡️', hp: 180, dmg: 15, speed: 1, elixir: 5, color: '#2980b9' },
-  { name: 'Бързак', emoji: '⚡', hp: 40, dmg: 20, speed: 3, elixir: 1, color: '#2ecc71' }
-];
-const PLAYER_BASE = { x: 100, y: 350 }, ENEMY_BASE = { x: 600, y: 50 };
-const BASE_HP = 300, TOWER_HP = 120;
-const CANVAS_W = 700, CANVAS_H = 400;
-const MAX_ELIXIR = 10, ELIXIR_REGEN = 0.025;
+/* === GLOBAL CONSTANTS AND DATA === */
+const ARENA = { w: 540, h: 360 };
+const BASE_HP = 250, TOWER_HP = 110;
 const UNIT_SIZE = 32;
+const MAX_ELIXIR = 10, ELIXIR_REGEN = 0.012;
+const GAME_TIME = 3 * 60 * 1000; // 3 минути
+const DECK_SIZE = 5;
 
-let game, ctx, aiTimer = 0;
+const CARD_LIST = [
+  { id: 'warrior',  name: 'Воин',     emoji: '🗡️', type:'troop', hp: 80,  dmg: 24, speed: 1.5, elixir: 3, color: '#e74c3c', range: 24 },
+  { id: 'archer',   name: 'Стрелец',  emoji: '🏹', type:'troop', hp: 60,  dmg: 16, speed: 2.3, elixir: 2, color: '#f1c40f', range: 48 },
+  { id: 'tank',     name: 'Танк',     emoji: '🛡️', type:'troop', hp: 180, dmg: 14, speed: 1.0, elixir: 5, color: '#2980b9', range: 24 },
+  { id: 'rusher',   name: 'Бързак',   emoji: '⚡', type:'troop', hp: 44,  dmg: 18, speed: 3.2, elixir: 1, color: '#8bc34a', range: 20 },
+  { id: 'wizard',   name: 'Магьосник',emoji:'🧙',type:'troop', hp: 55,  dmg: 30, speed: 1.6, elixir: 4, color: '#7c4dff', range: 44 },
+  { id: 'golem',    name: 'Голем',    emoji:'🪨', type:'troop', hp: 250, dmg: 9,  speed: 0.85,elixir: 6, color:'#6d4c41', range: 24 },
+  { id: 'healer',   name: 'Лечител',  emoji:'💊', type:'troop', hp: 50,  dmg: 8,  speed: 2.0, elixir: 3, color:'#00bfae', range: 32, heal: 14 },
+  { id: 'fireball', name: 'Огнена топка',emoji:'🔥',type:'spell', dmg: 65, radius: 38, elixir: 4, color:'#ff5722' }
+];
 
-// --- Game state
-function newGame() {
-  return {
+/* === GAME STATE === */
+let game = null, ctx = null, lastTimestamp = 0, aiTimer = 0, aiState = {};
+let playerDeck = CARD_LIST.slice(0, DECK_SIZE); // за сега взимаме първите 5
+
+function initGame() {
+  game = {
+    time: 0,
+    timer: GAME_TIME,
     player: {
-      units: [],
       baseHp: BASE_HP,
-      towerHp: [TOWER_HP,TOWER_HP],
-      elixir: 5
+      towers: [TOWER_HP, TOWER_HP],
+      elixir: 5,
+      units: [],
+      spells: []
     },
-    enemy: {
-      units: [],
+    ai: {
       baseHp: BASE_HP,
-      towerHp: [TOWER_HP,TOWER_HP],
-      elixir: 5
+      towers: [TOWER_HP, TOWER_HP],
+      elixir: 5,
+      units: [],
+      spells: []
     },
     units: [],
-    time: 0,
-    winner: null
+    spells: [],
+    winner: null,
+    ended: false
   };
+  aiState = { cooldown: 0 };
+  updateDeckUI();
+  updateElixirBar();
+  document.getElementById('status-msg').textContent = '';
+  document.getElementById('restart-btn').style.display = 'none';
 }
 
-// --- Rendering
-function drawGame(g) {
-  ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
-  // Arena
-  ctx.fillStyle = "#53a653";
-  ctx.fillRect(60,80,580,240);
-  ctx.strokeStyle="#fff";
-  ctx.lineWidth=2;
-  ctx.strokeRect(60,80,580,240);
-
-  // Towers
-  drawTower(160, 320, g.player.towerHp[0]);
-  drawTower(540, 320, g.player.towerHp[1]);
-  drawTower(160, 60, g.enemy.towerHp[0]);
-  drawTower(540, 60, g.enemy.towerHp[1]);
-
-  // Bases
-  drawBase(PLAYER_BASE.x, PLAYER_BASE.y, g.player.baseHp, true);
-  drawBase(ENEMY_BASE.x, ENEMY_BASE.y, g.enemy.baseHp, false);
-
-  // Units
-  for (let u of g.units) drawUnit(u);
-
-  // HP bars
-  drawHpBar(PLAYER_BASE.x, PLAYER_BASE.y+32, g.player.baseHp, BASE_HP);
-  drawHpBar(ENEMY_BASE.x, ENEMY_BASE.y+32, g.enemy.baseHp, BASE_HP);
+/* === UI & EVENT HANDLERS === */
+function updateDeckUI() {
+  const deckDiv = document.getElementById('deck');
+  deckDiv.innerHTML = '';
+  playerDeck.forEach((card, idx) => {
+    const btn = document.createElement('div');
+    btn.className = 'card';
+    btn.innerHTML = `
+      <div class="emoji">${card.emoji}</div>
+      <div class="cost">${card.elixir}</div>
+      <div class="name">${card.name}</div>
+    `;
+    if (game && game.player.elixir < card.elixir) btn.setAttribute('disabled', 'true');
+    btn.onclick = () => {
+      if (game && !game.winner && !btn.hasAttribute('disabled')) playCard(card, idx);
+    };
+    deckDiv.appendChild(btn);
+  });
 }
 
-function drawBase(x,y,hp,isPlayer) {
+function updateElixirBar() {
+  const elixir = game ? Math.floor(game.player.elixir) : 0;
+  document.getElementById('elixir-bar-inner').style.width = `${(elixir/MAX_ELIXIR)*100}%`;
+  document.getElementById('elixir-label').textContent = `Еликсир: ${elixir} / ${MAX_ELIXIR}`;
+}
+
+/* === GAME LOOP & DRAWING === */
+function gameLoop(ts) {
+  if (!lastTimestamp) lastTimestamp = ts;
+  let dt = ts - lastTimestamp;
+  lastTimestamp = ts;
+  if (!game.ended) {
+    // MAIN GAME LOGIC
+    game.time += dt;
+    game.timer = Math.max(0, game.timer - dt);
+    if (game.timer === 0 && !game.winner) checkWinner();
+
+    // ELIXIR REGEN
+    game.player.elixir = Math.min(MAX_ELIXIR, game.player.elixir + ELIXIR_REGEN*dt);
+    game.ai.elixir = Math.min(MAX_ELIXIR, game.ai.elixir + ELIXIR_REGEN*dt);
+
+    // UNITS MOVE & ATTACK
+    logicUnits(game.player, game.ai, true, dt);
+    logicUnits(game.ai, game.player, false, dt);
+
+    // SPELLS (fireball, heal, ...)
+    logicSpells();
+
+    // CLEANUP
+    game.player.units = game.player.units.filter(u=>u.hp>0 && !u._remove);
+    game.ai.units = game.ai.units.filter(u=>u.hp>0 && !u._remove);
+
+    // AI MOVE
+    aiLogic(dt);
+
+    // END GAME?
+    if (!game.winner) checkWinner();
+  }
+  drawArena();
+  updateDeckUI();
+  updateElixirBar();
+  updateTimer();
+  requestAnimationFrame(gameLoop);
+}
+
+function drawArena() {
+  ctx.clearRect(0,0,ARENA.w,ARENA.h);
+  // Draw background & lanes
+  ctx.fillStyle = "#66bb6a";
+  ctx.fillRect(0, 0, ARENA.w, ARENA.h);
   ctx.save();
+  ctx.strokeStyle="#fff";
+  ctx.lineWidth=3;
   ctx.beginPath();
-  ctx.arc(x,y,28,0,2*Math.PI);
-  ctx.fillStyle = isPlayer ? '#4444ff' : '#ff4444';
-  ctx.fill();
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = '#fff';
+  ctx.moveTo(0, ARENA.h/2); ctx.lineTo(ARENA.w, ARENA.h/2);
   ctx.stroke();
   ctx.restore();
+  // Draw towers & bases
+  drawTower(110, ARENA.h-42, game.player.towers[0]);
+  drawTower(ARENA.w-110, ARENA.h-42, game.player.towers[1]);
+  drawTower(110, 42, game.ai.towers[0]);
+  drawTower(ARENA.w-110, 42, game.ai.towers[1]);
+  drawBase(ARENA.w/2, ARENA.h-30, game.player.baseHp, true);
+  drawBase(ARENA.w/2, 30, game.ai.baseHp, false);
+
+  // Draw units
+  [...game.player.units, ...game.ai.units].forEach(u=>drawUnit(u));
+  // Draw spell effects
+  game.spells.forEach(s=>drawSpell(s));
 }
-function drawTower(x,y,hp) {
+
+function drawTower(x, y, hp) {
   ctx.save();
   ctx.beginPath();
-  ctx.rect(x-18,y-18,36,36);
+  ctx.rect(x-18, y-18, 36, 36);
   ctx.fillStyle = "#888";
   ctx.fill();
-  ctx.lineWidth=2;
-  ctx.strokeStyle="#fff";
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#fff";
   ctx.stroke();
-  drawHpBar(x, y+20, hp, TOWER_HP);
+  drawHpBar(x, y+21, hp, TOWER_HP);
+  ctx.restore();
+}
+function drawBase(x, y, hp, isPlayer) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, 28, 0, 2*Math.PI);
+  ctx.fillStyle = isPlayer ? '#3445fa' : '#f44336';
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  drawHpBar(x, y+33, hp, BASE_HP);
   ctx.restore();
 }
 function drawUnit(u) {
   ctx.save();
+  ctx.globalAlpha = u.hp > 0 ? 1 : 0.3;
   ctx.beginPath();
   ctx.arc(u.x, u.y, UNIT_SIZE/2, 0, 2*Math.PI);
   ctx.fillStyle = u.color;
   ctx.fill();
   ctx.font = "22px sans-serif";
-  ctx.textAlign="center";
-  ctx.textBaseline="middle";
-  ctx.fillStyle="#fff";
-  ctx.fillText(u.emoji, u.x, u.y);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#fff";
+  ctx.fillText(u.emoji, u.x, u.y-2);
+  // HP bar
+  drawHpBar(u.x, u.y+18, u.hp, u.maxHp);
   ctx.restore();
-  drawHpBar(u.x, u.y+20, u.hp, u.maxHp);
 }
-function drawHpBar(x,y,hp,maxHp) {
+function drawHpBar(x, y, hp, maxHp) {
+  let pct = Math.max(0, hp/maxHp);
   ctx.save();
-  let pct = Math.max(0,hp)/maxHp;
-  ctx.fillStyle = "#222";
-  ctx.fillRect(x-18, y, 36, 5);
+  ctx.fillStyle = "#111a";
+  ctx.fillRect(x-16, y, 32, 5);
   ctx.fillStyle = pct>0.5 ? "#2ecc71" : pct>0.2?"#f1c40f":"#e74c3c";
-  ctx.fillRect(x-18, y, 36*pct, 5);
+  ctx.fillRect(x-16, y, 32*pct, 5);
   ctx.restore();
 }
-
-// --- Game logic
-function gameTick(g, dt) {
-  // Regen elixir
-  g.player.elixir = Math.min(MAX_ELIXIR, g.player.elixir+ELIXIR_REGEN*dt);
-  g.enemy.elixir = Math.min(MAX_ELIXIR, g.enemy.elixir+ELIXIR_REGEN*dt);
-
-  // Units move
-  for (let u of g.units) {
-    if (u.hp<=0) continue;
-    let target = u.isPlayer ? enemyTarget(g, u) : playerTarget(g, u);
-    if (target && dist(u,target)<=u.range) {
-      // Attack
-      if (!u.lastAttack || g.time-u.lastAttack>40) {
-        target.hp -= u.dmg;
-        u.lastAttack = g.time;
-      }
-    } else if (target) {
-      // Move towards
-      let angle = Math.atan2(target.y-u.y, target.x-u.x);
-      u.x += Math.cos(angle)*u.speed*dt*0.04;
-      u.y += Math.sin(angle)*u.speed*dt*0.04;
-    }
+function drawSpell(s) {
+  if (s.type === 'fireball') {
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.radius, 0, 2*Math.PI);
+    ctx.fillStyle = '#f44336';
+    ctx.fill();
+    ctx.restore();
   }
-  // Remove dead units
-  g.units = g.units.filter(u=>u.hp>0);
-
-  // Check win
-  if (g.enemy.baseHp<=0) g.winner = 'ВИЕ';
-  if (g.player.baseHp<=0) g.winner = 'AI';
 }
 
+/* === GAME LOGIC === */
+function playCard(card, idx) {
+  if (card.type === 'troop') {
+    // Place troop near bottom half
+    let x = ARENA.w/2 + (Math.random()-0.5)*90;
+    let y = ARENA.h-80 - Math.random()*30;
+    let u = {
+      ...card,
+      x, y,
+      maxHp: card.hp,
+      hp: card.hp,
+      side: 'player',
+      target: null,
+      state: 'move',
+      _remove: false
+    };
+    game.player.elixir -= card.elixir;
+    game.player.units.push(u);
+  }
+  if (card.type === 'spell' && card.id === 'fireball') {
+    // Place fireball at click
+    showSpellTarget(card);
+  }
+}
+
+function showSpellTarget(card) {
+  // Simplified: anywhere on enemy half
+  let msg = document.getElementById('status-msg');
+  msg.innerHTML = "Кликни къде да хвърлиш <b>Огнена топка</b>!";
+  let handler = (e) => {
+    let rect = ctx.canvas.getBoundingClientRect();
+    let x = e.clientX - rect.left, y = e.clientY - rect.top;
+    if (y < ARENA.h/2) {
+      // Place spell
+      game.player.elixir -= card.elixir;
+      game.spells.push({
+        type:'fireball', x, y,
+        radius:card.radius, dmg:card.dmg,
+        timer:0, side:'player'
+      });
+      msg.innerHTML = '';
+      ctx.canvas.removeEventListener('click', handler);
+    }
+  };
+  ctx.canvas.addEventListener('click', handler);
+}
+
+/* === UNITS LOGIC === */
+function logicUnits(side, opp, isPlayer, dt) {
+  side.units.forEach(u => {
+    if (u.hp <= 0) { u._remove = true; return; }
+    // Target finding
+    let tgt = findTarget(u, opp, isPlayer);
+    if (tgt && dist(u, tgt) <= u.range) {
+      // Attack
+      if (!u.lastAttack || game.time-u.lastAttack>600) {
+        u.lastAttack = game.time;
+        if (u.heal) {
+          // Лечител - лекува съюзници в радиус
+          let healed = side.units.filter(x=>x!==u && dist(x,u)<48 && x.hp<x.maxHp);
+          healed.forEach(x=>x.hp = Math.min(x.maxHp, x.hp+u.heal));
+        } else {
+          // Нанася щета
+          tgt.hp -= u.dmg;
+        }
+      }
+    } else if (tgt) {
+      // Move towards target
+      let angle = Math.atan2(tgt.y-u.y, tgt.x-u.x);
+      u.x += Math.cos(angle) * u.speed * (dt/25);
+      u.y += Math.sin(angle) * u.speed * (dt/25);
+    } else {
+      // Move forward (towards enemy base)
+      let goal = isPlayer? {x:ARENA.w/2, y:60} : {x:ARENA.w/2, y:ARENA.h-60};
+      let angle = Math.atan2(goal.y-u.y, goal.x-u.x);
+      u.x += Math.cos(angle) * u.speed * (dt/36);
+      u.y += Math.sin(angle) * u.speed * (dt/36);
+    }
+  });
+}
+function findTarget(u, opp, isPlayer) {
+  // Prioritize: enemy units in range > nearest tower > base
+  let enemyUnits = opp.units.filter(eu=>eu.hp>0 && dist(u,eu)<80);
+  if (enemyUnits.length) return enemyUnits[0];
+  // Towers
+  let towers = opp.towers.map((hp,i)=>hp>0?{x:i?ARENA.w-110:110, y:isPlayer?42:ARENA.h-42, hp, idx:i, isTower:true}:null).filter(Boolean);
+  let tower = towers.find(t=>dist(u,t)<60);
+  if (tower) return tower;
+  // Base
+  if (opp.baseHp>0 && dist(u, {x:ARENA.w/2, y:isPlayer?30:ARENA.h-30})<50)
+    return {x:ARENA.w/2, y:isPlayer?30:ARENA.h-30, hp:opp.baseHp, isBase:true};
+  return null;
+}
+
+/* === SPELLS LOGIC === */
+function logicSpells() {
+  game.spells.forEach(s=>{
+    s.timer += 1;
+    if (s.type==='fireball' && s.timer===8) {
+      // Damage on hit
+      let side = s.side==='player'?game.ai:game.player;
+      // Units
+      side.units.forEach(u=>{
+        if (dist(u,s)<s.radius) u.hp-=s.dmg;
+      });
+      // Towers
+      side.towers.forEach((hp,i)=>{
+        let tx = i?ARENA.w-110:110, ty = s.side==='player'?42:ARENA.h-42;
+        if (dist({x:tx,y:ty},s)<s.radius) side.towers[i]-=s.dmg;
+      });
+      // Base
+      let bx = ARENA.w/2, by = s.side==='player'?30:ARENA.h-30;
+      if (dist({x:bx,y:by},s)<s.radius) side.baseHp-=s.dmg;
+    }
+  });
+  // Remove expired
+  game.spells = game.spells.filter(s=>s.timer<20);
+}
+
+/* === AI LOGIC === */
+function aiLogic(dt) {
+  if (game.ai.elixir<1) return;
+  aiState.cooldown -= dt;
+  if (aiState.cooldown>0) return;
+  // 1. Ако има наша карта на нашата половина -> пусни карта до нея
+  let enemyOnSide = game.player.units.find(u=>u.y<ARENA.h/2+40);
+  let card = null;
+  if (enemyOnSide && game.ai.elixir>=2) {
+    // Контрирай с евтина карта
+    card = CARD_LIST.find(c=>c.type==='troop' && c.elixir<=game.ai.elixir && c.dmg>=16);
+  }
+  // 2. Иначе случайна карта, ако има достатъчно еликсир
+  if (!card) {
+    let options = CARD_LIST.filter(c=>c.type==='troop' && c.elixir<=game.ai.elixir);
+    card = options[Math.floor(Math.random()*options.length)];
+  }
+  if (card) {
+    let x = ARENA.w/2 + (Math.random()-0.5)*90;
+    let y = 80+Math.random()*40;
+    let u = {
+      ...card,
+      x, y,
+      maxHp: card.hp,
+      hp: card.hp,
+      side: 'ai',
+      target: null,
+      state: 'move',
+      _remove: false
+    };
+    game.ai.elixir -= card.elixir;
+    game.ai.units.push(u);
+    aiState.cooldown = 1600 + Math.random()*1000;
+  }
+}
+
+/* === WIN/LOSS, TIMER, RESTART === */
+function checkWinner() {
+  if (game.ai.baseHp<=0) endGame('Победа! 🎉');
+  if (game.player.baseHp<=0) endGame('Загуба!');
+  // Sudden death (most towers destroyed)
+  if (game.timer===0 && !game.winner) {
+    let playerScore = (BASE_HP-game.ai.baseHp) + game.ai.towers.filter(h=>h<=0).length*100;
+    let aiScore = (BASE_HP-game.player.baseHp) + game.player.towers.filter(h=>h<=0).length*100;
+    if (playerScore > aiScore) endGame('Победа! 🎉');
+    else if (aiScore > playerScore) endGame('Загуба!');
+    else endGame('Равенство!');
+  }
+}
+function endGame(msg) {
+  game.winner = msg;
+  game.ended = true;
+  document.getElementById('status-msg').innerHTML = msg;
+  document.getElementById('restart-btn').style.display = 'block';
+}
+function updateTimer() {
+  let t = Math.ceil(game.timer/1000);
+  let min = Math.floor(t/60), sec = t%60;
+  document.getElementById('timer').textContent = `${min<10?'0':''}${min}:${sec<10?'0':''}${sec}`;
+}
 function dist(a,b) {
   let dx = a.x-b.x, dy = a.y-b.y;
-  return Math.sqrt(dx*dx+dy*dy);
+  return Math.sqrt(dx*dx + dy*dy);
 }
 
-function enemyTarget(g, u) {
-  // 1. Близък играчки юнит, 2. кула, 3. база
-  let candidates = g.player.units.filter(x=>dist(u,x)<80);
-  if (candidates.length) return candidates[0];
-  for (let i=0;i<2;i++) if (g.player.towerHp[i]>0 && dist(u, tPos(i,true))<60) return {hp:g.player.towerHp[i], setHp:v=>g.player.towerHp[i]=v, x:tPos(i,true).x, y:tPos(i,true).y};
-  if (g.player.baseHp>0 && dist(u,PLAYER_BASE)<48) return {hp:g.player.baseHp, setHp:v=>g.player.baseHp=v, x:PLAYER_BASE.x, y:PLAYER_BASE.y};
-  return null;
-}
-function playerTarget(g, u) {
-  // 1. Близък враг юнит, 2. кула, 3. база
-  let candidates = g.enemy.units.filter(x=>dist(u,x)<80);
-  if (candidates.length) return candidates[0];
-  for (let i=0;i<2;i++) if (g.enemy.towerHp[i]>0 && dist(u, tPos(i,false))<60) return {hp:g.enemy.towerHp[i], setHp:v=>g.enemy.towerHp[i]=v, x:tPos(i,false).x, y:tPos(i,false).y};
-  if (g.enemy.baseHp>0 && dist(u,ENEMY_BASE)<48) return {hp:g.enemy.baseHp, setHp:v=>g.enemy.baseHp=v, x:ENEMY_BASE.x, y:ENEMY_BASE.y};
-  return null;
-}
-function tPos(idx, isPlayer) {
-  return { x: idx==0?160:540, y: isPlayer?320:60 };
-}
-
-// --- Card UI
-function renderHand() {
-  let hand = document.getElementById('hand');
-  hand.innerHTML = '';
-  CARD_TYPES.forEach((c,i)=>{
-    let btn = document.createElement('button');
-    btn.className = 'card-btn';
-    btn.innerText = `${c.emoji} ${c.name} (${c.elixir})`;
-    btn.disabled = (game.player.elixir < c.elixir) || game.winner;
-    btn.onclick = ()=>playCard(i);
-    hand.appendChild(btn);
-  });
-  document.getElementById('elixir').innerText = `Еликсир: ${Math.floor(game.player.elixir)} / ${MAX_ELIXIR}`;
-}
-function playCard(idx) {
-  let card = CARD_TYPES[idx];
-  if (game.player.elixir < card.elixir) return;
-  game.player.elixir -= card.elixir;
-  // Постави юнит близо до базата
-  let y = 320+Math.random()*40;
-  let u = {
-    ...card,
-    x: PLAYER_BASE.x+32+Math.random()*40,
-    y, maxHp: card.hp, hp: card.hp, isPlayer: true, range: 32
-  };
-  game.units.push(u);
-  game.player.units.push(u);
-}
-
-// --- AI
-function aiPlay(g) {
-  if (g.winner) return;
-  let available = CARD_TYPES.filter(c=>g.enemy.elixir>=c.elixir);
-  if (!available.length) return;
-  let card = available[Math.floor(Math.random()*available.length)];
-  g.enemy.elixir -= card.elixir;
-  let y = 60+Math.random()*40;
-  let u = {
-    ...card,
-    x: ENEMY_BASE.x-32-Math.random()*40,
-    y, maxHp: card.hp, hp: card.hp, isPlayer: false, range: 32
-  };
-  g.units.push(u);
-  g.enemy.units.push(u);
-}
-
-// --- Main loop
-function loop(ts) {
-  let now = performance.now();
-  let dt = now - (game._lastTick||now);
-  game._lastTick = now;
-  if (!game.winner && dt>0) {
-    game.time += dt;
-    gameTick(game, dt);
-    aiTimer += dt;
-    if (aiTimer>1500) { aiPlay(game); aiTimer=0; }
-  }
-  drawGame(game);
-  renderHand();
-  if (game.winner) {
-    document.getElementById('winMsg').innerText = game.winner=='ВИЕ' ? 'Победа! 🎉' : 'AI Победи!';
-  } else document.getElementById('winMsg').innerText = '';
-  requestAnimationFrame(loop);
-}
-
-// --- Init
+/* === SETUP === */
 window.onload = function() {
-  ctx = document.getElementById('gameCanvas').getContext('2d');
-  game = newGame();
-  loop();
+  ctx = document.getElementById('arena-canvas').getContext('2d');
+  document.getElementById('restart-btn').onclick = ()=>{
+    initGame();
+    lastTimestamp = 0;
+  };
+  initGame();
+  requestAnimationFrame(gameLoop);
 };
 </script>
 </body>
