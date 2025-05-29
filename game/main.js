@@ -1,5 +1,6 @@
 (function() {
-    // ---- ФУНКЦИИ ЗА АУДИО ----
+    // --- AUDIO LOGIC ---
+
     const audioSpin = document.getElementById('audio-spin');
     const audioWin = document.getElementById('audio-win');
     const audioLose = document.getElementById('audio-lose');
@@ -73,7 +74,7 @@
     musicBtn.classList.add("on");
     fxBtn.classList.add("on");
 
-    // ---- ИГРОВА ЛОГИКА ----
+    // --- GAME DATA ---
     const FRUITS = [
         {char:'🍒', name:'Череша',   points:20,  color:"#ff5bcd"},
         {char:'🍉', name:'Диня',     points:40,  color:"#42e1fe"},
@@ -323,38 +324,36 @@
         loseAnimLoop();
     }
 
-    function animate(type,cb){
-        if(animFrameId) cancelAnimationFrame(animFrameId);
-        animFrameId = null;
-        animating=true;animationType=type;animationGrid=JSON.parse(JSON.stringify(grid));
-        let duration=type==="shake"?450:1150;
-        animationProgress=0;let start=null;
-        function step(ts){
-            if(!start)start=ts;
-            let el=ts-start;
-            animationProgress=Math.min(el/duration,1);
-            drawGrid(true);
-            if(animationProgress<1)animFrameId=requestAnimationFrame(step);
-            else{animating=false;animationGrid=[];cb&&cb();}
+    // --- SHAKE ANIMATION (канвас разклащане) ---
+    function shakeCanvas(duration = 600, intensity = 11, cb) {
+        const canvas = document.getElementById('gameCanvas');
+        let start = null;
+        function shakeFrame(ts) {
+            if (!start) start = ts;
+            let p = (ts - start) / duration;
+            if (p < 1) {
+                const dx = (Math.random() - 0.5) * intensity;
+                const dy = (Math.random() - 0.5) * intensity;
+                canvas.style.transform = `translate(${dx}px,${dy}px) rotate(${(Math.random()-0.5)*4}deg)`;
+                requestAnimationFrame(shakeFrame);
+            } else {
+                canvas.style.transform = '';
+                if (typeof cb === 'function') cb();
+            }
         }
-        animFrameId=requestAnimationFrame(step);
+        requestAnimationFrame(shakeFrame);
     }
-    function animateSpin(newGrid,cb){
-        animationGrid = JSON.parse(JSON.stringify(grid));
-        animate("spin", () => {
-            grid = newGrid;
-            cb&&cb();
-        });
-    }
-    function animateShake(cb){animate("shake",cb);}
 
+    // --- SPIN FUNCTION (сега с shake ефект) ---
     function spin(isAuto){
         if (spinning) return;
-        spinning=true;
+        spinning = true;
         stopWinEffect();
         safePlay(audioSpin);
-        animateShake(()=>{
-            coins-=selectedBet;
+
+        // 1. SHAKE, после сменя комбинацията
+        shakeCanvas(550, 13, () => {
+            coins -= selectedBet;
             if (coins < 0) coins = 0;
             if (coins < selectedBet && autoSpin) stopAutoSpin();
             let newGrid=generateGrid();
@@ -392,6 +391,8 @@
             });
         });
     }
+
+    // --- Останалата логика не се променя --- 
 
     function showCoinFall(amount){
         let n=Math.min(10,Math.max(3,Math.floor(amount/40)));
@@ -534,18 +535,21 @@
         });
     });
 
-    document.getElementById('startBtn').onclick=function(){
-        startScreen.style.display='none';
-        if (coins <= 0) restartGame();
-        resizeCanvas();
-        drawGrid();
-        safeMusicPlay();
-    };
+    if(document.getElementById('startBtn')){
+        document.getElementById('startBtn').onclick=function(){
+            startScreen.style.display='none';
+            if (coins <= 0) restartGame();
+            resizeCanvas();
+            drawGrid();
+            safeMusicPlay();
+        };
+    }
 
     window.addEventListener("beforeunload", function(e){
         saveProgress(true);
     });
 
+    // --- ТОВА Е НАЙ-ВАЖНОТО: ГРИДЪТ СЕ ГЕНЕРИРА ПРИ СТАРТИРАНЕ! ---
     loadProgress();
     grid=generateGrid();
     setBet(selectedBet);
