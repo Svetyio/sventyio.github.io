@@ -6,8 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
-        html,body{margin:0;padding:0;min-height:100vh;background:linear-gradient(to bottom,#232526,#414345 100%);}
-        body{color:#fff;font-family:'Segoe UI',Arial,sans-serif;text-align:center;user-select:none;}
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #232526, #414345 100%);
+        }
+        body {
+            color: #fff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            text-align: center;
+            user-select: none;
+        }
         .casino-title {
             font-family: 'Luckiest Guy', cursive, fantasy, sans-serif;
             font-size: 2.7em;
@@ -46,17 +56,84 @@
             0% { color: #00e676; text-shadow: 0 0 12px #FFD700, 0 0 16px #00e676;}
             100% { color: #FFD700; text-shadow: 0 0 24px #00e676, 0 0 16px #FFD700;}
         }
-        .small-title{font-size:28px;font-weight:700;margin:28px auto 0 auto;letter-spacing:2px;max-width:99vw;text-shadow:0 2px 14px #000, 0 0 4px #F2C811;}
-        #container{position:relative;width:100vw;max-width:430px;margin:0 auto;}
-        #gameCanvas{display:block;margin:25px auto 5px auto;background:#17181C;border:8px solid #2ecc71;border-radius:24px;
-            box-shadow:0 0 28px #2ecc7144,0 0 12px #000;max-width:95vw;width:95vw;height:95vw;min-width:240px;min-height:240px;max-height:400px;touch-action:none;}
-        #winLabel{position:absolute;left:50%;transform:translateX(-50%);top:15px;font-size:30px;font-weight:900;color:#FFD700;text-shadow:0 0 12px #FFD700,0 2px 17px #fff;
-            background:rgba(40,40,0,0.44);padding:8px 22px;border-radius:30px;opacity:0;pointer-events:none;z-index:100;transition:opacity 0.4s;white-space:nowrap;}
-        #winLabel.active{opacity:1!important;pointer-events:auto;transition:none;}
-        #loseLabel{display:none;position:fixed;left:0;right:0;top:0;bottom:0;background:rgba(20,20,20,0.65);color:#FFD700;font-size:2.3em;font-weight:bold;align-items:center;justify-content:center;z-index:400;flex-direction:column;}
-        #loseLabel.show{display:flex;}
-        #loseLabel button {margin-top: 32px;background: #1e90ff;color: #fff;border: none;border-radius: 17px;font-size: 1.1em;font-weight: bold;padding: 16px 42px;box-shadow: 0 0 14px #1e90ff99;cursor: pointer;transition: background 0.3s, transform 0.2s;}
-        #loseLabel button:hover,#loseLabel button:focus-visible {background: #00ccff;transform: scale(1.07);}
+        .small-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 28px auto 0 auto;
+            letter-spacing: 2px;
+            max-width: 99vw;
+            text-shadow: 0 2px 14px #000, 0 0 4px #F2C811;
+        }
+        #container {
+            position: relative;
+            width: 100vw;
+            max-width: 430px;
+            margin: 0 auto;
+        }
+        #gameCanvas {
+            display: block;
+            margin: 25px auto 5px auto;
+            background: #17181C;
+            border: 8px solid #2ecc71;
+            border-radius: 24px;
+            box-shadow: 0 0 28px #2ecc7144, 0 0 12px #000;
+            max-width: 95vw;
+            width: 95vw;
+            height: 95vw;
+            min-width: 240px;
+            min-height: 240px;
+            max-height: 400px;
+            touch-action: none;
+        }
+        #winLabel {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 15px;
+            font-size: 30px;
+            font-weight: 900;
+            color: #FFD700;
+            text-shadow: 0 0 12px #FFD700, 0 2px 17px #fff;
+            background: rgba(40,40,0,0.44);
+            padding: 8px 22px;
+            border-radius: 30px;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 100;
+            transition: opacity 0.4s;
+            white-space: nowrap;
+        }
+        #winLabel.active { opacity: 1!important; pointer-events: auto; transition: none; }
+        #loseLabel {
+            display: none;
+            position: fixed;
+            left: 0; right: 0; top: 0; bottom: 0;
+            background: rgba(20,20,20,0.65);
+            color: #FFD700;
+            font-size: 2.3em;
+            font-weight: bold;
+            align-items: center;
+            justify-content: center;
+            z-index: 400; flex-direction: column;
+        }
+        #loseLabel.show { display: flex; }
+        #loseLabel button {
+            margin-top: 32px;
+            background: #1e90ff;
+            color: #fff;
+            border: none;
+            border-radius: 17px;
+            font-size: 1.1em;
+            font-weight: bold;
+            padding: 16px 42px;
+            box-shadow: 0 0 14px #1e90ff99;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+        #loseLabel button:hover, #loseLabel button:focus-visible {
+            background: #00ccff;
+            transform: scale(1.07);
+        }
         #noCoinsMsg {display:none;color:#FFD700;font-weight:bold;margin-top:10px;font-size:1.25em;}
         #info-row{display:flex;flex-direction:row;justify-content:center;align-items:center;gap:14px;margin:10px auto 10px auto;width:100%;max-width:600px;flex-wrap:wrap;}
         .info-box{background:#232526;border:2px solid #888;border-radius:13px;font-size:18px;min-width:90px;min-height:38px;padding:8px 18px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;}
@@ -72,11 +149,79 @@
         .btn:focus-visible:not(.selected-bet){background-color:#444;color:#fff;}
         .btn:disabled{background:#444!important;color:#888!important;cursor:not-allowed;box-shadow:none;}
         @keyframes betpulse {0%{box-shadow:0 0 0 #FFD700;}50%{box-shadow:0 0 18px #FFD700,0 0 10px #fff;}100%{box-shadow:0 0 0 #00cc00;}}
-        #spinBtn{background:linear-gradient(145deg,#e74c3c,#e67e22 80%);border-radius:50%;width:110px;height:110px;font-size:32px;font-weight:bold;color:#fff;margin:28px auto 12px auto;display:block;transition:background 0.3s,transform 0.2s;box-shadow:0 0 26px #e67e22,0 0 48px #fff0;border:none;outline:none;animation:pulseSpinBtn 1.3s infinite alternate;position:relative;}
-        @keyframes pulseSpinBtn{0%{box-shadow:0 0 24px #e67e22,0 0 10px #fff0;}100%{box-shadow:0 0 44px #FFD700,0 0 44px #fff4;transform:scale(1.08);}}
-        #spinBtn:hover,#spinBtn:focus-visible{background:linear-gradient(145deg,#e67e22,#FFD700 80%);transform:scale(1.12);}
-        #spinBtn.auto{background:linear-gradient(145deg,#00cc00,#26df26 80%)!important;box-shadow:0 0 28px #00cc00,0 0 48px #fff;animation:none!important;transform:scale(1.10);}
-        #spinTooltip {display:none;position:absolute;left:50%;top:-40px;transform:translateX(-50%);background:rgba(20,20,20,0.93);color:#FFD700;font-size:1.04em;font-weight:700;border-radius:10px;padding:7px 16px;white-space:nowrap;z-index:3000;pointer-events:none;box-shadow:0 0 12px #FFD70055;}
+        /* --- Нов стил за бутона СПИН --- */
+        .spin-casino-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(ellipse at 60% 20%, #FFD700 80%, #e67e22 100%);
+            border: 5px solid #ff0055;
+            box-shadow: 0 0 32px #FFD700cc, 0 0 34px #ff005588, 0 0 0 8px #fff3 inset;
+            color: #23013b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 22px 0 12px 0;
+            cursor: pointer;
+            outline: none;
+            position: relative;
+            transition: background 0.22s, transform 0.11s, box-shadow 0.18s;
+            overflow: hidden;
+            font-family: 'Luckiest Guy', cursive, 'Segoe UI', Arial, sans-serif;
+            font-size: 2em;
+            letter-spacing: 2px;
+            user-select: none;
+        }
+        .spin-casino-btn:hover, .spin-casino-btn:focus-visible {
+            background: radial-gradient(ellipse at 60% 30%, #ff0055 70%, #FFD700 100%);
+            color: #fff;
+            box-shadow: 0 0 60px #FFD700ff, 0 0 34px #ff0055cc, 0 0 0 8px #fff8 inset;
+            transform: scale(1.08);
+        }
+        .spin-casino-text {
+            width: 100%;
+            text-align: center;
+            font-size: 1.25em;
+            font-weight: bold;
+            color: inherit;
+            text-shadow: 0 2px 8px #fff, 0 0 4px #ff0055, 0 0 14px #FFD700;
+            pointer-events: none;
+            letter-spacing: 3px;
+            line-height: 1.1;
+            padding: 0;
+            margin: 0;
+            display: block;
+        }
+        @media (max-width: 480px) {
+            .spin-casino-btn {
+                width: 68px;
+                height: 68px;
+                font-size: 1.1em;
+                border-width: 3px;
+                margin: 15px 0;
+            }
+            .spin-casino-text {
+                font-size: 1em;
+                letter-spacing: 1.5px;
+            }
+        }
+        #spinTooltip {
+            display: none;
+            position: absolute;
+            left: 50%;
+            top: -40px;
+            transform: translateX(-50%);
+            background: rgba(20,20,20,0.93);
+            color: #FFD700;
+            font-size: 1.04em;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 7px 16px;
+            white-space: nowrap;
+            z-index: 3000;
+            pointer-events: none;
+            box-shadow: 0 0 12px #FFD70055;
+        }
         #musicBtn,#fxBtn {background:#232526;color:#FFD700;border:none;border-radius:20px;font-size:1.25em;font-weight:600;margin:0 0 0 15px;padding:9px 23px;cursor:pointer;transition:background 0.2s,color 0.2s;}
         #musicBtn.on,#fxBtn.on {background:linear-gradient(145deg,#FFD700,#e67e22 70%);color:#232526;}
         #paytable{margin:15px auto 0 auto;max-width:440px;}
@@ -93,11 +238,10 @@
         @keyframes coin-fall-anim{0%{top:-40px;opacity:0.7;transform:scale(0.9);}80%{opacity:1;transform:scale(1.15);}100%{top:80%;opacity:0;transform:scale(1.07);}}
         #audio-controls {margin: 8px 0 0 0;}
         .volume-slider {width:80px;}
-        .btn:focus-visible, #spinBtn:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+        .btn:focus-visible, .spin-casino-btn:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
     </style>
 </head>
 <body>
-    <!-- Казино стил надпис -->
     <div class="casino-welcome">Добре дошъл!</div>
     <div class="casino-title">Svetlyo Slot Game</div>
 
@@ -133,8 +277,10 @@
         <button class="btn" tabindex="4" id="betBtn100">100</button>
         <button class="btn" tabindex="5" id="betBtn200">200</button>
     </div>
-    <div style="position:relative;">
-        <button id="spinBtn" tabindex="6">СПИН</button>
+    <div style="position:relative;display:flex;justify-content:center;">
+        <button id="spinBtn" tabindex="6" class="spin-casino-btn">
+            <span class="spin-casino-text">СПИН</span>
+        </button>
         <div id="spinTooltip">Задръж за авто-спин</div>
     </div>
     <div id="paytable">
@@ -180,7 +326,6 @@
         <source src="https://cdn.jsdelivr.net/gh/Svetyio/slot-assets/bg.ogg" type="audio/ogg">
         <source src="https://cdn.jsdelivr.net/gh/Svetyio/slot-assets/bg.mp3" type="audio/mpeg">
     </audio>
-    <!-- Външен скрипт: -->
     <script src="main.js"></script>
 </body>
 </html>
