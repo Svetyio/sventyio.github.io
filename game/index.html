@@ -1,268 +1,447 @@
 <!DOCTYPE html>
-<html lang="bg">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Казино Слатина</title>
-  <meta name="viewport" content="width=600">
-  <style>
-    body {
-      background: linear-gradient(120deg, #000 80%, #bfa038 100%);
-      color: #fff;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      box-sizing: border-box;
-    }
-    .casino-frame {
-      margin: 35px auto 0 auto;
-      max-width: 550px;
-      border: 8px solid #d4af37;
-      border-radius: 24px;
-      box-shadow: 0 0 30px 6px #c30000,0 0 8px 4px #d4af37 inset;
-      background: linear-gradient(135deg, #1a1a1a 80%, #bfa038 120%);
-      padding: 24px 18px 38px 18px;
-      position: relative;
-    }
-    .casino-title {
-      text-align: center;
-      font-size: 2.2rem;
-      font-weight: bold;
-      letter-spacing: 2px;
-      margin-bottom: 22px;
-      color: #d4af37;
-      text-shadow: 0 0 12px #c30000, 0 2px 6px #fff6;
-    }
-    .slot-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 64px);
-      grid-template-rows: repeat(5, 64px);
-      gap: 12px;
-      justify-content: center;
-      background: #222;
-      border: 4px solid #c30000;
-      border-radius: 18px;
-      padding: 16px 0;
-      margin-bottom: 18px;
-      box-shadow: 0 0 9px 2px #d4af37 inset;
-    }
-    .slot-cell {
-      width: 64px;
-      height: 64px;
-      border-radius: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.2rem;
-      font-weight: bold;
-      background: linear-gradient(150deg, #111 60%, #bfa038 150%);
-      box-shadow: 0 0 8px #c30000a0, 0 0 2px 1px #d4af37 inset;
-      transition: background 0.25s, transform 0.2s;
-      color: #fff;
-      border: 2px solid transparent;
-    }
-    .slot-cell.special {
-      border: 2px solid #d4af37;
-      background: linear-gradient(120deg, #d4af37 50%, #c30000 120%);
-      color: #222;
-      text-shadow: 0 0 8px #fff, 0 0 3px #c30000;
-      animation: pulse 1s infinite alternate;
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 14px 6px #d4af37b0; }
-      100% { box-shadow: 0 0 5px 2px #c30000b0; }
-    }
-    .spin-btn {
-      background: linear-gradient(90deg, #c30000 70%, #d4af37 100%);
-      color: #fff;
-      font-size: 1.5rem;
-      font-weight: bold;
-      border: none;
-      border-radius: 38px;
-      padding: 18px 60px;
-      box-shadow: 0 2px 16px 0 #d4af37, 0 1px 8px 2px #c30000 inset;
-      cursor: pointer;
-      transition: background 0.18s, transform 0.18s;
-      margin: 0 auto;
-      display: block;
-      letter-spacing: 1px;
-      outline: none;
-      position: relative;
-      z-index: 2;
-    }
-    .spin-btn:active {
-      background: linear-gradient(90deg, #d4af37 50%, #c30000 100%);
-      color: #222;
-      transform: scale(0.96);
-    }
-    .score-panel {
-      background: #111;
-      border: 2px solid #c30000;
-      border-radius: 13px;
-      margin: 28px auto 0 auto;
-      max-width: 470px;
-      padding: 10px 24px 20px 24px;
-      box-shadow: 0 0 6px 1px #d4af37 inset, 0 0 8px 1px #c3000080;
-    }
-    .score-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 1.15rem;
-      margin-bottom: 5px;
-      color: #fff;
-    }
-    .score-symbol {
-      font-size: 1.6rem;
-      margin-right: 8px;
-      min-width: 38px;
-      display: inline-block;
-      text-align: center;
-    }
-    .score-name {
-      flex: 1;
-      text-align: left;
-      color: #d4af37;
-      font-weight: 500;
-    }
-    .score-value {
-      color: #c30000;
-      font-weight: bold;
-      font-size: 1.1em;
-      margin-left: 10px;
-    }
-    .current-score {
-      text-align: right;
-      color: #d4af37;
-      font-size: 1.2rem;
-      margin-top: 10px;
-    }
-    .jackpot-banner {
-      margin: 14px 0 0 0;
-      padding: 8px 0;
-      text-align: center;
-      font-size: 1.23rem;
-      background: linear-gradient(90deg, #d4af37 55%, #c30000 100%);
-      color: #222;
-      border-radius: 13px;
-      font-weight: bold;
-      letter-spacing: 1px;
-      box-shadow: 0 0 4px 1px #fff8;
-      display: none;
-      animation: jackpot-pop 1.4s 1;
-    }
-    @keyframes jackpot-pop {
-      0% { transform: scale(0.2); opacity: 0; }
-      50% { transform: scale(1.18); opacity: 1; }
-      100% { transform: scale(1); }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Clash Royale (Local)</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: sans-serif; background-color: #f0e6d2; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        #game-container {
+            background: url('https://i.imgur.com/MJEcHwQ.png'); /* Примерна арена */
+            background-size: cover;
+            border: 5px solid #8b4513;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Настройки за мобилен изглед */
+        @media (orientation: portrait) {
+            #game-container {
+                width: 90vw;
+                height: calc(90vw * 1.777); /* Приблизително съотношение 16:9 */
+            }
+        }
+        @media (orientation: landscape) {
+            #game-container {
+                width: 90vh;
+                height: calc(90vh * 0.5625); /* Приблизително съотношение 16:9 */
+            }
+        }
+        .tower {
+            width: 50px;
+            height: 100px;
+            background-color: #d2b48c;
+            border: 2px solid #8b4513;
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px black;
+        }
+        .tower-king-player { bottom: 10%; left: 50%; transform: translateX(-50%); height: 120px; }
+        .tower-princess-player-left { bottom: 30%; left: 15%; }
+        .tower-princess-player-right { bottom: 30%; right: 15%; }
+        .tower-king-opponent { top: 10%; left: 50%; transform: translateX(-50%); height: 120px; }
+        .tower-princess-opponent-left { top: 30%; left: 15%; }
+        .tower-princess-opponent-right { top: 30%; right: 15%; }
+        .river {
+            position: absolute;
+            top: 45%;
+            left: 0;
+            width: 100%;
+            height: 10%;
+            background-color: #87ceeb;
+        }
+        .bridge-player {
+            position: absolute;
+            bottom: 20%;
+            left: 40%;
+            width: 20%;
+            height: 5%;
+            background-color: #b8860b;
+        }
+        .bridge-opponent {
+            position: absolute;
+            top: 20%;
+            left: 40%;
+            width: 20%;
+            height: 5%;
+            background-color: #b8860b;
+        }
+        .card {
+            width: 80px;
+            height: 100px;
+            background-color: #fff;
+            border: 1px solid #000;
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+        .card-name { font-weight: bold; margin-bottom: 5px; }
+        .card-stats { font-size: 0.8em; }
+    </style>
 </head>
 <body>
-  <div class="casino-frame">
-    <div class="casino-title">Казино Слатина</div>
-    <div id="slotGrid" class="slot-grid"></div>
-    <button class="spin-btn" onclick="spin()">Завърти!</button>
-    <div id="jackpotBanner" class="jackpot-banner">Златен Джакпот! +200 точки!</div>
-    <div class="score-panel">
-      <div class="score-row">
-        <span class="score-symbol">🍒</span>
-        <span class="score-name">Череша</span>
-        <span class="score-value">20 т.</span>
-      </div>
-      <div class="score-row">
-        <span class="score-symbol">🔔</span>
-        <span class="score-name">Камбанка</span>
-        <span class="score-value">40 т.</span>
-      </div>
-      <div class="score-row">
-        <span class="score-symbol">💎</span>
-        <span class="score-name">Диамант</span>
-        <span class="score-value">60 т.</span>
-      </div>
-      <div class="score-row">
-        <span class="score-symbol">🍀</span>
-        <span class="score-name">Детелина</span>
-        <span class="score-value">100 т.</span>
-      </div>
-      <div class="score-row">
-        <span class="score-symbol">⭐</span>
-        <span class="score-name">Златен Джакпот (средна клетка)</span>
-        <span class="score-value">+200 т.</span>
-      </div>
-      <div class="current-score" id="scoreCounter">Точки: 0</div>
+    <div id="game-container">
+        <div class="tower tower-king-player" id="player-king-tower" data-health="3500">👑 3500</div>
+        <div class="tower tower-princess-player-left" id="player-princess-tower-left" data-health="2500">👸 2500</div>
+        <div class="tower tower-princess-player-right" id="player-princess-tower-right" data-health="2500">👸 2500</div>
+
+        <div class="tower tower-king-opponent" id="opponent-king-tower" data-health="3500">👑 3500</div>
+        <div class="tower tower-princess-opponent-left" id="opponent-princess-tower-left" data-health="2500">👸 2500</div>
+        <div class="tower tower-princess-opponent-right" id="opponent-princess-tower-right" data-health="2500">👸 2500</div>
+
+        <div class="river"></div>
+
+        <div class="bridge-player"></div>
+        <div class="bridge-opponent"></div>
     </div>
-  </div>
-  <script>
-    // Символи и точки
-    const elements = [
-      { symbol: '🍒', name: 'Череша', points: 20 },
-      { symbol: '🔔', name: 'Камбанка', points: 40 },
-      { symbol: '💎', name: 'Диамант', points: 60 },
-      { symbol: '🍀', name: 'Детелина', points: 100 },
-      { symbol: '⭐', name: 'Златен Джакпот', points: 200, special: true }
-    ];
-    let score = 0;
 
-    // Генериране на решетката
-    function createGrid(data) {
-      const grid = document.getElementById('slotGrid');
-      grid.innerHTML = '';
-      for (let i = 0; i < 25; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'slot-cell';
-        if (data && data[i]) {
-          cell.textContent = data[i].symbol;
-          if (data[i].special) cell.classList.add('special');
-        } else {
-          cell.textContent = '';
+    <script>
+        const gameContainer = document.getElementById('game-container');
+        const playerKingTower = document.getElementById('player-king-tower');
+        const playerPrincessTowerLeft = document.getElementById('player-princess-tower-left');
+        const playerPrincessTowerRight = document.getElementById('player-princess-tower-right');
+        const opponentKingTower = document.getElementById('opponent-king-tower');
+        const opponentPrincessTowerLeft = document.getElementById('opponent-princess-tower-left');
+        const opponentPrincessTowerRight = document.getElementById('opponent-princess-tower-right');
+
+        // Дефиниране на карти с реални статистики (примерни)
+        const cardsData = [
+            { name: 'Knight', elixir: 3, health: 1450, damage: 159, speed: 'medium', target: 'ground', type: 'troop' },
+            { name: 'Archers', elixir: 3, health: 310, damage: 67, speed: 'fast', target: 'air+ground', type: 'troop' },
+            { name: 'Giant', elixir: 5, health: 5200, damage: 126, speed: 'medium', target: 'buildings', type: 'troop' },
+            { name: 'Goblin', elixir: 2, health: 216, damage: 79, speed: 'very fast', target: 'ground', type: 'troop' },
+            { name: 'Spear Goblins', elixir: 2, health: 190, damage: 52, speed: 'very fast', target: 'air+ground', type: 'troop' },
+            { name: 'Mini P.E.K.K.A', elixir: 4, health: 1050, damage: 580, speed: 'medium', target: 'ground', type: 'troop' },
+            { name: 'Musketeer', elixir: 4, health: 598, damage: 176, speed: 'medium', target: 'air+ground', type: 'troop' },
+            { name: 'Hog Rider', elixir: 4, health: 1400, damage: 160, speed: 'fast', target: 'buildings', type: 'troop' },
+            { name: 'Valkyrie', elixir: 4, health: 1660, damage: 127, speed: 'medium', target: 'ground', type: 'troop', splash: true },
+            { name: 'Wizard', elixir: 5, health: 660, damage: 240, speed: 'medium', target: 'air+ground', type: 'troop', splash: true },
+            { name: 'Baby Dragon', elixir: 4, health: 1000, damage: 140, speed: 'fast', target: 'air+ground', type: 'troop', splash: true },
+            { name: 'Skeleton Army', elixir: 3, health: 30 * 15, damage: 30 * 15, speed: 'fast', target: 'ground', type: 'troop', count: 15 }, // Коригирана статистика
+            { name: 'Arrows', elixir: 3, damage: 288, radius: 4, type: 'spell', target: 'area' },
+            { name: 'Fireball', elixir: 4, damage: 651, radius: 2.5, type: 'spell', target: 'area' },
+            { name: 'Rage', elixir: 2, duration: 6, type: 'spell', effect: 'speed+damage' },
+            { name: 'Inferno Tower', elixir: 5, health: 1100, damageProgression: 'yes', speed: 'slow', target: 'buildings', type: 'building' }
+        ];
+
+        let playerDeck = [];
+        let opponentDeck = [];
+
+        function initializeDecks() {
+            // Вземаме 8 случайни карти за играча и опонента
+            const allCards = [...cardsData];
+            for (let i = 0; i < 8; i++) {
+                let randomIndex = Math.floor(Math.random() * allCards.length);
+                playerDeck.push({...allCards[randomIndex]});
+                allCards.splice(randomIndex, 1);
+            }
+            for (let i = 0; i < 8; i++) {
+                let randomIndex = Math.floor(Math.random() * allCards.length);
+                opponentDeck.push({...allCards[randomIndex]});
+                allCards.splice(randomIndex, 1);
+            }
+            console.log("Player Deck:", playerDeck);
+            console.log("Opponent Deck:", opponentDeck);
         }
-        grid.appendChild(cell);
-      }
-    }
 
-    // Случаен избор на символ
-    function getRandomSymbol() {
-      // ⭐ е по-рядък
-      const rand = Math.random();
-      if (rand > 0.97) return elements[4]; // ⭐
-      if (rand > 0.85) return elements[3]; // 🍀
-      if (rand > 0.65) return elements[2]; // 💎
-      if (rand > 0.40) return elements[1]; // 🔔
-      return elements[0]; // 🍒
-    }
+        let gameObjects = [];
+        let elixirPlayer = 5;
+        let elixirOpponent = 5;
+        const maxElixir = 10;
+        const elixirGainRate = 1; // Еликсир се добавя всяка секунда (примерно)
+        let lastElixirUpdate = Date.now();
 
-    // Завъртане
-    function spin() {
-      document.getElementById('jackpotBanner').style.display = 'none';
-      const cells = [];
-      for (let i = 0; i < 25; i++) {
-        cells.push(getRandomSymbol());
-      }
-      createGrid(cells);
-      // Точки за всеки символ
-      let spinPoints = 0;
-      for (let i = 0; i < 25; i++) {
-        if (cells[i].special) continue; // ⭐ само за джакпот
-        spinPoints += cells[i].points;
-      }
-      // Джакпот за централна клетка
-      if (cells[12].special) {
-        spinPoints += elements[4].points;
-        showJackpot();
-      }
-      score += spinPoints;
-      document.getElementById('scoreCounter').textContent = `Точки: ${score}`;
-    }
+        function updateElixir() {
+            const now = Date.now();
+            const timePassed = (now - lastElixirUpdate) / 1000; // В секунди
 
-    function showJackpot() {
-      const b = document.getElementById('jackpotBanner');
-      b.style.display = 'block';
-      b.style.animation = 'jackpot-pop 1.3s 1';
-      setTimeout(()=>{b.style.display = 'none';}, 2200);
-    }
+            if (elixirPlayer < maxElixir) {
+                elixirPlayer += elixirGainRate * timePassed;
+                if (elixirPlayer > maxElixir) elixirPlayer = maxElixir;
+            }
+            if (elixirOpponent < maxElixir) {
+                elixirOpponent += elixirGainRate * timePassed;
+                if (elixirOpponent > maxElixir) elixirOpponent = maxElixir;
+            }
+            lastElixirUpdate = now;
+            // Може да се визуализира еликсира тук
+        }
 
-    createGrid();
-  </script>
+        function spawnCard(cardData, owner, position) {
+            const cardElement = document.createElement('div');
+            cardElement.classList.add('card');
+            cardElement.innerHTML = `<div class="card-name">${cardData.name}</div><div class="card-stats">Elixir: ${cardData.elixir}<br>HP: ${cardData.health}<br>DMG: ${cardData.damage}</div>`;
+            cardElement.style.left = `${position.x}px`;
+            cardElement.style.top = `${position.y}px`;
+            gameContainer.appendChild(cardElement);
+
+            const gameObject = {
+                element: cardElement,
+                data: {...cardData},
+                owner: owner,
+                position: {...position},
+                health: cardData.health || 0
+            };
+            gameObjects.push(gameObject);
+            return gameObject;
+        }
+
+        function moveObject(gameObject, targetPosition, speed = 10) { // По-висока скорост за по-плавно движение
+            const dx = targetPosition.x - gameObject.position.x;
+            const dy = targetPosition.y - gameObject.position.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance > 1) {
+                const stepX = dx / distance * speed;
+                const stepY = dy / distance * speed;
+                gameObject.position.x += stepX;
+                gameObject.position.y += stepY;
+                gameObject.element.style.left = `${gameObject.position.x}px`;
+                gameObject.element.style.top = `${gameObject.position.y}px`;
+                return false; // Все още се движи
+            } else {
+                gameObject.position.x = targetPosition.x;
+                gameObject.position.y = targetPosition.y;
+                gameObject.element.style.left = `${gameObject.position.x}px`;
+                gameObject.element.style.top = `${gameObject.position.y}px`;
+                return true; // Достигна целта
+            }
+        }
+
+        function isOverRiver(position) {
+            const gameRect = gameContainer.getBoundingClientRect();
+            const riverTop = gameRect.height * 0.45;
+            const riverBottom = gameRect.height * 0.55;
+            return position.y > riverTop && position.y < riverBottom;
+        }
+
+        function isOverPlayerBridge(position) {
+            const gameRect = gameContainer.getBoundingClientRect();
+            const bridgeTop = gameRect.height * 0.8;
+            const bridgeBottom = gameRect.height * 0.85;
+            const bridgeLeft = gameRect.width * 0.4;
+            const bridgeRight = gameRect.width * 0.6;
+            return position.y > bridgeTop && position.y < bridgeBottom && position.x > bridgeLeft && position.x < bridgeRight;
+        }
+
+        function isOverOpponentBridge(position) {
+            const gameRect = gameContainer.getBoundingClientRect();
+            const bridgeTop = gameRect.height * 0.2;
+            const bridgeBottom = gameRect.height * 0.25;
+            const bridgeLeft = gameRect.width * 0.4;
+            const bridgeRight = gameRect.width * 0.6;
+            return position.y > bridgeTop && position.y < bridgeBottom && position.x > bridgeLeft && position.x < bridgeRight;
+        }
+
+        function getClosestTarget(unit, targets) {
+            let closest = null;
+            let minDistance = Infinity;
+            for (const target of targets) {
+                const dx = target.position.x - unit.position.x;
+                const dy = target.position.y - unit.position.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closest = target;
+                }
+            }
+            return closest;
+        }
+
+        function applyDamage(target, damage) {
+            target.health -= damage;
+            if (target.element) {
+                // Може да се визуализира промяната в здравето
+                if (target.element.dataset && target.element.dataset.health) {
+                    target.element.dataset.health = target.health;
+                    target.element.textContent = target.element.textContent.split(' ')[0] + ' ' + Math.max(0, target.health);
+                } else if (target.element.id.includes('tower')) {
+                    target.element.textContent = target.element.textContent.split(' ')[0] + ' ' + Math.max(0, target.health);
+                    target.element.dataset.health = target.health;
+                }
+            }
+            if (target.health <= 0) {
+                // Обектът е унищожен
+                if (target.element) {
+                    target.element.remove();
+                }
+                gameObjects = gameObjects.filter(obj => obj !== target);
+                console.log(`${target.data.name || target.element.id} destroyed!`);
+                checkWinCondition();
+            }
+        }
+
+        function getTowers(owner) {
+            if (owner === 'player') {
+                return [
+                    { element: playerKingTower, health: parseInt(playerKingTower.dataset.health), position: { x: gameContainer.offsetWidth / 2, y: gameContainer.offsetHeight * 0.15 }, isTower: true },
+                    { element: playerPrincessTowerLeft, health: parseInt(playerPrincessTowerLeft.dataset.health), position: { x: gameContainer.offsetWidth * 0.15, y: gameContainer.offsetHeight * 0.35 }, isTower: true },
+                    { element: playerPrincessTowerRight, health: parseInt(playerPrincessTowerRight.dataset.health), position: { x: gameContainer.offsetWidth * 0.85, y: gameContainer.offsetHeight * 0.35 }, isTower: true }
+                ].filter(tower => tower.health > 0);
+            } else {
+                return [
+                    { element: opponentKingTower, health: parseInt(opponentKingTower.dataset.health), position: { x: gameContainer.offsetWidth / 2, y: gameContainer.offsetHeight * 0.
+
+Ето втората част от кода, която продължава JavaScript логиката:
+            offsetHeight * 0.85 }, isTower: true },
+                    { element: opponentPrincessTowerLeft, health: parseInt(opponentPrincessTowerLeft.dataset.health), position: { x: gameContainer.offsetWidth * 0.15, y: gameContainer.offsetHeight * 0.65 }, isTower: true },
+                    { element: opponentPrincessTowerRight, health: parseInt(opponentPrincessTowerRight.dataset.health), position: { x: gameContainer.offsetWidth * 0.85, y: gameContainer.offsetHeight * 0.65 }, isTower: true }
+                ].filter(tower => tower.health > 0);
+            }
+        }
+
+        function handleCombat() {
+            for (const unit of gameObjects) {
+                if (unit.data.type === 'troop') {
+                    let target = null;
+                    if (unit.owner === 'player') {
+                        const opponentTowers = getTowers('opponent');
+                        const opponentUnits = gameObjects.filter(obj => obj.owner === 'opponent' && obj.data.type === 'troop');
+
+                        if (unit.data.target === 'buildings') {
+                            target = getClosestTarget(unit, opponentTowers);
+                        } else if (opponentUnits.length > 0) {
+                            target = getClosestTarget(unit, opponentUnits);
+                        } else {
+                            target = getClosestTarget(unit, opponentTowers);
+                        }
+                    } else {
+                        const playerTowers = getTowers('player');
+                        const playerUnits = gameObjects.filter(obj => obj.owner === 'player' && obj.data.type === 'troop');
+
+                        if (unit.data.target === 'buildings') {
+                            target = getClosestTarget(unit, playerTowers);
+                        } else if (playerUnits.length > 0) {
+                            target = getClosestTarget(unit, playerUnits);
+                        } else {
+                            target = getClosestTarget(unit, playerTowers);
+                        }
+                    }
+
+                    if (target) {
+                        const dx = target.position.x - unit.position.x;
+                        const dy = target.position.y - unit.position.y;
+                        const distanceToTarget = Math.sqrt(dx * dx + dy * dy);
+                        const attackRange = 50; // Примерна дистанция за атака
+
+                        if (distanceToTarget < attackRange) {
+                            // Атакува целта
+                            if (unit.attackCooldown === undefined || unit.attackCooldown <= 0) {
+                                applyDamage(target, unit.data.damage);
+                                unit.attackCooldown = 60 / (unit.data.speed === 'fast' ? 1.5 : unit.data.speed === 'very fast' ? 1 : 2); // Примерна скорост на атака
+                            } else if (unit.attackCooldown > 0) {
+                                unit.attackCooldown--;
+                            }
+                        } else {
+                            // Движи се към целта
+                            let targetPos = {...target.position};
+                            if (target.isTower) {
+                                const rect = target.element.getBoundingClientRect();
+                                targetPos = { x: rect.left + rect.width / 2 - (unit.element ? unit.element.offsetWidth / 2 : 0), y: rect.top + rect.height / 2 - (unit.element ? unit.element.offsetHeight / 2 : 0) };
+                            }
+                            moveObject(unit, targetPos, unit.data.speed === 'fast' ? 2 : unit.data.speed === 'very fast' ? 3 : 1);
+                        }
+                    } else {
+                        // Няма цел - може да се движи към вражеската страна по пътя
+                        let targetY = unit.owner === 'player' ? gameContainer.offsetHeight * 0.1 : gameContainer.offsetHeight * 0.9;
+                        let bridgeX = gameContainer.offsetWidth / 2 - (unit.element ? unit.element.offsetWidth / 2 : 0);
+                        let moveTarget = { x: bridgeX, y: targetY };
+
+                        if (unit.data.target === 'ground' && isOverRiver(unit.position) && !isOverPlayerBridge(unit.position) && !isOverOpponentBridge(unit.position)) {
+                            moveTarget.x = gameContainer.offsetWidth / 2 - (unit.element ? unit.element.offsetWidth / 2 : 0);
+                            moveTarget.y = unit.owner === 'player' ? gameContainer.offsetHeight * 0.825 : gameContainer.offsetHeight * 0.225; // Към моста
+                        }
+                        moveObject(unit, moveTarget, unit.data.speed === 'fast' ? 2 : unit.data.speed === 'very fast' ? 3 : 1);
+                    }
+                }
+            }
+        }
+
+        function checkWinCondition() {
+            const playerTowersAlive = getTowers('player').length;
+            const opponentTowersAlive = getTowers('opponent').length;
+
+            if (playerTowersAlive === 0) {
+                console.log("Opponent Wins!");
+                stopGameLoop();
+            } else if (opponentTowersAlive === 0) {
+                console.log("Player Wins!");
+                stopGameLoop();
+            }
+        }
+
+        function gameLoop() {
+            updateElixir();
+            handleCombat();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startGame() {
+            initializeDecks();
+            // Примерно спаунване на карта от играча
+            const playerSpawnPosition = { x: gameContainer.offsetWidth * 0.2, y: gameContainer.offsetHeight * 0.8 };
+            const randomPlayerCard = playerDeck[Math.floor(Math.random() * playerDeck.length)];
+            if (elixirPlayer >= randomPlayerCard.elixir) {
+                spawnCard(randomPlayerCard, 'player', playerSpawnPosition);
+                elixirPlayer -= randomPlayerCard.elixir;
+            }
+
+            // Примерно AI спаунване на карта
+            setTimeout(() => {
+                const opponentSpawnPosition = { x: gameContainer.offsetWidth * 0.8, y: gameContainer.offsetHeight * 0.2 };
+                const randomOpponentCard = opponentDeck[Math.floor(Math.random() * opponentDeck.length)];
+                if (elixirOpponent >= randomOpponentCard.elixir) {
+                    spawnCard(randomOpponentCard, 'opponent', opponentSpawnPosition);
+                    elixirOpponent -= randomOpponentCard.elixir;
+                }
+            }, 2000);
+
+            gameLoop();
+        }
+
+        function stopGameLoop() {
+            cancelAnimationFrame(gameLoop);
+        }
+
+        // Стартиране на играта след зареждане на страницата
+        window.onload = startGame;
+
+        // Добавяне на възможност за "пускане" на карта при кликване (за тестване)
+        gameContainer.addEventListener('click', (event) => {
+            const rect = gameContainer.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            const randomPlayerCard = playerDeck[Math.floor(Math.random() * playerDeck.length)];
+            if (elixirPlayer >= randomPlayerCard.elixir) {
+                spawnCard(randomPlayerCard, 'player', { x: x - 40, y: y - 50 }); // Центриране на картата около клика
+                elixirPlayer -= randomPlayerCard.elixir;
+                console.log(`Player spawned ${randomPlayerCard.name}, Elixir: ${elixirPlayer.toFixed(2)}`);
+            } else {
+                console.log("Not enough elixir!");
+            }
+        });
+
+        // AI логика (много базова)
+        setInterval(() => {
+            if (getTowers('opponent').length > 0) {
+                const availableOpponentCards = opponentDeck.filter(card => elixirOpponent >= card.elixir);
+                if (availableOpponentCards.length > 0) {
+                    const randomCard = availableOpponentCards[Math.floor(Math.random() * availableOpponentCards.length)];
+                    const spawnX = gameContainer.offsetWidth * (0.3 + Math.random() * 0.4);
+                    const spawnY = gameContainer.offsetHeight * 0.2;
+                    spawnCard(randomCard, 'opponent', { x: spawnX, y: spawnY });
+                    elixirOpponent -= randomCard.elixir;
+                    console.log(`Opponent spawned ${randomCard.name}, Elixir: ${elixirOpponent.toFixed(2)}`);
+                }
+            }
+        }, 3000); // AI пуска карта на всеки 3 секунди (примерно)
+
+    </script>
 </body>
 </html>
