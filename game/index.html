@@ -1,447 +1,360 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bg">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Clash Royale (Local)</title>
-    <style>
-        body { margin: 0; overflow: hidden; font-family: sans-serif; background-color: #f0e6d2; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        #game-container {
-            background: url('https://i.imgur.com/MJEcHwQ.png'); /* Примерна арена */
-            background-size: cover;
-            border: 5px solid #8b4513;
-            position: relative;
-            overflow: hidden;
-        }
-        /* Настройки за мобилен изглед */
-        @media (orientation: portrait) {
-            #game-container {
-                width: 90vw;
-                height: calc(90vw * 1.777); /* Приблизително съотношение 16:9 */
-            }
-        }
-        @media (orientation: landscape) {
-            #game-container {
-                width: 90vh;
-                height: calc(90vh * 0.5625); /* Приблизително съотношение 16:9 */
-            }
-        }
-        .tower {
-            width: 50px;
-            height: 100px;
-            background-color: #d2b48c;
-            border: 2px solid #8b4513;
-            position: absolute;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px black;
-        }
-        .tower-king-player { bottom: 10%; left: 50%; transform: translateX(-50%); height: 120px; }
-        .tower-princess-player-left { bottom: 30%; left: 15%; }
-        .tower-princess-player-right { bottom: 30%; right: 15%; }
-        .tower-king-opponent { top: 10%; left: 50%; transform: translateX(-50%); height: 120px; }
-        .tower-princess-opponent-left { top: 30%; left: 15%; }
-        .tower-princess-opponent-right { top: 30%; right: 15%; }
-        .river {
-            position: absolute;
-            top: 45%;
-            left: 0;
-            width: 100%;
-            height: 10%;
-            background-color: #87ceeb;
-        }
-        .bridge-player {
-            position: absolute;
-            bottom: 20%;
-            left: 40%;
-            width: 20%;
-            height: 5%;
-            background-color: #b8860b;
-        }
-        .bridge-opponent {
-            position: absolute;
-            top: 20%;
-            left: 40%;
-            width: 20%;
-            height: 5%;
-            background-color: #b8860b;
-        }
-        .card {
-            width: 80px;
-            height: 100px;
-            background-color: #fff;
-            border: 1px solid #000;
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-        }
-        .card-name { font-weight: bold; margin-bottom: 5px; }
-        .card-stats { font-size: 0.8em; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Казино Слот Игра</title>
+  <style>
+    html, body {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100vw;
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: 'Segoe UI', 'Arial', sans-serif;
+      background: repeating-linear-gradient(135deg,
+                  rgba(50,0,0,0.4) 0 40px, rgba(30,0,0,0.5) 40px 80px),
+                  #1a0000;
+      /* Фон от карти */
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      z-index: 0;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      pointer-events: none;
+      background-image:
+        url('https://upload.wikimedia.org/wikipedia/commons/5/57/Playing_card_spade_A.svg'),
+        url('https://upload.wikimedia.org/wikipedia/commons/d/d3/Playing_card_heart_A.svg'),
+        url('https://upload.wikimedia.org/wikipedia/commons/2/25/Playing_card_club_A.svg'),
+        url('https://upload.wikimedia.org/wikipedia/commons/7/72/Playing_card_diamond_A.svg');
+      background-size: 60px, 50px, 40px, 55px;
+      background-position:
+        10vw 15vh,
+        80vw 10vh,
+        20vw 70vh,
+        65vw 60vh;
+      background-repeat: no-repeat;
+      opacity: 0.13;
+    }
+    #container {
+      position: absolute;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    #slot-machine {
+      margin-top: 4vw;
+      background: linear-gradient(135deg, #320000 70%, #180000 100%);
+      border: 8px solid #FFD700;
+      border-radius: 28px;
+      box-shadow:
+        0 0 35px 5px #FFD70099,
+        0 0 0 8px #C0A060 inset,
+        0 0 0 16px #FFD70044 inset;
+      padding: 1vw 1vw 2vw 1vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #reels {
+      display: flex;
+      flex-direction: row;
+      gap: 1vw;
+    }
+    .reel {
+      display: flex;
+      flex-direction: column;
+      gap: 1vw;
+    }
+    .symbol-cell {
+      width: 16vw;
+      height: 16vw;
+      max-width: 90px;
+      max-height: 90px;
+      min-width: 54px;
+      min-height: 54px;
+      background: #111;
+      border: 3px solid #B8860B;
+      border-radius: 13px;
+      box-shadow: 0 0 7px #FFD70080;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: #FFD700;
+      position: relative;
+      transition: box-shadow 0.2s, border-color 0.2s;
+      overflow: hidden;
+    }
+    .symbol-cell.win {
+      animation: flash 0.4s linear infinite alternate;
+      border-color: #fff200;
+      box-shadow: 0 0 22px 7px #fff800, 0 0 0 3px #FFD700 inset;
+      z-index: 2;
+    }
+    @keyframes flash {
+      0% { box-shadow: 0 0 15px 3px #ffd700, 0 0 0 3px #FFD700 inset; }
+      100% { box-shadow: 0 0 22px 8px #fff800, 0 0 0 5px #FFD700 inset; }
+    }
+    #spin-btn {
+      margin: 3vw 0 0 0;
+      padding: 1.1em 4em;
+      font-size: 2.1em;
+      background: linear-gradient(90deg, #C10000 60%, #FFD700 100%);
+      color: #fff;
+      border: none;
+      border-radius: 40px;
+      box-shadow: 0 0 22px 7px #FFD70077;
+      font-weight: bold;
+      letter-spacing: 0.12em;
+      text-shadow: 0 2px 8px #C10000, 0 0 4px #FFD700;
+      transition: background 0.2s, transform 0.12s;
+      cursor: pointer;
+      outline: none;
+      position: relative;
+      z-index: 2;
+    }
+    #spin-btn:active {
+      transform: scale(0.97);
+      background: linear-gradient(90deg, #FFD700 10%, #C10000 100%);
+    }
+    #win-msg {
+      margin: 2vw 0 0 0;
+      font-size: 2.2em;
+      font-weight: bold;
+      color: #FFD700;
+      text-shadow: 0 0 15px #FFD700, 0 2px 2px #C10000;
+      min-height: 2.5em;
+      text-align: center;
+    }
+    #payout-table {
+      margin: 4vw 0 0 0;
+      background: rgba(30,0,0,0.54);
+      border-radius: 14px;
+      box-shadow: 0 0 0 3px #FFD700 inset;
+      padding: 1vw 2vw;
+      max-width: 96vw;
+      overflow-x: auto;
+    }
+    #payout-table table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #FFD700;
+      font-size: 1.3em;
+      text-align: center;
+    }
+    #payout-table th, #payout-table td {
+      padding: 0.4em 1vw;
+      border-bottom: 1px solid #444;
+      font-weight: 500;
+    }
+    #payout-table th {
+      color: #fff;
+      text-shadow: 0 1px 4px #C10000;
+    }
+    @media (max-width: 600px) {
+      #slot-machine {
+        margin-top: 2vw;
+        padding: 1vw 0.5vw 2vw 0.5vw;
+      }
+      .symbol-cell {
+        font-size: 2em;
+      }
+      #spin-btn {
+        font-size: 1.5em;
+        padding: 0.9em 2.7em;
+      }
+      #win-msg {
+        font-size: 1.2em;
+      }
+      #payout-table table {
+        font-size: 0.97em;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div id="game-container">
-        <div class="tower tower-king-player" id="player-king-tower" data-health="3500">👑 3500</div>
-        <div class="tower tower-princess-player-left" id="player-princess-tower-left" data-health="2500">👸 2500</div>
-        <div class="tower tower-princess-player-right" id="player-princess-tower-right" data-health="2500">👸 2500</div>
-
-        <div class="tower tower-king-opponent" id="opponent-king-tower" data-health="3500">👑 3500</div>
-        <div class="tower tower-princess-opponent-left" id="opponent-princess-tower-left" data-health="2500">👸 2500</div>
-        <div class="tower tower-princess-opponent-right" id="opponent-princess-tower-right" data-health="2500">👸 2500</div>
-
-        <div class="river"></div>
-
-        <div class="bridge-player"></div>
-        <div class="bridge-opponent"></div>
+  <div id="container">
+    <div id="slot-machine">
+      <div id="reels"></div>
+      <button id="spin-btn">СПИН</button>
+      <div id="win-msg"></div>
+      <div id="payout-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Символ</th>
+              <th>Точки</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>❤️ Червено сърце</td><td>100</td></tr>
+            <tr><td>♠️ Пика</td><td>80</td></tr>
+            <tr><td>♦️ Каро</td><td>60</td></tr>
+            <tr><td>♣️ Спатия</td><td>40</td></tr>
+            <tr><td>🔔 Камбанка</td><td>20</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
+  </div>
+  <!-- JS в следващия отговор -->
 
-    <script>
-        const gameContainer = document.getElementById('game-container');
-        const playerKingTower = document.getElementById('player-king-tower');
-        const playerPrincessTowerLeft = document.getElementById('player-princess-tower-left');
-        const playerPrincessTowerRight = document.getElementById('player-princess-tower-right');
-        const opponentKingTower = document.getElementById('opponent-king-tower');
-        const opponentPrincessTowerLeft = document.getElementById('opponent-princess-tower-left');
-        const opponentPrincessTowerRight = document.getElementById('opponent-princess-tower-right');
+      <script>
+    // Символи и техните точки
+    const symbols = [
+      { icon: '❤️', name: 'Червено сърце', points: 100 },
+      { icon: '♠️', name: 'Пика', points: 80 },
+      { icon: '♦️', name: 'Каро', points: 60 },
+      { icon: '♣️', name: 'Спатия', points: 40 },
+      { icon: '🔔', name: 'Камбанка', points: 20 },
+    ];
+    const ROWS = 3;
+    const COLS = 5;
+    let spinning = false;
+    let winCells = [];
 
-        // Дефиниране на карти с реални статистики (примерни)
-        const cardsData = [
-            { name: 'Knight', elixir: 3, health: 1450, damage: 159, speed: 'medium', target: 'ground', type: 'troop' },
-            { name: 'Archers', elixir: 3, health: 310, damage: 67, speed: 'fast', target: 'air+ground', type: 'troop' },
-            { name: 'Giant', elixir: 5, health: 5200, damage: 126, speed: 'medium', target: 'buildings', type: 'troop' },
-            { name: 'Goblin', elixir: 2, health: 216, damage: 79, speed: 'very fast', target: 'ground', type: 'troop' },
-            { name: 'Spear Goblins', elixir: 2, health: 190, damage: 52, speed: 'very fast', target: 'air+ground', type: 'troop' },
-            { name: 'Mini P.E.K.K.A', elixir: 4, health: 1050, damage: 580, speed: 'medium', target: 'ground', type: 'troop' },
-            { name: 'Musketeer', elixir: 4, health: 598, damage: 176, speed: 'medium', target: 'air+ground', type: 'troop' },
-            { name: 'Hog Rider', elixir: 4, health: 1400, damage: 160, speed: 'fast', target: 'buildings', type: 'troop' },
-            { name: 'Valkyrie', elixir: 4, health: 1660, damage: 127, speed: 'medium', target: 'ground', type: 'troop', splash: true },
-            { name: 'Wizard', elixir: 5, health: 660, damage: 240, speed: 'medium', target: 'air+ground', type: 'troop', splash: true },
-            { name: 'Baby Dragon', elixir: 4, health: 1000, damage: 140, speed: 'fast', target: 'air+ground', type: 'troop', splash: true },
-            { name: 'Skeleton Army', elixir: 3, health: 30 * 15, damage: 30 * 15, speed: 'fast', target: 'ground', type: 'troop', count: 15 }, // Коригирана статистика
-            { name: 'Arrows', elixir: 3, damage: 288, radius: 4, type: 'spell', target: 'area' },
-            { name: 'Fireball', elixir: 4, damage: 651, radius: 2.5, type: 'spell', target: 'area' },
-            { name: 'Rage', elixir: 2, duration: 6, type: 'spell', effect: 'speed+damage' },
-            { name: 'Inferno Tower', elixir: 5, health: 1100, damageProgression: 'yes', speed: 'slow', target: 'buildings', type: 'building' }
-        ];
-
-        let playerDeck = [];
-        let opponentDeck = [];
-
-        function initializeDecks() {
-            // Вземаме 8 случайни карти за играча и опонента
-            const allCards = [...cardsData];
-            for (let i = 0; i < 8; i++) {
-                let randomIndex = Math.floor(Math.random() * allCards.length);
-                playerDeck.push({...allCards[randomIndex]});
-                allCards.splice(randomIndex, 1);
-            }
-            for (let i = 0; i < 8; i++) {
-                let randomIndex = Math.floor(Math.random() * allCards.length);
-                opponentDeck.push({...allCards[randomIndex]});
-                allCards.splice(randomIndex, 1);
-            }
-            console.log("Player Deck:", playerDeck);
-            console.log("Opponent Deck:", opponentDeck);
+    // Генериране на началната решетка
+    function generateGrid(randomize = true) {
+      let result = [];
+      for (let r = 0; r < ROWS; r++) {
+        let row = [];
+        for (let c = 0; c < COLS; c++) {
+          let index = randomize ? Math.floor(Math.random() * symbols.length) : 0;
+          row.push(index);
         }
+        result.push(row);
+      }
+      return result;
+    }
 
-        let gameObjects = [];
-        let elixirPlayer = 5;
-        let elixirOpponent = 5;
-        const maxElixir = 10;
-        const elixirGainRate = 1; // Еликсир се добавя всяка секунда (примерно)
-        let lastElixirUpdate = Date.now();
-
-        function updateElixir() {
-            const now = Date.now();
-            const timePassed = (now - lastElixirUpdate) / 1000; // В секунди
-
-            if (elixirPlayer < maxElixir) {
-                elixirPlayer += elixirGainRate * timePassed;
-                if (elixirPlayer > maxElixir) elixirPlayer = maxElixir;
-            }
-            if (elixirOpponent < maxElixir) {
-                elixirOpponent += elixirGainRate * timePassed;
-                if (elixirOpponent > maxElixir) elixirOpponent = maxElixir;
-            }
-            lastElixirUpdate = now;
-            // Може да се визуализира еликсира тук
+    // Рендиране на решетката
+    function renderGrid(grid, winMap = []) {
+      const reels = document.getElementById('reels');
+      reels.innerHTML = '';
+      for (let c = 0; c < COLS; c++) {
+        let column = document.createElement('div');
+        column.className = 'reel';
+        for (let r = 0; r < ROWS; r++) {
+          let cell = document.createElement('div');
+          cell.className = 'symbol-cell';
+          if (winMap[r] && winMap[r][c]) cell.classList.add('win');
+          cell.textContent = symbols[grid[r][c]].icon;
+          column.appendChild(cell);
         }
+        reels.appendChild(column);
+      }
+    }
 
-        function spawnCard(cardData, owner, position) {
-            const cardElement = document.createElement('div');
-            cardElement.classList.add('card');
-            cardElement.innerHTML = `<div class="card-name">${cardData.name}</div><div class="card-stats">Elixir: ${cardData.elixir}<br>HP: ${cardData.health}<br>DMG: ${cardData.damage}</div>`;
-            cardElement.style.left = `${position.x}px`;
-            cardElement.style.top = `${position.y}px`;
-            gameContainer.appendChild(cardElement);
+    // Проверка за печалба
+    function checkWin(grid) {
+      let winMap = Array.from({length: ROWS}, () => Array(COLS).fill(false));
+      let winSymbol = null;
+      let winType = null;
 
-            const gameObject = {
-                element: cardElement,
-                data: {...cardData},
-                owner: owner,
-                position: {...position},
-                health: cardData.health || 0
-            };
-            gameObjects.push(gameObject);
-            return gameObject;
+      // Проверка за цял ред (хоризонтално)
+      for (let r = 0; r < ROWS; r++) {
+        let allSame = true;
+        for (let c = 1; c < COLS; c++) {
+          if (grid[r][c] !== grid[r][0]) {
+            allSame = false; break;
+          }
         }
-
-        function moveObject(gameObject, targetPosition, speed = 10) { // По-висока скорост за по-плавно движение
-            const dx = targetPosition.x - gameObject.position.x;
-            const dy = targetPosition.y - gameObject.position.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance > 1) {
-                const stepX = dx / distance * speed;
-                const stepY = dy / distance * speed;
-                gameObject.position.x += stepX;
-                gameObject.position.y += stepY;
-                gameObject.element.style.left = `${gameObject.position.x}px`;
-                gameObject.element.style.top = `${gameObject.position.y}px`;
-                return false; // Все още се движи
-            } else {
-                gameObject.position.x = targetPosition.x;
-                gameObject.position.y = targetPosition.y;
-                gameObject.element.style.left = `${gameObject.position.x}px`;
-                gameObject.element.style.top = `${gameObject.position.y}px`;
-                return true; // Достигна целта
-            }
+        if (allSame) {
+          for (let c = 0; c < COLS; c++) winMap[r][c] = true;
+          winSymbol = grid[r][0];
+          winType = 'row';
         }
+      }
+      // Проверка за цял екран
+      let allScreenSame = true;
+      let first = grid[0][0];
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          if (grid[r][c] !== first) allScreenSame = false;
+      if (allScreenSame) {
+        winMap = Array.from({length: ROWS}, () => Array(COLS).fill(true));
+        winSymbol = first;
+        winType = 'screen';
+      }
+      if (winSymbol !== null) {
+        return {winMap, winSymbol, winType};
+      }
+      return null;
+    }
 
-        function isOverRiver(position) {
-            const gameRect = gameContainer.getBoundingClientRect();
-            const riverTop = gameRect.height * 0.45;
-            const riverBottom = gameRect.height * 0.55;
-            return position.y > riverTop && position.y < riverBottom;
+    // Анимация на въртенето
+    function spinAnimation(callback) {
+      let spins = 18 + Math.floor(Math.random() * 7);
+      let i = 0;
+      let interval = setInterval(() => {
+        let grid = generateGrid(true);
+        renderGrid(grid);
+        i++;
+        if (i >= spins) {
+          clearInterval(interval);
+          callback();
         }
+      }, 60 + i*3);
+    }
 
-        function isOverPlayerBridge(position) {
-            const gameRect = gameContainer.getBoundingClientRect();
-            const bridgeTop = gameRect.height * 0.8;
-            const bridgeBottom = gameRect.height * 0.85;
-            const bridgeLeft = gameRect.width * 0.4;
-            const bridgeRight = gameRect.width * 0.6;
-            return position.y > bridgeTop && position.y < bridgeBottom && position.x > bridgeLeft && position.x < bridgeRight;
+    // Стартиране на играта
+    function spin() {
+      if (spinning) return;
+      spinning = true;
+      winCells = [];
+      document.getElementById('win-msg').textContent = '';
+      document.querySelectorAll('.symbol-cell').forEach(el=>el.classList.remove('win'));
+      spinAnimation(() => {
+        let grid = generateGrid(true);
+        let win = checkWin(grid);
+        renderGrid(grid, win ? win.winMap : []);
+        if (win) {
+          let points = symbols[win.winSymbol].points;
+          let text = win.winType === 'screen'
+            ? `ДЖАКПОТ! Всички символи са <span style="color:#FFD700;">${symbols[win.winSymbol].icon}</span>! Печелиш <span style="color:#FFD700;">${points*ROWS*COLS}</span> точки!`
+            : `Пълен ред с <span style="color:#FFD700;">${symbols[win.winSymbol].icon}</span>! Печелиш <span style="color:#FFD700;">${points*COLS}</span> точки!`;
+          document.getElementById('win-msg').innerHTML = text;
+
+          // Започва анимация докато не се натисне пак СПИН
+          let winCellsEls = [];
+          document.querySelectorAll('.symbol-cell').forEach((cell, idx) => {
+            let c = Math.floor(idx/COLS), r = idx%COLS;
+            if (win.winMap[r] && win.winMap[r][c]) winCellsEls.push(cell);
+          });
+          let flash = true;
+          function flashing() {
+            if (!spinning) { winCellsEls.forEach(cell=>cell.classList.remove('win')); return; }
+            winCellsEls.forEach(cell=>cell.classList.toggle('win', flash));
+            flash = !flash;
+            setTimeout(flashing, 300);
+          }
+          flashing();
         }
+        spinning = false;
+      });
+    }
 
-        function isOverOpponentBridge(position) {
-            const gameRect = gameContainer.getBoundingClientRect();
-            const bridgeTop = gameRect.height * 0.2;
-            const bridgeBottom = gameRect.height * 0.25;
-            const bridgeLeft = gameRect.width * 0.4;
-            const bridgeRight = gameRect.width * 0.6;
-            return position.y > bridgeTop && position.y < bridgeBottom && position.x > bridgeLeft && position.x < bridgeRight;
-        }
-
-        function getClosestTarget(unit, targets) {
-            let closest = null;
-            let minDistance = Infinity;
-            for (const target of targets) {
-                const dx = target.position.x - unit.position.x;
-                const dy = target.position.y - unit.position.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closest = target;
-                }
-            }
-            return closest;
-        }
-
-        function applyDamage(target, damage) {
-            target.health -= damage;
-            if (target.element) {
-                // Може да се визуализира промяната в здравето
-                if (target.element.dataset && target.element.dataset.health) {
-                    target.element.dataset.health = target.health;
-                    target.element.textContent = target.element.textContent.split(' ')[0] + ' ' + Math.max(0, target.health);
-                } else if (target.element.id.includes('tower')) {
-                    target.element.textContent = target.element.textContent.split(' ')[0] + ' ' + Math.max(0, target.health);
-                    target.element.dataset.health = target.health;
-                }
-            }
-            if (target.health <= 0) {
-                // Обектът е унищожен
-                if (target.element) {
-                    target.element.remove();
-                }
-                gameObjects = gameObjects.filter(obj => obj !== target);
-                console.log(`${target.data.name || target.element.id} destroyed!`);
-                checkWinCondition();
-            }
-        }
-
-        function getTowers(owner) {
-            if (owner === 'player') {
-                return [
-                    { element: playerKingTower, health: parseInt(playerKingTower.dataset.health), position: { x: gameContainer.offsetWidth / 2, y: gameContainer.offsetHeight * 0.15 }, isTower: true },
-                    { element: playerPrincessTowerLeft, health: parseInt(playerPrincessTowerLeft.dataset.health), position: { x: gameContainer.offsetWidth * 0.15, y: gameContainer.offsetHeight * 0.35 }, isTower: true },
-                    { element: playerPrincessTowerRight, health: parseInt(playerPrincessTowerRight.dataset.health), position: { x: gameContainer.offsetWidth * 0.85, y: gameContainer.offsetHeight * 0.35 }, isTower: true }
-                ].filter(tower => tower.health > 0);
-            } else {
-                return [
-                    { element: opponentKingTower, health: parseInt(opponentKingTower.dataset.health), position: { x: gameContainer.offsetWidth / 2, y: gameContainer.offsetHeight * 0.
-
-Ето втората част от кода, която продължава JavaScript логиката:
-            offsetHeight * 0.85 }, isTower: true },
-                    { element: opponentPrincessTowerLeft, health: parseInt(opponentPrincessTowerLeft.dataset.health), position: { x: gameContainer.offsetWidth * 0.15, y: gameContainer.offsetHeight * 0.65 }, isTower: true },
-                    { element: opponentPrincessTowerRight, health: parseInt(opponentPrincessTowerRight.dataset.health), position: { x: gameContainer.offsetWidth * 0.85, y: gameContainer.offsetHeight * 0.65 }, isTower: true }
-                ].filter(tower => tower.health > 0);
-            }
-        }
-
-        function handleCombat() {
-            for (const unit of gameObjects) {
-                if (unit.data.type === 'troop') {
-                    let target = null;
-                    if (unit.owner === 'player') {
-                        const opponentTowers = getTowers('opponent');
-                        const opponentUnits = gameObjects.filter(obj => obj.owner === 'opponent' && obj.data.type === 'troop');
-
-                        if (unit.data.target === 'buildings') {
-                            target = getClosestTarget(unit, opponentTowers);
-                        } else if (opponentUnits.length > 0) {
-                            target = getClosestTarget(unit, opponentUnits);
-                        } else {
-                            target = getClosestTarget(unit, opponentTowers);
-                        }
-                    } else {
-                        const playerTowers = getTowers('player');
-                        const playerUnits = gameObjects.filter(obj => obj.owner === 'player' && obj.data.type === 'troop');
-
-                        if (unit.data.target === 'buildings') {
-                            target = getClosestTarget(unit, playerTowers);
-                        } else if (playerUnits.length > 0) {
-                            target = getClosestTarget(unit, playerUnits);
-                        } else {
-                            target = getClosestTarget(unit, playerTowers);
-                        }
-                    }
-
-                    if (target) {
-                        const dx = target.position.x - unit.position.x;
-                        const dy = target.position.y - unit.position.y;
-                        const distanceToTarget = Math.sqrt(dx * dx + dy * dy);
-                        const attackRange = 50; // Примерна дистанция за атака
-
-                        if (distanceToTarget < attackRange) {
-                            // Атакува целта
-                            if (unit.attackCooldown === undefined || unit.attackCooldown <= 0) {
-                                applyDamage(target, unit.data.damage);
-                                unit.attackCooldown = 60 / (unit.data.speed === 'fast' ? 1.5 : unit.data.speed === 'very fast' ? 1 : 2); // Примерна скорост на атака
-                            } else if (unit.attackCooldown > 0) {
-                                unit.attackCooldown--;
-                            }
-                        } else {
-                            // Движи се към целта
-                            let targetPos = {...target.position};
-                            if (target.isTower) {
-                                const rect = target.element.getBoundingClientRect();
-                                targetPos = { x: rect.left + rect.width / 2 - (unit.element ? unit.element.offsetWidth / 2 : 0), y: rect.top + rect.height / 2 - (unit.element ? unit.element.offsetHeight / 2 : 0) };
-                            }
-                            moveObject(unit, targetPos, unit.data.speed === 'fast' ? 2 : unit.data.speed === 'very fast' ? 3 : 1);
-                        }
-                    } else {
-                        // Няма цел - може да се движи към вражеската страна по пътя
-                        let targetY = unit.owner === 'player' ? gameContainer.offsetHeight * 0.1 : gameContainer.offsetHeight * 0.9;
-                        let bridgeX = gameContainer.offsetWidth / 2 - (unit.element ? unit.element.offsetWidth / 2 : 0);
-                        let moveTarget = { x: bridgeX, y: targetY };
-
-                        if (unit.data.target === 'ground' && isOverRiver(unit.position) && !isOverPlayerBridge(unit.position) && !isOverOpponentBridge(unit.position)) {
-                            moveTarget.x = gameContainer.offsetWidth / 2 - (unit.element ? unit.element.offsetWidth / 2 : 0);
-                            moveTarget.y = unit.owner === 'player' ? gameContainer.offsetHeight * 0.825 : gameContainer.offsetHeight * 0.225; // Към моста
-                        }
-                        moveObject(unit, moveTarget, unit.data.speed === 'fast' ? 2 : unit.data.speed === 'very fast' ? 3 : 1);
-                    }
-                }
-            }
-        }
-
-        function checkWinCondition() {
-            const playerTowersAlive = getTowers('player').length;
-            const opponentTowersAlive = getTowers('opponent').length;
-
-            if (playerTowersAlive === 0) {
-                console.log("Opponent Wins!");
-                stopGameLoop();
-            } else if (opponentTowersAlive === 0) {
-                console.log("Player Wins!");
-                stopGameLoop();
-            }
-        }
-
-        function gameLoop() {
-            updateElixir();
-            handleCombat();
-            requestAnimationFrame(gameLoop);
-        }
-
-        function startGame() {
-            initializeDecks();
-            // Примерно спаунване на карта от играча
-            const playerSpawnPosition = { x: gameContainer.offsetWidth * 0.2, y: gameContainer.offsetHeight * 0.8 };
-            const randomPlayerCard = playerDeck[Math.floor(Math.random() * playerDeck.length)];
-            if (elixirPlayer >= randomPlayerCard.elixir) {
-                spawnCard(randomPlayerCard, 'player', playerSpawnPosition);
-                elixirPlayer -= randomPlayerCard.elixir;
-            }
-
-            // Примерно AI спаунване на карта
-            setTimeout(() => {
-                const opponentSpawnPosition = { x: gameContainer.offsetWidth * 0.8, y: gameContainer.offsetHeight * 0.2 };
-                const randomOpponentCard = opponentDeck[Math.floor(Math.random() * opponentDeck.length)];
-                if (elixirOpponent >= randomOpponentCard.elixir) {
-                    spawnCard(randomOpponentCard, 'opponent', opponentSpawnPosition);
-                    elixirOpponent -= randomOpponentCard.elixir;
-                }
-            }, 2000);
-
-            gameLoop();
-        }
-
-        function stopGameLoop() {
-            cancelAnimationFrame(gameLoop);
-        }
-
-        // Стартиране на играта след зареждане на страницата
-        window.onload = startGame;
-
-        // Добавяне на възможност за "пускане" на карта при кликване (за тестване)
-        gameContainer.addEventListener('click', (event) => {
-            const rect = gameContainer.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
-            const randomPlayerCard = playerDeck[Math.floor(Math.random() * playerDeck.length)];
-            if (elixirPlayer >= randomPlayerCard.elixir) {
-                spawnCard(randomPlayerCard, 'player', { x: x - 40, y: y - 50 }); // Центриране на картата около клика
-                elixirPlayer -= randomPlayerCard.elixir;
-                console.log(`Player spawned ${randomPlayerCard.name}, Elixir: ${elixirPlayer.toFixed(2)}`);
-            } else {
-                console.log("Not enough elixir!");
-            }
-        });
-
-        // AI логика (много базова)
-        setInterval(() => {
-            if (getTowers('opponent').length > 0) {
-                const availableOpponentCards = opponentDeck.filter(card => elixirOpponent >= card.elixir);
-                if (availableOpponentCards.length > 0) {
-                    const randomCard = availableOpponentCards[Math.floor(Math.random() * availableOpponentCards.length)];
-                    const spawnX = gameContainer.offsetWidth * (0.3 + Math.random() * 0.4);
-                    const spawnY = gameContainer.offsetHeight * 0.2;
-                    spawnCard(randomCard, 'opponent', { x: spawnX, y: spawnY });
-                    elixirOpponent -= randomCard.elixir;
-                    console.log(`Opponent spawned ${randomCard.name}, Elixir: ${elixirOpponent.toFixed(2)}`);
-                }
-            }
-        }, 3000); // AI пуска карта на всеки 3 секунди (примерно)
-
-    </script>
+    // Първоначален рендер
+    document.addEventListener('DOMContentLoaded', function(){
+      let initialGrid = generateGrid(true);
+      renderGrid(initialGrid);
+      document.getElementById('spin-btn').addEventListener('click', () => {
+        if (!spinning) spin();
+        else spinning = false; // Спира анимацията при нов СПИН
+      });
+      // За мобилни устройства: цял екран
+      document.body.requestFullscreen?.();
+    });
+  </script>
 </body>
 </html>
